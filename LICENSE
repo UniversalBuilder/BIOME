@@ -1,0 +1,66 @@
+BIOME - Bio Imaging Organization and Management Environment
+Copyright (c) 2025 Yannick Krempp
+
+This work is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License.
+
+To view a copy of this license, visit:
+http://creativecommons.org/licenses/by-nc/4.0/
+
+or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+
+================================================================================
+
+SUMMARY OF LICENSE TERMS:
+
+You are free to:
+- Share: copy and redistribute the material in any medium or format
+- Adapt: remix, transform, and build upon the material
+
+Under the following terms:
+- Attribution: You must give appropriate credit, provide a link to the license, 
+  and indicate if changes were made. You may do so in any reasonable manner, but 
+  not in any way that suggests the licensor endorses you or your use.
+- NonCommercial: You may not use the material for commercial purposes.
+- No additional restrictions: You may not apply legal terms or technological 
+  measures that legally restrict others from doing anything the license permits.
+
+================================================================================
+
+ATTRIBUTION REQUIREMENTS:
+
+When using, modifying, or redistributing this software, please include:
+1. A link to the original repository: https://github.com/[username]/BIOME
+2. Credit to the original author
+3. A notice that the work is licensed under CC BY-NC 4.0
+4. If you made changes, indicate what changes were made
+
+================================================================================
+
+COMMERCIAL USE PROHIBITION:
+
+This software is intended for academic, research, and educational purposes only. 
+Commercial use, including but not limited to:
+- Selling the software or services based on it
+- Using it in commercial research or consulting
+- Incorporating it into commercial products
+- Using it to generate revenue
+
+...is strictly prohibited without explicit written permission from the copyright holder.
+
+For commercial licensing inquiries, please contact: [contact-email]
+
+================================================================================
+
+WARRANTY DISCLAIMER:
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS 
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+================================================================================
+
+This software was developed to support the bioimage analysis community. Please 
+use it responsibly and in the spirit of open scientific collaboration.

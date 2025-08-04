@@ -1,0 +1,93 @@
+/* Grid Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+  background: inherit; /* Inherit background from parent */
+}
+
+/* Card Placements */
+.stats-card {
+  grid-column: span 2;
+}
+
+.analytics-card {
+  grid-column: span 4;
+  grid-row: span 3;
+}
+
+.activity-card {
+  grid-column: span 4;
+  grid-row: span 3;
+}
+
+.search-card {
+  grid-column: span 2;
+  max-height: 120px; /* Reduce height for quick search card */
+}
+
+.filters-card {
+  grid-column: span 2;
+  grid-row: span 4;
+  flex: 1; /* Allow it to grow and take available space */
+}
+
+.about-card {
+  grid-column: span 2;
+  max-height: 150px; /* Reduce height for about card */
+}
+
+/* Font size adjustments */
+.project-title {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.project-label {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.project-text {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .stats-card {
+    grid-column: span 4;
+  }
+  
+  .analytics-card,
+  .activity-card {
+    grid-column: span 4;
+  }
+  
+  .search-card,
+  .filters-card,
+  .about-card {
+    grid-column: span 4;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .stats-card,
+  .analytics-card,
+  .activity-card,
+  .search-card,
+  .filters-card,
+  .about-card {
+    grid-column: span 1;
+  }
+}

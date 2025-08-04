@@ -1,0 +1,179 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+package-lock.json
+*/package-lock.json
+
+# Tauri build artifacts - comprehensive patterns
+**/target/
+**/*target*/
+target/
+target
+*.rmeta
+*.rlib
+*.d
+*.timestamp
+*.pdb
+*.exp
+*.lib
+*.dll.exp
+Cargo.lock
+**/Cargo.lock
+
+# React build artifacts
+projet-analyse-image-frontend/build/
+projet-analyse-image-frontend/dist/
+**/build/
+**/dist/
+
+# Bundled dependencies that should be regenerated
+projet-analyse-image-frontend/src-tauri/resources/backend/node_modules/
+projet-analyse-image-frontend/src-tauri/bin/
+projet-analyse-image-frontend/src-tauri/resources/backend/package-lock.json
+
+# MSI and executable files
+*.msi
+*.exe
+
+# Object and compiled files
+*.o
+*.obj
+*.so
+*.dylib
+
+# Database files - will be created fresh
+*.sqlite
+*.sqlite3
+*.db
+*.sqlite-wal
+*.sqlite-shm
+
+# Log files - will be created as needed
+*.log
+logs/
+*/logs/
+**/logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+.cache/
+*/cache/
+**/cache/
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Runtime and process files
+*.pid
+*.lock
+
+# Coverage reports
+coverage/
+*/coverage/
+**/coverage/
+*.lcov
+
+# Environment variables (if any local env files exist)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backup files
+*.backup
+*.bak
+*.orig
+
+# Deprecated and temporary folders (cleaned)
+deprecated/
+temp_*/
+backup_*/
+backend/data/database.sqlite
+backend/data/database.sqlite-wal
+backend/data/database.sqlite-shm
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+backend/logs/
+projet-analyse-image-frontend/logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Development and design files
+assets/
+*.afdesign
+*.afphoto
+design/
+mockups/
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# Bundle outputs (but keep pre-built distribution)
+bundle/
+# BIOME-Distribution/ - Keep this for ready-to-install MSI files
+
+# Cache directories
+.cache/
+.temp/
+.tauri/
+
+out/
+node_modules
+node_modules
+node_modules

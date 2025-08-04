@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIOME App Launcher</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f5f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 30px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 {
+      color: #00468b;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .logo {
+      width: 150px;
+      margin-bottom: 20px;
+    }
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 40px;
+    }
+    .launch-button {
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+    .web-button {
+      background-color: #10b981;
+      color: white;
+    }
+    .web-button:hover {
+      background-color: #059669;
+    }
+    .desktop-button {
+      background-color: #3b82f6;
+      color: white;
+    }
+    .desktop-button:hover {
+      background-color: #2563eb;
+    }
+    .info-text {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #666;
+    }
+    .mode-toggle {
+      display: inline-block;
+      margin-top: 30px;
+    }
+    .version-info {
+      margin-top: 50px;
+      font-size: 12px;
+      color: #999;
+    }
+    
+    /* Avatar-inspired theme */
+    body {
+      background: linear-gradient(to bottom right, #1a2c38, #0f2231);
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+    h1 {
+      color: #00a9e0;
+      font-weight: 300;
+    }
+    .launch-button {
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .web-button {
+      background-color: #00a9e0;
+    }
+    .web-button:hover {
+      background-color: #0088b3;
+      box-shadow: 0 0 15px rgba(0, 169, 224, 0.5);
+    }
+    .desktop-button {
+      background-color: #7a4af9;
+    }
+    .desktop-button:hover {
+      background-color: #6039d6;
+      box-shadow: 0 0 15px rgba(122, 74, 249, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="logo.png" alt="BIOME Logo" class="logo">
+    <h1>BIOME App Launcher</h1>
+    <p class="subtitle">Bio Imaging Organization and Management Environment</p>
+    
+    <p>Choose which version of the application you'd like to launch:</p>
+    
+    <div class="button-container">
+      <button class="launch-button web-button" onclick="launchApp('web')">Launch Web Version</button>
+      <button class="launch-button desktop-button" onclick="launchApp('desktop')">Launch Desktop Version</button>
+    </div>
+    
+    <p class="info-text">
+      The web version runs in your browser with limited filesystem access.<br>
+      The desktop version offers full functionality including direct file system access.
+    </p>
+    
+    <div class="version-info">
+      BIOME v1.0.0
+    </div>
+  </div>
+
+  <script src="launcher.js"></script>
+</body>
+</html>
