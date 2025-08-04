@@ -5,11 +5,11 @@
 **A comprehensive bioimage analysis project management tool developed with GitHub Copilot and AI-assisted coding**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](#download)
-[![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#installation)
-[![AI-Powered](https://img.shields.io/badge/Built_with-GitHub_Copilot-purple.svg)](#ai-assisted-development)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](#-download)
+[![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#-installation--setup)
+[![AI-Powered](https://img.shields.io/badge/Built_with-GitHub_Copilot-purple.svg)](#-ai-assisted-development)
 
-[🚀 Quick Start](#quick-start) • [� Screenshots](#screenshots) • [�📦 Download](#download) • [🤖 AI Development](#ai-assisted-development)
+[🚀 Quick Start](#-quick-start) • [📸 Screenshots](#-screenshots) • [📦 Download](#-download) • [🤖 AI Development](#-ai-assisted-development)
 
 </div>
 
@@ -108,7 +108,7 @@ It helps organize, track, and manage biological imaging projects from inception 
 
 ### Option 1: Desktop Application (Recommended)
 
-1. **Download** the latest MSI installer: [BIOME_1.1.0_x64_en-US.msi](./BIOME-Distribution/BIOME_1.1.0_x64_en-US.msi)
+1. **Download** the latest MSI installer: [BIOME_1.1.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/latest/download/BIOME_1.1.0_x64_en-US.msi)
 2. **Install** by double-clicking the MSI file
 3. **Launch** BIOME from your Start Menu
 4. **Explore** the demo data featuring realistic bioimage analysis projects
@@ -129,6 +129,29 @@ npm run start-both
 
 # Open http://localhost:3000 in your browser
 ```
+
+---
+
+## 📦 Download
+
+**Ready-to-use Windows desktop application:**
+
+### 🖥️ Latest Release - Version 1.1.0
+- **Windows Installer (MSI)**: [BIOME_1.1.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/latest/download/BIOME_1.1.0_x64_en-US.msi)
+- **File Size**: ~53 MB (includes bundled Node.js runtime)
+- **Requirements**: Windows 10 (1809+) or Windows 11, 64-bit
+
+### 🎯 What's Included
+- ✅ **Complete Desktop Application** - Native Windows app with taskbar integration
+- ✅ **Demo Data** - 10 realistic bioimage analysis projects across 3 imaging facilities
+- ✅ **Offline Operation** - No internet connection required after installation
+- ✅ **Automatic Updates** - Built-in update notifications and installer
+- ✅ **SQLite Database** - Local data storage with backup/restore capabilities
+
+### 🔧 Alternative Downloads
+For developers and advanced users:
+- **Source Code**: Clone this repository using Git
+- **Web Version**: Set up development environment (see below)
 
 ---
 
