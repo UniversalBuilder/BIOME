@@ -9,7 +9,7 @@
 [![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#-installation--setup)
 [![AI-Powered](https://img.shields.io/badge/Built_with-GitHub_Copilot-purple.svg)](#-ai-assisted-development)
 
-[🚀 Quick Start](#-quick-start) • [📸 Screenshots](#-screenshots) • [📦 Download](#-download) • [🤖 AI Development](#-ai-assisted-development)
+[🚀 Quick Start](#-quick-start) • [📸 Screenshots](#-screenshots) • [📦 Download](#-download) • [🤖 AI Development](#-ai-assisted-development) • [📚 Documentation](#-documentation)
 
 </div>
 
