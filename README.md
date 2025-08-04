@@ -2,13 +2,14 @@
 
 <div align="center">
 
-**A comprehensive bioimage analysis project management tool for research facilities and laboratories**
+**A comprehensive bioimage analysis project management tool developed with GitHub Copilot and AI-assisted coding**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](#download)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#installation)
+[![AI-Powered](https://img.shields.io/badge/Built_with-GitHub_Copilot-purple.svg)](#ai-assisted-development)
 
-[🚀 Quick Start](#quick-start) • [📦 Download](#download) • [📚 Documentation](#documentation) • [🤝 Contributing](#contributing)
+[🚀 Quick Start](#quick-start) • [� Screenshots](#screenshots) • [�📦 Download](#download) • [🤖 AI Development](#ai-assisted-development)
 
 </div>
 
@@ -16,24 +17,90 @@
 
 ## 🔬 Overview
 
-BIOME is a specialized project management application designed for **bioimage analysis facilities** and **research laboratories**. It helps organize, track, and manage biological imaging projects from inception to completion, supporting workflows with popular tools like **Imaris**, **FIJI/ImageJ**, **QuPath**, and **CellProfiler**.
+BIOME is a specialized project management application designed for **bioimage analysis facilities** and **research laboratories**. Built entirely using **GitHub Copilot** in agent mode and **AI-assisted coding techniques**, this application demonstrates the power of modern AI development tools in creating sophisticated scientific software.
+
+It helps organize, track, and manage biological imaging projects from inception to completion, supporting workflows with popular tools like **Imaris**, **FIJI/ImageJ**, **QuPath**, and **CellProfiler**.
 
 ### ✨ Key Features
 
 - 🏢 **Multi-Facility Support**: Organize projects across imaging cores (Confocal, Widefield, Digital Pathology)
 - 👥 **Team Management**: Track projects by facility staff and research groups  
-- 📊 **Project Tracking**: Monitor analysis progress, time investment, and project status
-- � **Digital Lab Journal**: Document methodology, results, and analysis notes
-- 🔬 **Analysis Integration**: Designed for common bioimage analysis software workflows
-- 📈 **Progress Analytics**: Visualize project timelines, workload distribution, and productivity
-- 💻 **Dual Mode**: Available as both web application and native desktop app
+- 📊 **Enhanced Project Fields**: Multi-select dropdowns for sample types, imaging techniques, and analysis goals
+- 📈 **Comprehensive Analytics**: 6 specialized chart types for facility insights and productivity tracking
+- 📝 **Digital Lab Journal**: Document methodology, results, and analysis notes with activity tracking
+- 🔬 **Analysis Integration**: Designed for common bioimage analysis software workflows (Imaris, FIJI, QuPath, CellProfiler)
+- 💻 **Dual Mode**: Available as both responsive web application and native Windows desktop app
 
 ### 🎯 Perfect for:
 
-- **Core Facility Managers**: Track projects across multiple imaging modalities
+- **Core Facility Managers**: Track projects across multiple imaging modalities with detailed analytics
 - **Bioimage Analysis Staff**: Organize complex analysis pipelines and document workflows  
-- **Research Students**: Manage thesis projects and maintain analysis records
+- **Research Students**: Manage thesis projects and maintain detailed analysis records
 - **Lab Groups**: Coordinate shared imaging resources and collaborative projects
+
+---
+
+## 📸 Screenshots
+
+### Dashboard - Light & Dark Mode
+*Main overview with project statistics and recent activity*
+
+<div align="center">
+<img src="screenshots/biome_dashboard_light.png" alt="BIOME Dashboard Light Mode" width="45%">
+<img src="screenshots/biome_dashboard_dark.png" alt="BIOME Dashboard Dark Mode" width="45%">
+</div>
+
+### Project Management
+*Comprehensive project tracking with enhanced fields and status management*
+
+![BIOME Projects View](screenshots/biome_projects_dark.png)
+
+### Table View
+*Detailed project overview with sortable columns and filtering*
+
+![BIOME Table View](screenshots/biome_table_view_dark.png)
+
+### Analytics Dashboard
+*Six specialized chart types for facility insights and productivity analysis*
+
+![BIOME Analytics](screenshots/biome_analytics_dark.png)
+
+### Database Management
+*SQLite database with realistic demo data for bioimage analysis workflows*
+
+![BIOME Database](screenshots/biome_database_dark.png)
+
+### User & Group Management
+*Organize facility staff and research groups across imaging cores*
+
+![BIOME Users and Groups](screenshots/biome_users_and_groups_dark.png)
+
+---
+
+## 🤖 AI-Assisted Development
+
+**BIOME was built entirely using AI-powered development tools:**
+
+### 🧠 Development Approach
+- **100% GitHub Copilot**: All code written with GitHub Copilot assistance in agent mode
+- **AI-Driven Architecture**: System design and component structure suggested by AI
+- **Intelligent Code Generation**: Complex React components, SQL schemas, and API endpoints generated through AI prompts
+- **Automated Problem Solving**: Bug fixes and optimizations discovered through AI-assisted debugging
+
+### 🚀 AI-Powered Features
+- **Smart Component Design**: React components with TailwindCSS styling generated through AI prompts
+- **Database Schema**: SQLite schema and demo data created with AI assistance
+- **API Development**: Node.js Express routes and error handling built with Copilot suggestions
+- **Desktop Integration**: Tauri v2.0 configuration and Rust integration guided by AI
+- **UI/UX Optimization**: Modern design patterns and user experience improvements suggested by AI
+
+### 💡 Development Insights
+- **Rapid Prototyping**: From concept to working application in record time
+- **Code Quality**: AI-suggested best practices and clean code patterns
+- **Documentation**: Comprehensive documentation generated with AI assistance
+- **Testing**: Automated test generation and debugging with Copilot
+
+*This project showcases the potential of AI-assisted development for creating sophisticated scientific applications.*
 
 ---
 
@@ -526,6 +593,54 @@ Each project includes realistic timelines, analysis notes, software workflows, a
 
 ---
 
+## 🛠️ Technical Stack
+
+### Frontend
+- **React 18**: Modern UI library with hooks and context API
+- **TailwindCSS**: Utility-first CSS framework with custom design system
+- **Chart.js**: Professional data visualization and analytics
+- **Responsive Design**: Mobile-friendly and desktop-optimized layouts
+- **AI-Generated Components**: All UI components created with GitHub Copilot assistance
+
+### Backend  
+- **Node.js & Express**: RESTful API server with middleware architecture
+- **SQLite**: Lightweight, serverless database with full ACID compliance
+- **File System Integration**: Advanced project folder management and organization
+- **Winston Logging**: Structured application logging with rotation
+- **AI-Designed API**: Complete API structure generated through AI prompts
+
+### Desktop Integration
+- **Tauri v2.0**: Modern desktop framework with Rust backend for security and performance
+- **Native Performance**: Fast, secure, and lightweight cross-platform deployment
+- **System Integration**: Native file dialogs, notifications, and OS-specific features
+- **MSI Installer**: Professional Windows deployment with code signing support
+- **AI-Configured**: Desktop integration setup guided by AI recommendations
+
+### Database Architecture
+- **SQLite Schema**: Optimized for bioimage analysis workflows
+- **Enhanced Project Fields**: Multi-select JSON arrays for complex data relationships  
+- **Activity Tracking**: Comprehensive audit trail and change management
+- **Demo Data**: AI-generated realistic dataset with 10 sample projects
+- **Performance Optimization**: Indexed queries and efficient data relationships
+
+### Development Tools
+- **GitHub Copilot**: AI-powered code generation and intelligent suggestions
+- **Agent Mode**: Advanced AI pair programming for complex problem solving
+- **PowerShell Scripts**: Automated build, test, and deployment pipelines
+- **Git Integration**: Professional version control with semantic versioning
+- **AI-Assisted Testing**: Automated test generation and debugging workflows
+
+### AI Development Methodology
+- **Prompt Engineering**: Strategic AI prompts for component and feature generation
+- **Iterative Refinement**: AI-guided code optimization and performance improvements
+- **Documentation Generation**: AI-assisted technical writing and user guides
+- **Bug Resolution**: AI-powered debugging and issue resolution
+- **Best Practices**: AI-suggested code patterns and architectural decisions
+
+*This technical stack demonstrates how AI-assisted development can create enterprise-grade applications with modern tools and methodologies.*
+
+---
+
 ## 🛠️ Development Setup
 
 ### Prerequisites
@@ -833,7 +948,9 @@ We recommend backing up your project data before updating to future versions.
 
 <div align="center">
 
-**Built with ❤️ for the bioimage analysis community**
+**Built with ❤️ and 🤖 using GitHub Copilot for the bioimage analysis community**
+
+*Demonstrating the future of AI-assisted scientific software development*
 
 [⬆ Back to top](#biome---bio-imaging-organization-and-management-environment)
 
