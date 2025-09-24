@@ -1,0 +1,50 @@
+{
+  "name": "biome-production",
+  "version": "1.2.0",
+  "description": "BIOME - Bio Imaging Organization and Management Environment (Production Build)",
+  "main": "production-server.js",
+  "author": "Yannick Krempp",
+  "license": "CC-BY-NC-4.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/[username]/BIOME.git"
+  },
+  "homepage": "https://github.com/[username]/BIOME",
+  "bugs": {
+    "url": "https://github.com/[username]/BIOME/issues"
+  },
+  "scripts": {
+    "start": "node production-server.js",
+    "build": "cd projet-analyse-image-frontend && npm run build",
+    "build-and-start": "npm run build && npm start",
+    "dev": "cd projet-analyse-image-frontend && npm run start-both",
+    "setup-deps": "setup-dependencies.bat",
+    "setup-deps-ps": "powershell -ExecutionPolicy Bypass -File setup-dependencies.ps1",
+    "setup-demo": "node setup-demo-database.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "react-scripts": "^5.0.1",
+    "sqlite3": "^5.1.7",
+    "winston": "^3.17.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [
+    "biome",
+    "bioimage",
+    "bioimage-analysis",
+    "microscopy",
+    "project-management",
+    "research-tools",
+    "imaging",
+    "scientific-software",
+    "academic",
+    "non-commercial",
+    "react",
+    "express",
+    "desktop-app"
+  ]
+}

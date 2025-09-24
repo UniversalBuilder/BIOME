@@ -1,0 +1,16 @@
+[0m[1][0m [eval]:1
+[0m[1][0m setTimeout(() = require('child_process').spawn('electron', ['.'], { stdio: 'inherit', shell: true }); }, 5000)
+[0m[1][0m             ^
+[0m[1][0m 
+[0m[1][0m SyntaxError: Unexpected token ')'
+[0m[1][0m [90m    at makeContextifyScript (node:internal/vm:185:14)[39m
+[0m[1][0m [90m    at node:internal/process/execution:107:22[39m
+[0m[1][0m     at [eval]-wrapper:6:24
+[0m[1][0m [90m    at runScript (node:internal/process/execution:101:62)[39m
+[0m[1][0m [90m    at evalScript (node:internal/process/execution:136:3)[39m
+[0m[1][0m [90m    at node:internal/main/eval_string:55:3[39m
+[0m[1][0m 
+[0m[1][0m Node.js v22.13.1
+[0m[1][0m [0mnode -e "setTimeout(() = require('child_process').spawn('electron', ['.'], { stdio: 'inherit', shell: true }); }, 5000)" exited with code 1[0m
+[0m-->[0m [0mSending SIGTERM to other processes..[0m
+[0m[0][0m [0mcross-env BROWSER=none npm run start-react exited with code 1[0m

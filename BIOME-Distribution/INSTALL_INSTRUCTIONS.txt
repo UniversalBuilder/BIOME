@@ -1,0 +1,36 @@
+﻿# BIOME Desktop Application - Installation Instructions
+
+## System Requirements
+* Windows 10/11 (64-bit)
+* 500MB free disk space
+* Administrative privileges for installation
+
+## Installation Steps
+
+### Standard Installation
+1. Download the BIOME MSI installer
+2. Right-click the MSI file and select 'Run as administrator'
+3. Follow the installation wizard
+4. Launch BIOME from Start Menu or Desktop shortcut
+
+### Silent Installation (IT Administrators)
+Use the command line for silent installation:
+msiexec /i BIOME-v1.0.0.msi /quiet
+
+### Uninstallation
+* Use Windows 'Add or Remove Programs'
+* Or run: msiexec /uninstall BIOME-v1.0.0.msi
+
+## First Launch
+* BIOME will create a local database on first run
+* The application runs as a native desktop app
+* Data is stored securely in your user profile
+
+## Features
+* Native Windows desktop application
+* Local SQLite database
+* Bioimage analysis project management
+* No internet connection required after installation
+
+## Support
+For issues or questions, refer to the documentation or contact support.

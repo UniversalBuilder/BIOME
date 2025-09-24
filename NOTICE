@@ -1,0 +1,55 @@
+BIOME - Bio Imaging Organization and Management Environment
+Copyright (c) 2025 [Author Name]
+
+This project includes software developed at [Institution] for the bioimage analysis community.
+
+================================================================================
+
+THIRD-PARTY SOFTWARE NOTICES AND LICENSES
+
+This software incorporates components from various open-source projects:
+
+React (MIT License)
+Copyright (c) Meta Platforms, Inc. and affiliates.
+
+Express.js (MIT License) 
+Copyright (c) 2009-2014 TJ Holowaychuk
+Copyright (c) 2013-2014 Roman Shtylman
+Copyright (c) 2014-2015 Douglas Christopher Wilson
+
+Tauri (Apache License 2.0 / MIT License)
+Copyright (c) 2019-2024 Tauri Programme within The Commons Conservancy
+
+SQLite3 (Public Domain)
+The SQLite library is in the public domain.
+
+Chart.js (MIT License)
+Copyright (c) 2014-2022 Chart.js Contributors
+
+Tailwind CSS (MIT License)
+Copyright (c) Tailwind Labs, Inc.
+
+For complete license texts, see the respective project repositories.
+
+================================================================================
+
+ATTRIBUTION REQUIREMENTS
+
+When redistributing or modifying this software, please maintain:
+1. This NOTICE file
+2. The LICENSE file
+3. Copyright notices in source files
+4. Attribution in documentation or user interfaces
+
+For questions about licensing or attribution, contact: [contact-email]
+
+================================================================================
+
+ACADEMIC USE STATEMENT
+
+This software was developed to support the bioimage analysis research community.
+It is intended for academic, educational, and non-commercial research purposes.
+We encourage its use in advancing scientific knowledge and collaboration.
+
+If you use BIOME in your research, please consider citing it in publications
+and acknowledging its contribution to your work.

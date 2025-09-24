@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "name": "Test Project 1",
+    "description": "E2E test project 1",
+    "path": "D:/Projects/Test1",
+    "groupId": 1,
+    "createdAt": "2023-05-10T12:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": 2,
+    "name": "Test Project 2",
+    "description": "E2E test project 2",
+    "path": "D:/Projects/Test2", 
+    "groupId": 2,
+    "createdAt": "2023-05-15T12:00:00.000Z",
+    "status": "completed"
+  }
+]

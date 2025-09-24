@@ -1,0 +1,1838 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* CSS Variables for theming */
+  :root {
+    --pandora-glow: rgba(73, 155, 160, 0.15);
+    --pandora-accent: rgba(19, 71, 52, 0.1);
+    --pandora-highlight: rgba(37, 139, 101, 0.2);
+    --transition-base: 200ms ease-in-out;
+    
+    /* Dark mode bioluminescent effects */
+    --bioluminescent-glow: rgba(5, 213, 159, 0.3);
+    --purple-glow: rgba(155, 79, 150, 0.4);
+    --cyan-glow: rgba(69, 165, 184, 0.3);
+  }
+
+  /* Base HTML elements */
+  html {
+    font-feature-settings: "liga", "kern";
+    font-variant-ligatures: common-ligatures;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+    /* Subtle, elegant hover effect consistent with BIOME theme */
+    .hover-soft {
+      transition: background-color 160ms ease, border-color 160ms ease, box-shadow 200ms ease, transform 120ms ease;
+      will-change: background-color, border-color, box-shadow, transform;
+    }
+    body:not(.dark) .hover-soft:hover {
+      background-color: rgba(20, 75, 123, 0.06) !important; /* soft blue tint */
+      border-color: rgba(20, 75, 123, 0.25) !important;
+      box-shadow: 0 1px 4px rgba(20, 75, 123, 0.12);
+    }
+    body.dark .hover-soft:hover {
+      background-color: rgba(255, 255, 255, 0.04) !important; /* faint lift in dark */
+      border-color: rgba(77, 180, 255, 0.22) !important; /* cyan/blue accent */
+      box-shadow: 0 1px 6px rgba(0, 247, 255, 0.08);
+    }
+
+  /* Light mode body */
+  body:not(.dark) {
+    background-color: #FAF4F0; /* Warm Isabelline color for a brighter, warmer feel */
+    color: #272a2e;
+  }
+
+  /* Dark mode body */
+  body.dark {
+    background-color: #0A1225;
+    color: #E1FFFF;
+  }
+
+  /* Prevent layout shift from scrollbars */
+  html {
+    overflow-y: scroll; /* Always show scrollbar space */
+  }
+  
+  /* Ensure stable layout for all containers */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+  }
+
+  /* Light mode headings */
+  body:not(.dark) h1, 
+  body:not(.dark) h2, 
+  body:not(.dark) h3, 
+  body:not(.dark) h4, 
+  body:not(.dark) h5, 
+  body:not(.dark) h6 {
+    color: #272a2e;
+  }
+
+  /* Dark mode headings */
+  body.dark h1, 
+  body.dark h2, 
+  body.dark h3, 
+  body.dark h4, 
+  body.dark h5, 
+  body.dark h6 {
+    color: #E1FFFF;
+  }
+
+  h1 { font-size: 1.25rem; font-weight: 500; margin-bottom: 1rem; }
+  h2 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.75rem; }
+  h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+
+  /* Custom Scrollbar Styling */
+  /* WebKit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.5);
+    border-radius: 10px;
+    transition: background-color 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.7);
+  }
+
+  /* Dark mode scrollbar */
+  body.dark ::-webkit-scrollbar-track {
+    background: rgba(5, 213, 159, 0.1);
+  }
+
+  body.dark ::-webkit-scrollbar-thumb {
+    background: rgba(5, 213, 159, 0.3);
+    border: 1px solid rgba(5, 213, 159, 0.2);
+  }
+
+  body.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(5, 213, 159, 0.5);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) rgba(255, 255, 255, 0.1);
+  }
+
+  body.dark * {
+    scrollbar-color: rgba(5, 213, 159, 0.3) rgba(5, 213, 159, 0.1);
+  }
+
+  /* Custom Isabelline background color */
+  .bg-isabelline {
+    background-color: #FAF4F0 !important;
+  }
+}
+
+@layer components {
+  /* Dashboard layout */
+  .dashboard-grid {
+    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: auto auto repeat(6, minmax(100px, auto));
+    grid-template-areas:
+      "quickstart quickstart quickstart quickstart quickstart quickstart"
+      "stats1 stats1 stats2 stats2 stats3 stats3"
+      "analytics analytics analytics activity activity search"
+      "analytics analytics analytics activity activity filters"
+      "analytics analytics analytics activity activity filters"
+      "analytics analytics analytics activity activity filters"
+      "analytics analytics analytics activity activity filters"
+      "analytics analytics analytics activity activity about";
+    /* Inherit background from body */
+    background: inherit;
+  }
+
+  /* Card assignments */
+  .stats-card:nth-child(1) { grid-area: stats1; }
+  .stats-card:nth-child(2) { grid-area: stats2; }
+  .stats-card:nth-child(3) { grid-area: stats3; }
+  .analytics-card { grid-area: analytics; }
+  .activity-card { grid-area: activity; }
+  .search-card { grid-area: search; }
+  .filters-card { grid-area: filters; }
+  .about-card { grid-area: about; }
+  .quickstart-card { grid-area: quickstart; }
+
+  /* Cards and surfaces - remove animations for dashboard cards */
+  .card, .section-card {
+    color: #272a2e;
+    transition: all 0.3s ease;
+  }
+
+  .dashboard-card {
+    color: #272a2e;
+    transition: none; /* No animations for dashboard cards */
+  }
+
+  .bg-white, .bg-slate-50 {
+    color: #272a2e;
+    transition: all 0.3s ease;
+  }
+
+  /* Dark mode overrides for all background and surface classes */
+  body.dark .bg-white,
+  body.dark .bg-slate-50,
+  body.dark .bg-surface,
+  body.dark .card,
+  body.dark .dashboard-card,
+  body.dark .section-card {
+    color: #E1FFFF;
+  }
+
+  /* Dark mode for specific component backgrounds */
+  body.dark .bg-background-light {
+    background-color: #1A2540;
+  }
+
+  body.dark .bg-surface-dark {
+    background-color: #141B32;
+  }
+
+  body.dark .bg-surface-darker {
+    background-color: #0A1225;
+  }
+
+  /* Table styling for dark mode */
+  body.dark .table-header,
+  body.dark thead {
+    background-color: #1A2540;
+    color: #B8E6FF;
+  }
+
+  /* Removed conflicting table hover - handled by unified system below */
+
+  /* Input and form elements */
+  .form-input,
+  input,
+  select,
+  textarea {
+    background-color: #ffffff;
+    border: 1px solid #e3e5e7;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: #272a2e;
+    transition: all 0.2s ease;
+  }
+
+  .form-input::placeholder,
+  input::placeholder,
+  select::placeholder,
+  textarea::placeholder {
+    color: #a2a9b1;
+  }
+
+  .form-input:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: rgba(73, 155, 160, 0.3);
+    border-color: transparent;
+  }
+
+  .form-input:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    background-color: #f6f6f7;
+    cursor: not-allowed;
+  }
+
+  /* Dark mode input and form elements */
+  body.dark input,
+  body.dark select,
+  body.dark textarea,
+  body.dark .form-input {
+    background-color: #1A2540;
+    border-color: #2A3655;
+    color: #E1FFFF;
+  }
+
+  body.dark input::placeholder,
+  body.dark select::placeholder,
+  body.dark textarea::placeholder,
+  body.dark .form-input::placeholder {
+    color: #7FA5B8;
+  }
+
+  body.dark input:focus,
+  body.dark select:focus,
+  body.dark textarea:focus,
+  body.dark .form-input:focus {
+    border-color: #05D59F;
+    box-shadow: 0 0 0 3px rgba(5, 213, 159, 0.2);
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    min-height: 2.25rem;
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.8125rem;
+    min-height: 2rem;
+  }
+
+  .btn-icon {
+    padding: 0.5rem;
+    border-radius: 9999px;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-primary {
+    background-color: #499BA0;
+    color: #ffffff;
+  }
+
+  .btn-primary:hover {
+    background-color: #144B7B;
+  }
+
+  .btn-secondary {
+    background-color: #ffffff;
+    border: none;
+    color: #272a2e;
+  }
+
+  .btn-secondary:hover {
+    background-color: #f6f6f7;
+  }
+
+  /* Dark mode button overrides */
+  body.dark .btn-secondary {
+    background-color: #1A2540;
+    border: none;
+    color: #E1FFFF;
+  }
+
+  body.dark .btn-secondary:hover {
+    background-color: #2A3655;
+  }
+
+  /* Tables */
+  .table-row {
+    border-top: 1px solid #e3e5e7;
+    transition: background-color 0.2s ease;
+  }
+
+  /* Hover handled by unified system */
+
+  body.dark .table-row {
+    border-top-color: #2A3655;
+  }
+
+  /* Table cell styling */
+  .table-cell {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+
+  /* Status badges */
+  .status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .status-badge-success {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+
+  .status-badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-badge-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+
+  /* Modal backgrounds for dark mode */
+  body.dark .modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+
+  body.dark .modal-content {
+    background-color: #141B32;
+    border-color: #2A3655;
+  }
+}
+
+/* Animation and effects */
+@layer utilities {
+  /* Enhanced Pandora-inspired effects - Daytime vs Nighttime */
+  .btn-glow {
+    transition: all 0.3s ease;
+  }
+
+  /* Light mode - Natural depth with rich earth tones and subtle highlights */
+  body:not(.dark) .btn-glow:hover {
+    box-shadow: 
+      0 4px 12px rgba(52, 73, 85, 0.18), 
+      0 2px 4px rgba(52, 73, 85, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+    border: 1px solid rgba(73, 155, 160, 0.3);
+  }
+
+  /* Dark mode bioluminescent glow */
+  body.dark .btn-glow:hover {
+    box-shadow: 0 0 20px rgba(5, 213, 159, 0.25);
+    transform: translateY(-1px);
+  }
+
+  /* Card glow effects */
+  .card-glow {
+    transition: all 0.3s ease;
+  }
+
+  /* Light mode card hover - Elevated with natural depth and subtle highlights */
+  body:not(.dark) .card-glow:hover {
+    box-shadow: 
+      0 8px 25px rgba(52, 73, 85, 0.15), 
+      0 3px 6px rgba(52, 73, 85, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    border-color: rgba(73, 155, 160, 0.4);
+  }
+
+  /* Dark mode card hover with bioluminescent effect */
+  body.dark .card-glow:hover {
+    box-shadow: 0 4px 25px rgba(5, 213, 159, 0.15);
+    transform: translateY(-2px);
+  }
+
+  /* Text glow for headings */
+  .text-glow {
+    transition: all 0.3s ease;
+  }
+
+  /* Light mode text shadow - Subtle depth without glow */
+  body:not(.dark) .text-glow {
+    text-shadow: 0 1px 3px rgba(52, 73, 85, 0.15);
+    font-weight: 600;
+  }
+
+  /* Dark mode bioluminescent text glow */
+  body.dark .text-glow {
+    text-shadow: 0 0 15px rgba(5, 213, 159, 0.3);
+  }
+
+  /* Input focus glow */
+  .input-glow:focus {
+    transition: all 0.3s ease;
+  }
+
+  /* Light mode input focus - Natural border emphasis */
+  body:not(.dark) .input-glow:focus {
+    box-shadow: 0 0 0 3px rgba(73, 155, 160, 0.15), 0 2px 4px rgba(52, 73, 85, 0.08);
+    border-color: rgba(73, 155, 160, 0.6);
+  }
+
+  /* Dark mode input focus with bioluminescent ring */
+  body.dark .input-glow:focus {
+    box-shadow: 0 0 0 3px rgba(5, 213, 159, 0.2);
+  }
+
+  /* Toggle button glow */
+  .toggle-glow {
+    transition: all 0.3s ease;
+  }
+
+  /* Light mode toggle - Refined shadow */
+  body:not(.dark) .toggle-glow {
+    box-shadow: 0 3px 8px rgba(52, 73, 85, 0.15), 0 1px 3px rgba(52, 73, 85, 0.1);
+  }
+
+  /* Dark mode toggle with bioluminescent glow */
+  body.dark .toggle-glow {
+    box-shadow: 0 2px 12px rgba(5, 213, 159, 0.3);
+  }
+
+  /* Icon glow effects */
+  .icon-glow {
+    transition: all 0.3s ease;
+  }
+
+  /* Light mode icon hover - Subtle enhancement */
+  body:not(.dark) .icon-glow:hover {
+    filter: drop-shadow(0 2px 4px rgba(52, 73, 85, 0.2));
+    transform: scale(1.05);
+  }
+
+  /* Dark mode icon hover with bioluminescent effect */
+  body.dark .icon-glow:hover {
+    filter: drop-shadow(0 0 8px rgba(5, 213, 159, 0.4));
+  }
+
+  /* Project selection highlighting - Updated for consistency */
+  .project-selected {
+    transition: all 0.3s ease;
+  }
+
+  /* Light mode selected project - Natural elevated appearance with rich depth */
+  body:not(.dark) .project-selected {
+    border-color: rgba(0, 247, 255, 0.7) !important; /* Use bioluminescent-cyan */
+    background: linear-gradient(135deg, rgba(0, 247, 255, 0.12), rgba(255, 255, 255, 0.95)) !important;
+    box-shadow: 
+      0 0 0 1px rgba(0, 247, 255, 0.4), 
+      0 8px 25px rgba(0, 247, 255, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  }
+
+  /* Dark mode selected project - Bioluminescent highlight */
+  body.dark .project-selected {
+    border-color: rgba(0, 247, 255, 0.7) !important; /* Use bioluminescent-cyan */
+    background: linear-gradient(135deg, rgba(0, 247, 255, 0.1), rgba(31, 41, 55, 0.8)) !important;
+    box-shadow: 0 0 0 1px rgba(0, 247, 255, 0.3), 0 8px 25px rgba(0, 247, 255, 0.15) !important;
+  }
+
+  /* Project hover effects - Simplified to match unified system */
+  .project-hover {
+    transition: all 0.2s ease;
+  }
+
+  /* Light mode project hover - Use unified hover color */
+  body:not(.dark) .project-hover:hover {
+    background-color: #f9fafb !important; /* Same as unified hover */
+  }
+
+  /* Dark mode project hover - Use unified hover color */
+  body.dark .project-hover:hover {
+    background-color: #1E2A44 !important; /* Same as unified hover */
+  }
+
+  /* Gradient button effects - Standard 5-tier system */
+  .btn-gradient-cyan {
+    background: linear-gradient(45deg, #00BFFF, #0080FF);
+    color: #FFFFFF;
+    transition: all 0.2s ease;
+  }
+
+  /* Light mode gradient button effects - Natural depth */
+  body:not(.dark) .btn-gradient-cyan {
+    box-shadow: 0 3px 8px rgba(52, 73, 85, 0.15), 0 1px 3px rgba(0, 127, 255, 0.2);
+  }
+
+  body:not(.dark) .btn-gradient-cyan:hover {
+    box-shadow: 0 4px 12px rgba(52, 73, 85, 0.2), 0 2px 4px rgba(0, 127, 255, 0.25);
+    transform: translateY(-1px);
+  }
+
+  /* Dark mode gradient button effects - Subtle glow */
+  body.dark .btn-gradient-cyan {
+    box-shadow: 0 2px 8px rgba(0, 191, 255, 0.2);
+  }
+
+  body.dark .btn-gradient-cyan:hover {
+    box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  /* Purple gradient buttons */
+  .btn-gradient-purple {
+    background: linear-gradient(45deg, #8B5CF6, #6366F1);
+    color: #FFFFFF;
+    transition: all 0.2s ease;
+  }
+
+  body:not(.dark) .btn-gradient-purple {
+    box-shadow: 0 3px 8px rgba(52, 73, 85, 0.15), 0 1px 3px rgba(99, 102, 241, 0.2);
+  }
+
+  body:not(.dark) .btn-gradient-purple:hover {
+    box-shadow: 0 4px 12px rgba(52, 73, 85, 0.2), 0 2px 4px rgba(99, 102, 241, 0.25);
+    transform: translateY(-1px);
+  }
+
+  body.dark .btn-gradient-purple {
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+  }
+
+  body.dark .btn-gradient-purple:hover {
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    transform: translateY(-1px);
+  }
+
+  /* Red gradient buttons */
+  .btn-gradient-red {
+    background: linear-gradient(45deg, #DC2626, #B91C1C);
+    color: #FFFFFF;
+    transition: all 0.2s ease;
+  }
+
+  body:not(.dark) .btn-gradient-red {
+    box-shadow: 0 3px 8px rgba(52, 73, 85, 0.15), 0 1px 3px rgba(185, 28, 28, 0.2);
+  }
+
+  body:not(.dark) .btn-gradient-red:hover {
+    box-shadow: 0 4px 12px rgba(52, 73, 85, 0.2), 0 2px 4px rgba(185, 28, 28, 0.25);
+    transform: translateY(-1px);
+  }
+
+  body.dark .btn-gradient-red {
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+  }
+
+  body.dark .btn-gradient-red:hover {
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    transform: translateY(-1px);
+  }
+
+  /* Comprehensive Dark Mode Coverage */
+  
+  /* Main app containers and layouts */
+  body.dark .App,
+  body.dark #root {
+    background-color: #0A1225;
+    color: #E1FFFF;
+  }
+
+  /* Headers and Footers */
+  body.dark header,
+  body.dark footer,
+  body.dark nav {
+    background-color: #141B32;
+    border-color: #2A3655;
+    color: #E1FFFF;
+  }
+
+  /* Navigation links styling */
+  body.dark nav a,
+  body.dark .nav-link {
+    color: #E1FFFF;
+  }
+
+  body.dark nav a:hover,
+  body.dark .nav-link:hover {
+    background-color: #1A2540;
+  }
+
+  /* Dashboard specific styles - background inherited from body */
+
+  body.dark .dashboard-card {
+    color: #E1FFFF;
+  }
+
+  /* Filters card dark mode */
+  body.dark .filters-card .bg-white {
+    background-color: #141B32 !important;
+  }
+
+  body.dark .filters-card .border-slate-200 {
+    border-color: #2A3655 !important;
+  }
+
+  body.dark .filters-card .text-slate-800 {
+    color: #E1FFFF !important;
+  }
+
+  /* About card dark mode */
+  body.dark .about-card .bg-white {
+    background-color: #141B32 !important;
+  }
+
+  body.dark .about-card .border-slate-200 {
+    border-color: #2A3655 !important;
+  }
+
+  body.dark .about-card .text-slate-800,
+  body.dark .about-card .text-slate-600 {
+    color: #E1FFFF !important;
+  }
+
+  /* Project details and forms */
+  body.dark .project-details,
+  body.dark .project-form {
+    background-color: #141B32;
+    border-color: #2A3655;
+    color: #E1FFFF;
+  }
+
+  /* Tables - remove conflicting hover rules */
+  body.dark table,
+  body.dark .table-container {
+    background-color: #141B32;
+    border-color: #2A3655;
+  }
+
+  body.dark th,
+  body.dark .table-header {
+    background-color: #1A2540;
+    color: #B8E6FF;
+    border-color: #2A3655;
+  }
+
+  body.dark td,
+  body.dark .table-cell {
+    background-color: #141B32;
+    color: #E1FFFF;
+    border-color: #2A3655;
+  }
+
+  /* Hover handled by unified system above */
+
+  /* Project status badges and indicators - removed conflicting styles */
+  body.dark .status-badge,
+  body.dark .project-status {
+    /* Let StatusColors.css handle the background and colors */
+    border: 1px solid #2A3655;
+  }
+
+  /* User and group names in tabs - CRITICAL FIX */
+  body.dark .user-name,
+  body.dark .group-name,
+  body.dark .user-item,
+  body.dark .group-item {
+    color: #E1FFFF;
+    background-color: transparent;
+  }
+
+  /* Text inputs and form elements */
+  body.dark input[type="text"],
+  body.dark input[type="email"],
+  body.dark input[type="password"],
+  body.dark input[type="number"],
+  body.dark input[type="date"],
+  body.dark textarea,
+  body.dark select {
+    background-color: #1A2540;
+    border-color: #2A3655;
+    color: #E1FFFF;
+  }
+
+  body.dark input::placeholder,
+  body.dark textarea::placeholder {
+    color: #7FA5B8;
+  }
+
+  /* Dropdown and select options */
+  body.dark option {
+    background-color: #1A2540;
+    color: #E1FFFF;
+  }
+
+  /* Ensure select dropdown lists have proper background */
+  body.dark select option {
+    background-color: #1A2540 !important;
+    color: #E1FFFF !important;
+  }
+
+  body.dark select optgroup {
+    background-color: #141B32 !important;
+    color: #E1FFFF !important;
+  }
+
+  /* Panels and sections */
+  body.dark .panel,
+  body.dark .section,
+  body.dark .content-section {
+    background-color: #141B32;
+    border-color: #2A3655;
+    color: #E1FFFF;
+  }
+
+  /* Lists and list items */
+  body.dark .list-item,
+  body.dark li {
+    color: #E1FFFF;
+  }
+
+  /* Buttons and interactive elements */
+  body.dark .btn,
+  body.dark button {
+    border: none !important; /* Remove all borders from buttons */
+  }
+
+  /* Ensure no buttons have borders in light mode either */
+  .btn,
+  button {
+    border: none !important; /* Remove all borders from buttons globally */
+  }
+
+  body.dark .btn-primary {
+    background-color: #05D59F;
+    color: #0A1225;
+  }
+
+  body.dark .btn-secondary {
+    background-color: #1A2540;
+    color: #E1FFFF;
+    border-color: #2A3655;
+  }
+
+  body.dark .btn-secondary:hover {
+    background-color: #2A3655;
+  }
+
+  /* Text elements for better contrast - CRITICAL FOR LEGIBILITY */
+  body.dark p,
+  body.dark span,
+  body.dark div,
+  body.dark label {
+    color: #E1FFFF;
+  }
+
+  body.dark .text-muted,
+  body.dark .text-gray-500,
+  body.dark .text-gray-600 {
+    color: #B8E6FF;
+  }
+
+  body.dark .text-gray-700,
+  body.dark .text-gray-800,
+  body.dark .text-gray-900 {
+    color: #E1FFFF;
+  }
+
+  /* Borders and dividers */
+  body.dark .border,
+  body.dark .border-gray-200,
+  body.dark .border-gray-300 {
+    border-color: #2A3655;
+  }
+
+  /* Backgrounds for various components */
+  body.dark .bg-gray-50,
+  body.dark .bg-gray-100 {
+    background-color: #1A2540;
+  }
+
+  body.dark .bg-gray-200,
+  body.dark .bg-gray-300 {
+    background-color: #2A3655;
+  }
+
+  /* Modal and overlay styles */
+  body.dark .modal,
+  body.dark .overlay {
+    background-color: #141B32;
+    border-color: #2A3655;
+  }
+
+  body.dark .modal-backdrop {
+    background-color: rgba(10, 18, 37, 0.8);
+  }
+
+  /* Project list specific styles */
+  body.dark .project-list-item {
+    background-color: #141B32;
+    border-color: #2A3655;
+    color: #E1FFFF;
+  }
+
+  /* Hover handled by unified system */
+
+  /* Analytics and chart containers */
+  body.dark .analytics-container,
+  body.dark .chart-container {
+    background-color: #141B32;
+    border-color: #2A3655;
+  }
+
+  body.dark .analytics-page {
+    background-color: #0A1225;
+  }
+
+  body.dark .analytics-page .card {
+    background-color: #141B32 !important;
+    border-color: #2A3655 !important;
+    color: #E1FFFF !important;
+  }
+
+  body.dark .analytics-page .card .border-border {
+    border-color: #2A3655 !important;
+  }
+
+  body.dark .analytics-page .card h3,
+  body.dark .analytics-page .card .font-medium {
+    color: #E1FFFF !important;
+  }
+
+  body.dark .analytics-page .card .text-text {
+    color: #E1FFFF !important;
+  }
+
+  body.dark .analytics-page .card .text-text-muted {
+    color: #B8E6FF !important;
+  }
+
+  /* Table text legibility - CRITICAL FIX */
+  body.dark table tr td,
+  body.dark table tr th,
+  body.dark .table-cell,
+  body.dark .table-header {
+    color: #E1FFFF !important;
+  }
+
+  body.dark .table-cell .text-sm,
+  body.dark .table-cell .text-xs {
+    color: #B8E6FF !important;
+  }
+
+  /* Table headers specifically */
+  body.dark thead,
+  body.dark thead tr,
+  body.dark thead th {
+    background-color: #1A2540 !important;
+    color: #B8E6FF !important;
+  }
+
+  body.dark tbody tr td {
+    background-color: #141B32 !important;
+    color: #E1FFFF !important;
+  }
+
+  /* Page titles consistency */
+  body.dark .text-2xl,
+  body.dark .text-3xl,
+  body.dark .font-bold {
+    color: #E1FFFF !important;
+  }
+
+  /* Chart.js canvas backgrounds */
+  body.dark canvas {
+    background-color: transparent !important;
+  }
+
+  /* Button line height fix */
+  body.dark .btn,
+  .btn {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
+    min-height: 2rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    min-height: 1.75rem;
+  }
+
+  .btn svg {
+    flex-shrink: 0;
+  }
+
+  /* Time spent progress bar */
+  body.dark .bg-gray-200 {
+    background-color: #2A3655 !important;
+  }
+
+  body.dark .bg-gray-700 {
+    background-color: #1A2540 !important;
+  }
+
+  /* Project details table borders */
+  body.dark .border-slate-200 {
+    border-color: #2A3655 !important;
+  }
+
+  body.dark .border-t {
+    border-top-color: #2A3655 !important;
+  }
+
+  body.dark .border-b {
+    border-bottom-color: #2A3655 !important;
+  }
+
+  body.dark .divide-y > * + * {
+    border-top-color: #2A3655 !important;
+  }
+
+  /* Project information section backgrounds */
+  body.dark .bg-background-light {
+    background-color: #141B32 !important;
+  }
+
+  body.dark .bg-surface-darker {
+    background-color: #0A1225 !important;
+  }
+
+  /* Journal entries and descriptions */
+  body.dark .whitespace-pre-wrap,
+  body.dark textarea,
+  body.dark .text-sm {
+    color: #E1FFFF !important;
+  }
+
+  /* Ensure form inputs are properly styled */
+  body.dark input[type="text"],
+  body.dark input[type="email"], 
+  body.dark input[type="password"],
+  body.dark input[type="number"],
+  body.dark input[type="date"],
+  body.dark textarea,
+  body.dark select {
+    background-color: #1A2540 !important;
+    border-color: #2A3655 !important;
+    color: #E1FFFF !important;
+  }
+
+  /* Search boxes and inputs */
+  body.dark .search-box,
+  body.dark input[type="search"] {
+    background-color: #1A2540;
+    border-color: #2A3655;
+    color: #E1FFFF;
+  }
+
+  /* Dashboard cards and stat cards */
+  body.dark .stats-card,
+  body.dark .analytics-card,
+  body.dark .activity-card,
+  body.dark .search-card,
+  body.dark .filters-card,
+  body.dark .about-card {
+    background-color: #141B32;
+    border-color: #2A3655;
+    color: #E1FFFF;
+  }
+
+  /* Database Manager cards */
+  body.dark .db-info-card,
+  body.dark .database-manager-container .card {
+    background-color: #141B32 !important;
+    border-color: #2A3655 !important;
+    color: #E1FFFF !important;
+  }
+
+  body.dark .database-manager-container .card h3,
+  body.dark .database-manager-container .card h4,
+  body.dark .database-manager-container .card .font-medium,
+  body.dark .database-manager-container .card .font-semibold {
+    color: #E1FFFF !important;
+  }
+
+  body.dark .database-manager-container .card p,
+  body.dark .database-manager-container .card .text-sm,
+  body.dark .database-manager-container .card .text-gray-600 {
+    color: #B8E6FF !important;
+  }
+
+  /* Ensure all text is visible - UNIVERSAL FIX */
+  body.dark * {
+    border-color: #2A3655;
+  }
+
+  /* Override any remaining light text */
+  body.dark *:not(input):not(textarea):not(select) {
+    color: #E1FFFF;
+  }
+
+  /* Specific text overrides for better contrast */
+  body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark h5, body.dark h6 {
+    color: #E1FFFF !important;
+  }
+
+  body.dark .font-medium,
+  body.dark .font-semibold,
+  body.dark .font-bold {
+    color: #E1FFFF !important;
+  }
+
+  /* Light mode table headers and buttons with Avatar theme */
+  body:not(.dark) .table-header-avatar,
+  body:not(.dark) .btn-avatar {
+    background: linear-gradient(45deg, #144B7B, #499BA0) !important;
+    color: white !important;
+  }
+
+  body:not(.dark) .table-header-avatar:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  body:not(.dark) .btn-avatar:hover {
+    opacity: 0.8 !important;
+  }
+
+  /* Projects tab glass effect styling */
+  .backdrop-filter {
+    backdrop-filter: blur(10px);
+  }
+
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+
+  .backdrop-blur-xl {
+    backdrop-filter: blur(24px);
+  }
+
+  /* Enhanced card styling for projects */
+  .projects-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  body.dark .projects-card {
+    background: rgba(31, 41, 55, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Custom scrollbar styling for Avatar theme */
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(5, 213, 159, 0.3);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(5, 213, 159, 0.5);
+  }
+
+  /* Dark mode scrollbar */
+  body.dark ::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  body.dark ::-webkit-scrollbar-thumb {
+    background: rgba(5, 213, 159, 0.4);
+    border: 1px solid rgba(5, 213, 159, 0.1);
+  }
+
+  body.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(5, 213, 159, 0.6);
+    border: 1px solid rgba(5, 213, 159, 0.2);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(5, 213, 159, 0.3) rgba(255, 255, 255, 0.1);
+  }
+
+  body.dark * {
+    scrollbar-color: rgba(5, 213, 159, 0.4) rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Status color classes with bioluminescent Pandora theme - v2.1.0 - Cache Buster: 20250727-2130 */
+/* Status colors v3.0.0 - Cache Buster: 20250728-1200 */
+/* ULTRA-BRIGHT fluorescent bioluminescent colors inspired by Avatar Pandora - Maximum Vibrancy */
+
+/* Light Mode Status Colors - Vivid Database Button Style Gradients */
+body:not(.dark) .status-Preparing,
+body:not(.dark) .status-badge.status-Preparing,
+body:not(.dark) td .status-Preparing,
+body:not(.dark) .table-cell .status-Preparing {
+    background: linear-gradient(45deg, #A855F7, #7C3AED) !important; /* More vivid purple gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #6D28D9 !important;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body:not(.dark) .status-Active,
+body:not(.dark) .status-badge.status-Active,
+body:not(.dark) td .status-Active,
+body:not(.dark) .table-cell .status-Active {
+    background: linear-gradient(45deg, #06B6D4, #0891B2) !important; /* Vivid cyan-blue gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #0E7490 !important;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body:not(.dark) .status-Completed,
+body:not(.dark) .status-badge.status-Completed,
+body:not(.dark) td .status-Completed,
+body:not(.dark) .table-cell .status-Completed {
+    background: linear-gradient(45deg, #22C55E, #16A34A) !important; /* Vivid lime-green gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #15803D !important;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body:not(.dark) .status-On-Hold,
+body:not(.dark) .status-badge.status-On-Hold,
+body:not(.dark) td .status-On-Hold,
+body:not(.dark) .table-cell .status-On-Hold {
+    background: linear-gradient(45deg, #FB923C, #F97316) !important; /* Vivid yellow-orange gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #EA580C !important;
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body:not(.dark) .status-Review,
+body:not(.dark) .status-badge.status-Review,
+body:not(.dark) td .status-Review,
+body:not(.dark) .table-cell .status-Review {
+    background: linear-gradient(45deg, #FACC15, #EAB308) !important; /* Vivid yellow-lime gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #CA8A04 !important;
+    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body:not(.dark) .status-Cancelled,
+body:not(.dark) .status-badge.status-Cancelled,
+body:not(.dark) td .status-Cancelled,
+body:not(.dark) .table-cell .status-Cancelled {
+    background: linear-gradient(45deg, #EF4444, #DC2626) !important; /* Vivid orange-red gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #B91C1C !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+/* Dark mode status pills - Vivid Database Button Style Gradients */
+body.dark .status-Preparing,
+body.dark .status-badge.status-Preparing,
+body.dark td .status-Preparing,
+body.dark .table-cell .status-Preparing {
+    background: linear-gradient(45deg, #A855F7, #7C3AED) !important; /* Vivid purple gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #6D28D9 !important;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body.dark .status-Active,
+body.dark .status-badge.status-Active,
+body.dark td .status-Active,
+body.dark .table-cell .status-Active {
+    background: linear-gradient(45deg, #06B6D4, #0891B2) !important; /* Vivid cyan-blue gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #0E7490 !important;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body.dark .status-Completed,
+body.dark .status-badge.status-Completed,
+body.dark td .status-Completed,
+body.dark .table-cell .status-Completed {
+    background: linear-gradient(45deg, #22C55E, #16A34A) !important; /* Vivid lime-green gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #15803D !important;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body.dark .status-On-Hold,
+body.dark .status-badge.status-On-Hold,
+body.dark td .status-On-Hold,
+body.dark .table-cell .status-On-Hold {
+    background: linear-gradient(45deg, #FB923C, #F97316) !important; /* Vivid yellow-orange gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #EA580C !important;
+    box-shadow: 0 4px 12px rgba(251, 146, 60, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body.dark .status-Review,
+body.dark .status-badge.status-Review,
+body.dark td .status-Review,
+body.dark .table-cell .status-Review {
+    background: linear-gradient(45deg, #FACC15, #EAB308) !important; /* Vivid yellow-lime gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #CA8A04 !important;
+    box-shadow: 0 4px 12px rgba(250, 204, 21, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+body.dark .status-Cancelled,
+body.dark .status-badge.status-Cancelled,
+body.dark td .status-Cancelled,
+body.dark .table-cell .status-Cancelled {
+    background: linear-gradient(45deg, #EF4444, #DC2626) !important; /* Vivid orange-red gradient */
+    color: #FFFFFF !important;
+    border: 1px solid #B91C1C !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    padding: 0.1875rem 0.625rem !important; /* Unified padding - slightly larger */
+    font-size: 0.6875rem !important; /* Unified font size - slightly larger */
+    font-weight: 500 !important; /* Consistent font weight */
+    border-radius: 9999px !important; /* Consistent rounded shape */
+}
+
+/* Badge variants with rounded corners - moved to StatusColors.css */
+
+/* Layout stability rules */
+
+  /* UNIFIED HOVER SYSTEM - CLEAN AND CONSISTENT */
+/* Single source of truth for hover effects matching QuickActions reference */
+
+/* Light mode hover - clean and simple */
+.hover\\:bg-gray-50:hover,
+tr:hover,
+tbody tr:hover,
+table tr:hover,
+.table-row:hover,
+.project-list-item:hover,
+/* Target Tailwind classes with attribute selectors for better specificity */
+tr[class*="hover:bg-gray-50"]:hover,
+tbody tr[class*="hover:bg-gray-50"]:hover,
+table tr[class*="hover:bg-gray-50"]:hover {
+  background-color: #f9fafb !important; /* gray-50 - same as QuickActions */
+  transition: background-color 0.2s ease;
+}
+
+/* Dark mode hover - use project list style for tables */
+body.dark .dark\\:hover\\:bg-night-700:hover,
+body.dark tr:hover,
+body.dark tbody tr:hover,
+body.dark table tr:hover,
+body.dark .table-row:hover,
+body.dark .project-list-item:hover,
+/* Target Tailwind classes with attribute selectors for better specificity */
+body.dark tr[class*="dark:hover:bg-night-700"]:hover,
+body.dark tbody tr[class*="dark:hover:bg-night-700"]:hover,
+body.dark table tr[class*="dark:hover:bg-night-700"]:hover {
+  background-color: #1E2A44 !important; /* night-700 - subtle and consistent */
+  transition: background-color 0.2s ease;
+}
+
+/* ADDITIONAL HOVER FIXES - COMPREHENSIVE TABLE TARGETING */
+/* More specific targeting for table hover effects */
+
+/* Target all table rows with hover classes directly */
+body:not(.dark) table tbody tr:hover,
+body:not(.dark) .bg-white tbody tr:hover,
+body:not(.dark) .rounded-lg tbody tr:hover {
+  background-color: #f9fafb !important; /* gray-50 */
+  transition: background-color 0.2s ease !important;
+}
+
+body.dark table tbody tr:hover,
+body.dark .bg-white tbody tr:hover,
+body.dark .dark\\:bg-night-800 tbody tr:hover,
+body.dark .rounded-lg tbody tr:hover {
+  background-color: #1E2A44 !important; /* night-700 */
+  transition: background-color 0.2s ease !important;
+}
+
+/* Force override any conflicting styles for ProjectTableView */
+.bg-white.rounded-lg tbody tr:hover {
+  background-color: #f9fafb !important;
+}
+
+body.dark .bg-white.rounded-lg tbody tr:hover,
+body.dark .dark\\:bg-night-800.rounded-lg tbody tr:hover {
+  background-color: #1E2A44 !important; /* night-700 */
+}
+
+/* Last resort - target by element structure */
+div[class*="bg-white"] table tbody tr:hover {
+  background-color: #f9fafb !important;
+}
+
+body.dark div[class*="bg-white"] table tbody tr:hover,
+body.dark div[class*="bg-night-800"] table tbody tr:hover {
+  background-color: #1E2A44 !important;
+}
+
+/* EMERGENCY FIX - DIRECT CLASS TARGETING */
+/* Target the exact class combinations we found in the console */
+tr.hover\\:bg-gray-50.dark\\:hover\\:bg-night-700:hover {
+  background-color: #f9fafb !important; /* Light mode */
+}
+
+body.dark tr.hover\\:bg-gray-50.dark\\:hover\\:bg-night-700:hover {
+  background-color: #1E2A44 !important; /* Dark mode - night-700 */
+}
+
+/* Alternative approach - target by class attributes */
+tr[class~="hover:bg-gray-50"][class~="dark:hover:bg-night-700"]:hover {
+  background-color: #f9fafb !important;
+}
+
+body.dark tr[class~="hover:bg-gray-50"][class~="dark:hover:bg-night-700"]:hover {
+  background-color: #1E2A44 !important;
+}
+
+/* MOST SPECIFIC - target transition-colors class too */
+tr.transition-colors:hover {
+  background-color: #f9fafb !important;
+}
+
+body.dark tr.transition-colors:hover {
+  background-color: #1E2A44 !important;
+}
+
+/* NUCLEAR OPTION - Target ALL table rows */
+/* This should definitely work if CSS is loading */
+tbody tr:hover {
+  background-color: #ff0000 !important; /* BRIGHT RED for testing */
+  transition: background-color 0.2s ease !important;
+}
+
+body.dark tbody tr:hover {
+  background-color: #00ff00 !important; /* BRIGHT GREEN for dark mode testing */
+  transition: background-color 0.2s ease !important;
+}
+
+/* ULTRA-SPECIFIC DARK MODE FIX */
+/* Force dark mode hover with maximum specificity */
+html.dark body.dark tbody tr:hover,
+body.dark.dark tbody tr:hover,
+.dark body.dark tbody tr:hover,
+body[class*="dark"] tbody tr:hover {
+  background-color: #00ff00 !important; /* BRIGHT GREEN - impossible to miss */
+  transition: background-color 0.2s ease !important;
+}
+
+/* TAILWIND OVERRIDE - Target the exact class combinations */
+/* Using attribute selectors to bypass Tailwind's specificity */
+body.dark tr[class*="hover:bg-gray-50"][class*="dark:hover:bg-night-700"]:hover {
+  background-color: #00ff00 !important; /* BRIGHT GREEN for testing */
+}
+
+/* DIRECT CLASS TARGETING - Most specific possible */
+body.dark .hover\\:bg-gray-50.dark\\:hover\\:bg-night-700.transition-colors:hover {
+  background-color: #00ff00 !important; /* BRIGHT GREEN for testing */
+}
+
+/* COMPONENT-SPECIFIC TARGETING */
+/* Target UserGroupManager and ProjectTableView specifically */
+body.dark [class*="bg-white"] tbody tr:hover,
+body.dark [class*="rounded-lg"] tbody tr:hover {
+  background-color: #00ff00 !important; /* BRIGHT GREEN for testing */
+}
+
+/* CURSOR POINTER TARGETING - Since all our rows have cursor-pointer */
+body.dark tr.cursor-pointer:hover {
+  background-color: #00ff00 !important; /* BRIGHT GREEN for testing */
+}
+
+/* CACHE BUSTER - Add timestamp comment to force reload */
+/* CSS Update: 2025-07-30-14:40-TAILWIND-OVERRIDE-TEST */
+
+
+
+/* UNIFIED SELECTION HIGHLIGHTING */
+/* Consistent selected text color throughout the app */
+.text-selected {
+  color: #00F7FF !important; /* bioluminescent-cyan */
+  font-weight: 600;
+}
+
+.text-selected-muted {
+  color: #00F7FF !important; /* bioluminescent-cyan but for muted text */
+  font-weight: 500;
+}
+
+/* Row selection highlighting */
+.row-selected {
+  background-color: rgba(0, 247, 255, 0.1) !important; /* light cyan background */
+}
+
+body.dark .row-selected {
+  background-color: rgba(0, 247, 255, 0.1) !important; /* same for dark mode */
+}/* UNIFIED DESIGN SYSTEM - CONSISTENT ACROSS ALL TABS */
+
+/*
+BIOME Design System - Avatar Pandora Theme
+==========================================
+
+LIGHT MODE (Planet Pandora - Lush Environment):
+- Background: #FAF4F0 (isabelline) - Warm daylight atmosphere
+- Cards: #ffffff (white) - Clean, natural surfaces
+- Hover: #f9fafb (gray-50) - Subtle interaction feedback
+- Borders: #e5e7eb (gray-200) - Gentle boundaries
+- Text: #272a2e (dark) - High contrast readability
+
+DARK MODE (Pandora Night - Bioluminescent Forest):
+- Background: #0A1225 (night-900) - Deep ocean darkness
+- Cards: #141B32 (night-800) - Shadowy surfaces
+- Hover: #1E2A44 (night-700) - Glowing interaction feedback
+- Borders: #2A3655 (night-600) - Subtle separations
+- Text: #E1FFFF (cyan) - Bioluminescent brightness
+- Accents: #05D59F (bioluminescent) - Electric nature highlights
+
+CONSISTENCY RULES:
+1. All tables use the same hover effect as quick filters
+2. All cards use the same background colors across tabs
+3. All interactive elements follow the same transition timing
+4. No conflicting styles between components
+5. Utility classes (.biome-*) for reusable styling
+*/
+
+/* Background colors - Pandora-inspired */
+body:not(.dark) {
+  background-color: #FAF4F0 !important; /* Light Isabelline - Pandora daylight */
+  color: #272a2e !important;
+}
+
+body.dark {
+  background-color: #0A1225 !important; /* Deep ocean blue - Pandora night */
+  color: #E1FFFF !important;
+}
+
+/* Card backgrounds - consistent across all components */
+.bg-white,
+.dashboard-card .bg-white,
+.card,
+.modal-content,
+.settings-card {
+  background-color: #ffffff !important;
+}
+
+body.dark .bg-white,
+body.dark .dashboard-card .bg-white,
+body.dark .card,
+body.dark .modal-content,
+body.dark .settings-card,
+body.dark .bg-night-800 {
+  background-color: #141B32 !important; /* night-800 - consistent card color */
+}
+
+/* Consistent hover effects for all interactive elements */
+.hover\\:bg-gray-50:hover,
+.btn:hover,
+.card:hover,
+button:hover:not(.btn-primary):not(.btn-danger) {
+  background-color: #f9fafb !important;
+  transition: background-color 0.2s ease !important;
+}
+
+body.dark .dark\\:hover\\:bg-night-700:hover,
+body.dark .btn:hover,
+body.dark .card:hover,
+body.dark button:hover:not(.btn-primary):not(.btn-danger) {
+  background-color: #1E2A44 !important; /* night-700 - same as quick filters */
+  transition: background-color 0.2s ease !important;
+}
+
+/* Consistent border colors */
+.border-gray-200,
+.border {
+  border-color: #e5e7eb !important;
+}
+
+body.dark .dark\\:border-night-600,
+body.dark .border {
+  border-color: #2A3655 !important; /* night-600 */
+}
+
+/* Consistent text colors */
+.text-text {
+  color: #272a2e !important;
+}
+
+body.dark .dark\\:text-text-dark {
+  color: #F0FFFF !important; /* Brighter cyan-tinted white for better readability */
+}
+
+.text-text-muted {
+  color: #6b7280 !important;
+}
+
+body.dark .dark\\:text-text-muted {
+  color: #B5C2D1 !important; /* Brighter muted text for better readability */
+}
+
+/* UTILITY CLASSES FOR CONSISTENT STYLING */
+
+/* Standard card styling */
+.biome-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+body.dark .biome-card {
+  background-color: #141B32; /* night-800 */
+  border-color: #2A3655; /* night-600 */
+  box-shadow: none;
+}
+
+.biome-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .biome-card:hover {
+  box-shadow: 0 0 20px rgba(5, 213, 159, 0.1); /* Subtle bioluminescent glow */
+}
+
+/* Standard button styling */
+.biome-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.biome-btn-primary {
+  background: linear-gradient(45deg, #00BFFF, #0080FF);
+  color: #ffffff;
+}
+
+.biome-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.biome-btn-secondary {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.biome-btn-secondary:hover {
+  background-color: #e5e7eb;
+}
+
+body.dark .biome-btn-secondary {
+  background-color: #2A3655; /* night-600 */
+  color: #E1FFFF;
+}
+
+body.dark .biome-btn-secondary:hover {
+  background-color: #1E2A44; /* night-700 */
+}
+
+/* Standard modal styling */
+.biome-modal {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .biome-modal {
+  background-color: #141B32; /* night-800 */
+  border-color: #2A3655; /* night-600 */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* UNIFIED CARD STYLING - SUBTLE BIOLUMINESCENT GLOW */
+/* Very subtle borders like in the reference image */
+
+/* Dark mode cards - ONLY add very subtle glow, minimal borders */
+body.dark .bg-white:not(.btn):not(.status-badge),
+body.dark .card:not(.btn):not(.status-badge),
+body.dark .project-card:not(.btn):not(.status-badge),
+body.dark .analytics-card:not(.btn):not(.status-badge),
+body.dark .users-card:not(.btn):not(.status-badge),
+body.dark .groups-card:not(.btn):not(.status-badge) {
+  border: 1px solid rgba(42, 54, 85, 0.3) !important; /* Very subtle night-600 border */
+  box-shadow: 0 0 0 1px rgba(5, 213, 159, 0.03), 0 1px 3px 0 rgba(0, 0, 0, 0.2) !important; /* Barely visible cyan glow */
+}
+
+body.dark .bg-white:hover:not(.btn):not(.status-badge),
+body.dark .card:hover:not(.btn):not(.status-badge),
+body.dark .project-card:hover:not(.btn):not(.status-badge),
+body.dark .analytics-card:hover:not(.btn):not(.status-badge),
+body.dark .users-card:hover:not(.btn):not(.status-badge),
+body.dark .groups-card:hover:not(.btn):not(.status-badge) {
+  border: 1px solid rgba(42, 54, 85, 0.5) !important; /* Slightly more visible on hover */
+  box-shadow: 0 0 0 1px rgba(5, 213, 159, 0.08), 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important; /* Subtle hover glow */
+}
+
+/* Light mode cards - minimal borders like reference */
+body:not(.dark) .bg-white:not(.btn):not(.status-badge),
+body:not(.dark) .card:not(.btn):not(.status-badge),
+body:not(.dark) .project-card:not(.btn):not(.status-badge),
+body:not(.dark) .analytics-card:not(.btn):not(.status-badge),
+body:not(.dark) .users-card:not(.btn):not(.status-badge),
+body:not(.dark) .groups-card:not(.btn):not(.status-badge) {
+  border: 1px solid rgba(229, 231, 235, 0.4) !important; /* Very subtle gray border */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important; /* Minimal shadow */
+}
+
+body:not(.dark) .bg-white:hover:not(.btn):not(.status-badge),
+body:not(.dark) .card:hover:not(.btn):not(.status-badge),
+body:not(.dark) .project-card:hover:not(.btn):not(.status-badge),
+body:not(.dark) .analytics-card:hover:not(.btn):not(.status-badge),
+body:not(.dark) .users-card:hover:not(.btn):not(.status-badge),
+body:not(.dark) .groups-card:hover:not(.btn):not(.status-badge) {
+  border: 1px solid rgba(229, 231, 235, 0.6) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* SCROLLBAR STYLING - CYAN/BLUE THEME */
+/* Fix green scrollbar issue */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(229, 231, 235, 0.3); /* Light gray */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 191, 255, 0.6); /* Cyan-blue like tab titles */
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 191, 255, 0.8); /* Brighter cyan-blue on hover */
+}
+
+/* Dark mode scrollbar */
+body.dark ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+body.dark ::-webkit-scrollbar-thumb {
+  background: rgba(0, 191, 255, 0.5); /* Cyan-blue theme */
+  border-radius: 4px;
+}
+
+body.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 191, 255, 0.7);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 191, 255, 0.6) rgba(229, 231, 235, 0.3);
+}
+
+body.dark * {
+  scrollbar-color: rgba(0, 191, 255, 0.5) rgba(0, 0, 0, 0.3);
+}
+
+/* CONSISTENT COMPONENT STYLING ACROSS ALL TABS */
+
+/* Remove all conflicting white borders/outlines - BE SPECIFIC */
+body.dark .border-white:not(.text):not(.btn):not(.status-badge),
+body.dark .ring-white:not(.text):not(.btn):not(.status-badge),
+body.dark .outline-white:not(.text):not(.btn):not(.status-badge) {
+  border-color: #2A3655 !important;
+  outline-color: #2A3655 !important;
+  box-shadow: none !important;
+}
+
+/* Ensure all tabs have consistent background */
+body:not(.dark) {
+  background-color: #FAF4F0 !important; /* Pandora daylight */
+}
+
+body.dark {
+  background-color: #0A1225 !important; /* Pandora night - SAME AS ANALYTICS */
+}
+
+/* Tab content areas - force same background across ALL tabs */
+body:not(.dark) .tab-content,
+body:not(.dark) main,
+body:not(.dark) .page-content,
+body:not(.dark) .users-groups-container,
+body:not(.dark) .projects-container,
+body:not(.dark) .analytics-container,
+body:not(.dark) .dashboard-container {
+  background-color: #FAF4F0 !important;
+}
+
+body.dark .tab-content,
+body.dark main,
+body.dark .page-content,
+body.dark .users-groups-container,
+body.dark .projects-container,
+body.dark .analytics-container,
+body.dark .dashboard-container {
+  background-color: #0A1225 !important; /* Same dark background as Analytics */
+}
