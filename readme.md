@@ -758,6 +758,7 @@ BIOME follows a consistent design language inspired by James Cameron's Avatar:
 - 🏗️ [Dependency Management](./DEPENDENCY_MANAGEMENT.md) - Complete dependency documentation
 - 🧪 [Testing Guide](./TESTING.md) - Running tests and quality assurance
 - 📝 [Development Journal](./docs/journal.md) - Development history and changes
+- 🚀 [Solo Release Workflow](./SOLO_RELEASE_CHECKLIST.md) - End-to-end versioning & publishing checklist
 
 ## 🔄 Data Flows
 
