@@ -16,6 +16,8 @@
 
 ## 🔬 Overview
 
+> Quick Download: If you just want the installer, jump to the new [Download](#download) section below.
+
 BIOME is a specialized project management application designed for **bioimage analysis facilities** and **research laboratories**. It helps organize, track, and manage biological imaging projects from inception to completion, supporting workflows with popular tools like **Imaris**, **FIJI/ImageJ**, **QuPath**, and **CellProfiler**.
 
 ### ✨ Key Features
@@ -41,7 +43,8 @@ BIOME is a specialized project management application designed for **bioimage an
 
 ### Option 1: Desktop Application (Recommended)
 
-1. **Download** the latest MSI installer: [BIOME_1.2.0_x64_en-US.msi](./BIOME-Distribution/BIOME_1.2.0_x64_en-US.msi)
+1. **Download** the latest MSI installer: [BIOME_1.2.0_x64_en-US.msi (local copy)](./BIOME-Distribution/BIOME_1.2.0_x64_en-US.msi)
+   - Or from Releases (recommended for integrity): [GitHub Releases Page](https://github.com/UniversalBuilder/BIOME/releases/latest)
 2. **Install** by double-clicking the MSI file
 3. **Launch** BIOME from your Start Menu
 4. **Explore** the demo data featuring realistic bioimage analysis projects
@@ -64,6 +67,28 @@ npm run start-both
 ```
 
 ---
+
+## 📦 Download
+
+You can obtain BIOME in two ways:
+
+| Type | Location | Notes |
+|------|----------|-------|
+| MSI Installer | [Latest Release](https://github.com/UniversalBuilder/BIOME/releases/latest) | Recommended – includes versioned artifacts & checksums (GitHub provided) |
+| Source Code | `git clone https://github.com/UniversalBuilder/BIOME.git` | Contains full source (clean, lightweight history) |
+
+Release assets include:
+- `BIOME_1.2.0_x64_en-US.msi` – Windows 10/11 desktop installer
+- Auto-generated source archives (ZIP/TAR.GZ)
+
+Integrity / Verification (optional):
+- After download, right‑click the MSI → Properties → ensure file size ~46–53 MB
+- You may generate a checksum locally:
+   ```powershell
+   Get-FileHash .\BIOME_1.2.0_x64_en-US.msi -Algorithm SHA256
+   ```
+
+If SmartScreen warns, select “More info” → “Run anyway” (unsigned development build).
 
 ## 📦 Installation & Setup
 
