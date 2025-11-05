@@ -268,7 +268,7 @@ router.post('/', async (req, res) => {
 
 // Add new route to get journal entries for a project
 router.get('/:id/journal', (req, res) => {
-    const sql = 'SELECT * FROM journal_entries WHERE project_id = ? ORDER BY entry_date DESC';
+    const sql = 'SELECT id, project_id, entry_text, datetime(entry_date) as entry_date, edited_at, edited_by FROM journal_entries WHERE project_id = ? ORDER BY entry_date DESC';
     db.all(sql, [req.params.id], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
@@ -302,7 +302,7 @@ router.post('/:id/journal', async (req, res) => {
         
         // Return the newly created entry with formatted date
         const row = await db.get(
-            'SELECT id, entry_text, datetime(entry_date) as entry_date FROM journal_entries WHERE id = ?', 
+            'SELECT id, entry_text, datetime(entry_date) as entry_date, edited_at, edited_by FROM journal_entries WHERE id = ?', 
             [result.lastID]
         );
         
@@ -315,6 +315,75 @@ router.post('/:id/journal', async (req, res) => {
         res.json(row);
     } catch (err) {
         console.error('Error adding journal entry:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete a journal entry
+router.delete('/:id/journal/:entryId', async (req, res) => {
+    const { id: projectId, entryId } = req.params;
+    try {
+        const existing = await db.get('SELECT * FROM journal_entries WHERE id = ? AND project_id = ?', [entryId, projectId]);
+        if (!existing) {
+            return res.status(404).json({ error: 'Journal entry not found' });
+        }
+
+        await db.run('DELETE FROM journal_entries WHERE id = ?', [entryId]);
+
+        await recordProjectActivity(
+            projectId,
+            'journal_entry_deleted',
+            (existing.entry_text || '').substring(0, 100)
+        );
+        await db.run('UPDATE projects SET last_updated = datetime("now") WHERE id = ?', [projectId]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting journal entry:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Edit an existing journal entry
+router.patch('/:id/journal/:entryId', async (req, res) => {
+    const { id: projectId, entryId } = req.params;
+    const { entry_text, edited_by } = req.body || {};
+
+    if (!entry_text || String(entry_text).trim() === '') {
+        return res.status(400).json({ error: 'Entry text is required' });
+    }
+
+    try {
+        // Ensure entry belongs to project
+        const existing = await db.get('SELECT * FROM journal_entries WHERE id = ? AND project_id = ?', [entryId, projectId]);
+        if (!existing) {
+            return res.status(404).json({ error: 'Journal entry not found' });
+        }
+
+        // Update entry text and edited metadata
+        await db.run(
+            'UPDATE journal_entries SET entry_text = ?, edited_at = datetime("now"), edited_by = ? WHERE id = ?',
+            [entry_text, edited_by || null, entryId]
+        );
+
+        // Record activity
+        await recordProjectActivity(
+            projectId,
+            'journal_entry_edited',
+            (entry_text || '').substring(0, 100) + ((entry_text || '').length > 100 ? '...' : ''),
+            { journal_entry: { from: (existing.entry_text || '').substring(0, 100), to: (entry_text || '').substring(0, 100) } }
+        );
+
+        // Touch project last_updated
+        await db.run('UPDATE projects SET last_updated = datetime("now") WHERE id = ?', [projectId]);
+
+        // Return updated row
+        const row = await db.get(
+            'SELECT id, project_id, entry_text, datetime(entry_date) as entry_date, edited_at, edited_by FROM journal_entries WHERE id = ?',
+            [entryId]
+        );
+        res.json(row);
+    } catch (err) {
+        console.error('Error editing journal entry:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -346,7 +415,9 @@ router.get('/:id', async (req, res) => {
             `SELECT 
                 id,
                 entry_text,
-                datetime(entry_date) as entry_date
+                datetime(entry_date) as entry_date,
+                edited_at,
+                edited_by
              FROM journal_entries 
              WHERE project_id = ? 
              ORDER BY entry_date DESC`,
@@ -356,7 +427,8 @@ router.get('/:id', async (req, res) => {
         // Add journal entries to project
         project.journal_entries = entries.map(entry => ({
             ...entry,
-            entry_date: new Date(entry.entry_date).toISOString()
+            entry_date: new Date(entry.entry_date).toISOString(),
+            edited_at: entry.edited_at ? new Date(entry.edited_at).toISOString() : null
         }));
 
         // Format dates
@@ -493,14 +565,15 @@ router.put('/:id', async (req, res) => {
         
         // Get journal entries
         const entries = await db.all(
-            'SELECT id, entry_text, datetime(entry_date) as entry_date FROM journal_entries WHERE project_id = ? ORDER BY entry_date DESC',
+            'SELECT id, entry_text, datetime(entry_date) as entry_date, edited_at, edited_by FROM journal_entries WHERE project_id = ? ORDER BY entry_date DESC',
             [id]
         );
         
         // Add journal entries to project
         project.journal_entries = entries.map(entry => ({
             ...entry,
-            entry_date: new Date(entry.entry_date).toISOString()
+            entry_date: new Date(entry.entry_date).toISOString(),
+            edited_at: entry.edited_at ? new Date(entry.edited_at).toISOString() : null
         }));
 
         // Format dates for consistency

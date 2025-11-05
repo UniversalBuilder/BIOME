@@ -63,6 +63,8 @@ class DatabaseManager {
                         await this.initDatabase();
                         await initializeDemoDatabase(this);
                     }
+                    // Ensure schema migrations for existing databases
+                    await this.applyMigrationsSafe();
                     
                     resolve(this.db);
                 } catch (initError) {
@@ -71,6 +73,27 @@ class DatabaseManager {
                 }
             });
         });
+    }
+
+    async applyMigrationsSafe() {
+        try {
+            // Check for edited_at and edited_by columns on journal_entries
+            const columns = await this.all("PRAGMA table_info('journal_entries')");
+            const hasEditedAt = columns.some(c => c.name === 'edited_at');
+            const hasEditedBy = columns.some(c => c.name === 'edited_by');
+
+            if (!hasEditedAt) {
+                console.log('Applying migration: add edited_at to journal_entries');
+                await this.run("ALTER TABLE journal_entries ADD COLUMN edited_at TEXT");
+            }
+            if (!hasEditedBy) {
+                console.log('Applying migration: add edited_by to journal_entries');
+                await this.run("ALTER TABLE journal_entries ADD COLUMN edited_by TEXT");
+            }
+        } catch (err) {
+            console.error('Migration check/apply failed:', err);
+            // Do not throw to avoid blocking app startup; log only.
+        }
     }
 
     async verifyDatabase() {

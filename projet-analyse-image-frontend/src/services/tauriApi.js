@@ -97,10 +97,13 @@ export const updateReadme = async (basePath, projectName, projectDescription, jo
     const cleanPath = basePath.replace(/["']/g, '');
     
     // Format journal entries for Rust
-    const formattedEntries = journalEntries.map(entry => ({
-      date: new Date(entry.entry_date).toLocaleString(),
-      text: entry.entry_text
-    }));
+    const formattedEntries = journalEntries.map(entry => {
+      const editedNote = entry.edited_at ? `\n(edited${entry.edited_by ? ` by ${entry.edited_by}` : ''} on ${new Date(entry.edited_at).toLocaleString()})` : '';
+      return ({
+        date: new Date(entry.entry_date).toLocaleString(),
+        text: `${entry.entry_text}${editedNote}`
+      });
+    });
     
     return await invoke('update_readme_file', {
       basePath: cleanPath,

@@ -180,6 +180,11 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
   const [localJournalEntries, setLocalJournalEntries] = useState([]);
+  const [showEditJournalModal, setShowEditJournalModal] = useState(false);
+  const [editingJournalEntry, setEditingJournalEntry] = useState(null);
+  const [editingJournalText, setEditingJournalText] = useState('');
+  const [showDeleteJournalModal, setShowDeleteJournalModal] = useState(false);
+  const [deletingJournalEntry, setDeletingJournalEntry] = useState(null);
   const [isTauri, setIsTauri] = useState(false);
   const [folderStatus, setFolderStatus] = useState({ isValid: false, isEmpty: false });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -552,6 +557,72 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       console.error('Failed to add journal entry:', err);
       alert('Failed to add journal entry. Please try again.');
     }
+  };
+
+  const openEditJournal = (entry) => {
+    setEditingJournalEntry(entry);
+    setEditingJournalText(entry.entry_text || '');
+    setShowEditJournalModal(true);
+  };
+
+  const handleSaveEditedJournal = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!editingJournalEntry || !project?.id) return;
+    const newText = (editingJournalText || '').trim();
+    if (!newText) {
+      alert('Please enter some text for the journal entry');
+      return;
+    }
+    try {
+      const edited = await projectService.editJournalEntry(project.id, editingJournalEntry.id, newText, project?.user_name || null);
+      // Update local list in-place
+      setLocalJournalEntries(prev => prev.map(e => e.id === editingJournalEntry.id ? { ...e, ...edited, entry_date: new Date(edited.entry_date).toISOString() } : e));
+      setShowEditJournalModal(false);
+      setEditingJournalEntry(null);
+      setEditingJournalText('');
+      // Optionally refresh activities/list
+      onProjectUpdate?.();
+    } catch (err) {
+      console.error('Failed to edit journal entry:', err);
+      alert('Failed to edit journal entry. Please try again.');
+    }
+  };
+
+  const openDeleteJournal = (entry) => {
+    setDeletingJournalEntry(entry);
+    setShowDeleteJournalModal(true);
+  };
+
+  const handleConfirmDeleteJournal = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!deletingJournalEntry || !project?.id) return;
+    try {
+      await projectService.deleteJournalEntry(project.id, deletingJournalEntry.id);
+      setLocalJournalEntries(prev => prev.filter(e => e.id !== deletingJournalEntry.id));
+      setShowDeleteJournalModal(false);
+      setDeletingJournalEntry(null);
+      onProjectUpdate?.();
+    } catch (err) {
+      console.error('Failed to delete journal entry:', err);
+      alert('Failed to delete journal entry. Please try again.');
+    }
+  };
+
+  // Simple line diff for preview (low-risk)
+  const computeLineDiff = (before, after) => {
+    const a = (before || '').split(/\r?\n/);
+    const b = (after || '').split(/\r?\n/);
+    const max = Math.max(a.length, b.length);
+    const diffs = [];
+    for (let i = 0; i < max; i++) {
+      const left = a[i] ?? '';
+      const right = b[i] ?? '';
+      if (left === right) diffs.push({ type: 'same', left, right });
+      else if (left && !right) diffs.push({ type: 'removed', left, right: '' });
+      else if (!left && right) diffs.push({ type: 'added', left: '', right });
+      else diffs.push({ type: 'changed', left, right });
+    }
+    return diffs;
   };
 
   const displayData = isEditing && localEditingData ? localEditingData : project;
@@ -2296,12 +2367,45 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           <td className="px-4 py-3">
-                            <p className="text-sm text-text dark:text-text-dark whitespace-pre-wrap">{entry.entry_text}</p>
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="text-sm text-text dark:text-text-dark whitespace-pre-wrap flex-1">{entry.entry_text}</p>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  className="btn btn-icon btn-xs text-blue-600 hover:text-blue-800"
+                                  title="Edit entry"
+                                  aria-label="Edit journal entry"
+                                  onClick={() => openEditJournal(entry)}
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  className="btn btn-icon btn-xs text-red-600 hover:text-red-800"
+                                  title="Delete entry"
+                                  aria-label="Delete journal entry"
+                                  onClick={() => openDeleteJournal(entry)}
+                                >
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <div className="text-xs text-text-muted">
-                              {new Date(entry.entry_date).toLocaleString()}
-                            </div>
+                            <div className="text-xs text-text-muted">{new Date(entry.entry_date).toLocaleString()}</div>
+                            {entry.edited_at && (
+                              <div className="text-[11px] text-blue-600 dark:text-bioluminescent-400">edited 
+                                {(() => {
+                                  try {
+                                    const d = new Date(entry.edited_at);
+                                    if (!isNaN(d.getTime())) return ` · ${d.toLocaleString()}`;
+                                  } catch {}
+                                  return '';
+                                })()}
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))
@@ -2387,6 +2491,65 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
           }
         }}
       />
+
+      {/* Edit Journal Entry Modal */}
+      <WizardFormModal
+        isOpen={showEditJournalModal}
+        title="Edit Journal Entry"
+        inlineError={null}
+        onClose={() => { setShowEditJournalModal(false); setEditingJournalEntry(null); setEditingJournalText(''); }}
+        onSubmit={handleSaveEditedJournal}
+        submitLabel="Save Changes"
+        loading={false}
+      >
+        <div className="space-y-3">
+          <textarea
+            className="w-full px-3 py-2 bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none text-sm text-gray-900 dark:text-gray-100 shadow-sm"
+            rows={6}
+            value={editingJournalText}
+            onChange={(e) => setEditingJournalText(e.target.value)}
+            placeholder="Update the journal entry text"
+          />
+          {editingJournalEntry?.edited_at && (
+            <div className="text-xs text-text-muted">Last edited: {new Date(editingJournalEntry.edited_at).toLocaleString()}</div>
+          )}
+          {/* Diff preview */}
+          <div className="mt-2">
+            <div className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Diff preview</div>
+            <div className="max-h-40 overflow-auto border border-gray-200 dark:border-gray-700 rounded-md text-xs font-mono p-2 bg-white/60 dark:bg-gray-800/50">
+              {computeLineDiff(editingJournalEntry?.entry_text || '', editingJournalText).map((d, i) => (
+                <div key={i} className={
+                  d.type === 'added' ? 'text-green-700 dark:text-green-400' :
+                  d.type === 'removed' ? 'text-red-700 dark:text-red-400' :
+                  d.type === 'changed' ? 'text-amber-700 dark:text-amber-400' :
+                  'text-gray-700 dark:text-gray-300'
+                }>
+                  {d.type === 'added' ? '+ ' : d.type === 'removed' ? '- ' : d.type === 'changed' ? '~ ' : '  '}
+                  {d.type === 'removed' ? d.left : d.right}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </WizardFormModal>
+
+      {/* Delete Journal Entry Modal */}
+      <WizardFormModal
+        isOpen={showDeleteJournalModal}
+        title="Delete Journal Entry"
+        inlineError={null}
+        onClose={() => { setShowDeleteJournalModal(false); setDeletingJournalEntry(null); }}
+        onSubmit={handleConfirmDeleteJournal}
+        submitLabel="Delete Entry"
+        loading={false}
+      >
+        <div className="text-sm text-gray-700 dark:text-gray-200">
+          <p className="mb-2">Are you sure you want to delete this journal entry?</p>
+          <div className="p-2 rounded bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-xs whitespace-pre-wrap">
+            {(deletingJournalEntry?.entry_text || '').slice(0, 300)}{(deletingJournalEntry?.entry_text || '').length > 300 ? '…' : ''}
+          </div>
+        </div>
+      </WizardFormModal>
     </div>
   );
 }

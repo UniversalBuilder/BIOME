@@ -122,7 +122,8 @@ export const downloadReadmeTemplate = async (projectName, projectDescription, jo
   if (journalEntries && journalEntries.length > 0) {
     journalEntries.forEach(entry => {
       const entryDate = new Date(entry.entry_date).toISOString().split('T')[0];
-      readmeContent += `### ${entryDate}\n${entry.entry_text}\n\n`;
+      const editedNote = entry.edited_at ? `\n(edited${entry.edited_by ? ` by ${entry.edited_by}` : ''} on ${new Date(entry.edited_at).toLocaleString()})` : '';
+      readmeContent += `### ${entryDate}\n${entry.entry_text}${editedNote}\n\n`;
     });
   } else {
     readmeContent += 'No journal entries yet.\n\n';

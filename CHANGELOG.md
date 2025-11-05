@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) (adapted) and uses semantic, human-readable sections.
 
+## [Unreleased]
+
+## [1.3.0] - 2025-11-05
+### Added
+- Edit journal entries (mark edited time and optional editor). New API: PATCH /api/projects/:id/journal/:entryId
+	- Frontend: Edit action in ProjectDetails with modal; shows “edited · <time>” metadata.
+	- Backend: journal_entries now has edited_at, edited_by; safe migration runs on startup (web + packaged backends).
+	- Diff preview: low-risk line diff in edit modal to visualize changes.
+	- Delete journal entry: DELETE /api/projects/:id/journal/:entryId with UI confirmation.
+	- README/Export: Journal entries now include “(edited by … on …)” when edited in README generation (web template) and desktop README update.
+### Fixed
+- Desktop dev rebuild could leave the backend process running, causing “port already in use” on 3001. Main process now reuses an existing backend if healthy and kills the child on window close.
+
 ## [1.2.1] - 2025-11-05
 ### Fixed
 - Project list was truncating before the window bottom on some sizes; list now stretches correctly and only shows bottom hint when it actually overflows.

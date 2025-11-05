@@ -769,6 +769,17 @@ fn main() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(NodeProcess(Arc::new(Mutex::new(None))))
+        // Ensure backend child process is terminated on window close to avoid orphaned processes/port contention
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                let process_state = window.state::<NodeProcess>();
+                let mut guard = process_state.0.lock().unwrap();
+                if let Some(mut child) = guard.take() {
+                    let _ = child.kill();
+                    debug_println!("Stopped backend process on window close");
+                }
+            }
+        })
         .setup(|app| {
             debug_println!("Setting up BIOME application...");
 
@@ -916,6 +927,23 @@ fn main() {
                 debug_println!("Application will continue without backend server");
                 debug_println!("Expected backend structure:");
                 debug_println!("  {}/src/server.js", backend_path.display());
+                return Ok(());
+            }
+
+            // If a backend is already running on the expected port, reuse it instead of spawning a new one
+            let already_running = match std::process::Command::new("curl")
+                .args(&["-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:3001/api/test"])
+                .output()
+            {
+                Ok(output) => {
+                    let status_code = String::from_utf8_lossy(&output.stdout).to_string();
+                    status_code.trim() == "200"
+                }
+                Err(_) => false,
+            };
+
+            if already_running {
+                println!("ℹ️ Backend already running at http://localhost:3001; reusing existing instance.");
                 return Ok(());
             }
 

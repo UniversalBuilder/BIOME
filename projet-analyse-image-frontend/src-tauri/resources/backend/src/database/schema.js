@@ -41,6 +41,8 @@ const schema = [
     project_id INTEGER,
     entry_text TEXT NOT NULL,
     entry_date TEXT DEFAULT (datetime('now')),
+    edited_at TEXT,
+    edited_by TEXT,
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
   )`,
   

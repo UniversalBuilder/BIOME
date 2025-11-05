@@ -44,7 +44,11 @@ $headers = @{ Authorization = "token $Token"; "User-Agent" = $userAgent; "Accept
 # Read body if provided
 $bodyText = $null
 if ($BodyPath -and (Test-Path -LiteralPath $BodyPath)) {
-  $bodyText = Get-Content -LiteralPath $BodyPath -Raw
+  # Use .NET API to ensure we get a plain System.String (avoid PS extended properties)
+  $resolvedPath = (Resolve-Path -LiteralPath $BodyPath).Path
+  $bodyText = [System.IO.File]::ReadAllText($resolvedPath)
+  # Normalize newlines to LF for GitHub API consistency
+  $bodyText = $bodyText -replace "`r`n", "`n"
 }
 if (-not $Title) { $Title = $Tag }
 
@@ -53,7 +57,9 @@ $releasePayload = @{ tag_name = $Tag; name = $Title; draft = $false; prerelease 
 if ($bodyText) { $releasePayload.body = $bodyText }
 
 Write-Host "Creating release $Tag on $RepoOwner/$RepoName..."
-$release = Invoke-RestMethod -Method Post -Uri $createReleaseUri -Headers $headers -Body ($releasePayload | ConvertTo-Json -Depth 5)
+$jsonBody = ($releasePayload | ConvertTo-Json -Depth 6)
+Write-Host "Payload preview (truncated):" ($jsonBody.Substring(0, [Math]::Min(140, $jsonBody.Length)))
+$release = Invoke-RestMethod -Method Post -Uri $createReleaseUri -Headers $headers -ContentType 'application/json' -Body $jsonBody
 
 if (-not $release) { throw "Failed to create release." }
 $uploadUrlTemplate = $release.upload_url  # e.g., https://uploads.github.com/repos/{owner}/{repo}/releases/{id}/assets{?name,label}

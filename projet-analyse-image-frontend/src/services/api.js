@@ -295,6 +295,26 @@ export const projectService = {
         return response.json();
     },
     
+    editJournalEntry: async (projectId, entryId, entryText, editedBy = null) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/projects/${projectId}/journal/${entryId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entry_text: entryText, edited_by: editedBy })
+        });
+        await handleResponse(response, 'Failed to edit journal entry');
+        return response.json();
+    },
+    
+    deleteJournalEntry: async (projectId, entryId) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/projects/${projectId}/journal/${entryId}`, {
+            method: 'DELETE'
+        });
+        await handleResponse(response, 'Failed to delete journal entry');
+        return response.json();
+    },
+    
     getAllActivities: async () => {
         const apiUrl = getApiUrl();
         const response = await fetchWithRetry(`${apiUrl}/projects/activities`);
