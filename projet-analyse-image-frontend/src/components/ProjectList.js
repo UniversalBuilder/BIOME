@@ -7,6 +7,7 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
   const [sortOrder, setSortOrder] = useState('desc');
   const [scrollState, setScrollState] = useState({ canScrollUp: false, canScrollDown: false });
   const scrollContainerRef = useRef(null);
+  const resizeRafRef = useRef(null);
 
   // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {
@@ -25,13 +26,20 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
 
   // Check scroll position to show/hide scroll indicators
   const checkScrollPosition = () => {
-    if (!scrollContainerRef.current) return;
-    
     const element = scrollContainerRef.current;
-    const canScrollUp = element.scrollTop > 10;
-    const canScrollDown = element.scrollTop < element.scrollHeight - element.clientHeight - 10;
-    
-    setScrollState({ canScrollUp, canScrollDown });
+    if (!element) return;
+
+    // Use a tiny epsilon to avoid off‑by‑one and rounding issues on resize
+    const EPS = 1;
+    const canScrollUp = element.scrollTop > EPS;
+    const canScrollDown = element.scrollTop + element.clientHeight < element.scrollHeight - EPS;
+
+    setScrollState((prev) => {
+      if (prev.canScrollUp !== canScrollUp || prev.canScrollDown !== canScrollDown) {
+        return { canScrollUp, canScrollDown };
+      }
+      return prev;
+    });
   };
 
   // Effect to set up scroll listener and initial state
@@ -39,19 +47,35 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
 
-    // Check initial scroll state
-    checkScrollPosition();
+    // Initial measurement (next frame to ensure layout is settled)
+    resizeRafRef.current = requestAnimationFrame(checkScrollPosition);
 
-    // Add scroll listener
+    // Scroll listener
     scrollContainer.addEventListener('scroll', checkScrollPosition);
-    
-    // Check scroll state when content changes
-    const observer = new ResizeObserver(checkScrollPosition);
-    observer.observe(scrollContainer);
+
+    // Observe size changes of the scroll container AND its content
+    const ro = new ResizeObserver(() => {
+      // Defer to next frame for stable numbers during active resize
+      if (resizeRafRef.current) cancelAnimationFrame(resizeRafRef.current);
+      resizeRafRef.current = requestAnimationFrame(checkScrollPosition);
+    });
+    ro.observe(scrollContainer);
+    if (scrollContainer.firstElementChild) {
+      ro.observe(scrollContainer.firstElementChild);
+    }
+
+    // Window resize fallback (covers environment/layout changes)
+    const onWinResize = () => {
+      if (resizeRafRef.current) cancelAnimationFrame(resizeRafRef.current);
+      resizeRafRef.current = requestAnimationFrame(checkScrollPosition);
+    };
+    window.addEventListener('resize', onWinResize);
 
     return () => {
       scrollContainer.removeEventListener('scroll', checkScrollPosition);
-      observer.disconnect();
+      ro.disconnect();
+      window.removeEventListener('resize', onWinResize);
+      if (resizeRafRef.current) cancelAnimationFrame(resizeRafRef.current);
     };
   }, [filteredAndSortedProjects]);
 
@@ -179,16 +203,16 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
       </div>
       
       {/* Projects List with Custom Scroll */}
-      <div className="flex-1 relative stable-scroll-container">
+  <div className="flex-1 min-h-0 relative stable-scroll-container">
         {/* Top scroll indicator */}
         {showScroll && scrollState.canScrollUp && (
           <div className="absolute top-0 left-0 right-0 z-10 h-8 bg-gradient-to-b from-white/90 via-white/60 to-transparent dark:from-gray-900/90 dark:via-gray-900/60 dark:to-transparent pointer-events-none">
             <div className="flex justify-center pt-2">
-              <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-filter backdrop-blur-sm shadow-sm">
-                <svg className="w-3 h-3 text-bioluminescent-500 dark:text-bioluminescent-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bioluminescent-100/90 dark:bg-bioluminescent-900/40 text-bioluminescent-700 dark:text-bioluminescent-200 ring-1 ring-bioluminescent-300/60 shadow-md backdrop-filter backdrop-blur-sm">
+                <svg className="w-3.5 h-3.5 text-bioluminescent-600 dark:text-bioluminescent-300 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
-                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">More above</span>
+                <span className="text-xs font-semibold">More above</span>
               </div>
             </div>
           </div>
@@ -198,9 +222,9 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
         {showScroll && scrollState.canScrollDown && (
           <div className="absolute bottom-0 left-0 right-0 z-10 h-8 bg-gradient-to-t from-white/90 via-white/60 to-transparent dark:from-gray-900/90 dark:via-gray-900/60 dark:to-transparent pointer-events-none">
             <div className="flex justify-center pb-2 pt-6">
-              <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-filter backdrop-blur-sm shadow-sm">
-                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">More below</span>
-                <svg className="w-3 h-3 text-bioluminescent-500 dark:text-bioluminescent-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bioluminescent-100/90 dark:bg-bioluminescent-900/40 text-bioluminescent-700 dark:text-bioluminescent-200 ring-1 ring-bioluminescent-300/60 shadow-md backdrop-filter backdrop-blur-sm">
+                <span className="text-xs font-semibold">More below</span>
+                <svg className="w-3.5 h-3.5 text-bioluminescent-600 dark:text-bioluminescent-300 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -211,11 +235,7 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
         {/* Scrollable content with stable hidden scrollbar */}
         <div 
           ref={scrollContainerRef}
-          className={`h-full p-4 project-list-container ${showScroll ? 'scrollbar-hidden' : ''}`} 
-          style={{ 
-            minHeight: showScroll ? 'calc(100vh - 14rem)' : 'auto', 
-            maxHeight: showScroll ? 'calc(100vh - 14rem)' : 'none'
-          }}
+          className={`h-full p-4 project-list-container ${showScroll ? 'scrollbar-hidden' : ''}`}
         >
         <div className="space-y-3">
           {filteredAndSortedProjects.length > 0 ? (

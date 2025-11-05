@@ -1,3 +1,6 @@
+## 2025-11-05
+- Project list: fixed truncation so the list reaches the bottom of the window; bottom scroll hint shows only when content overflows.
+- Project list: made “More above/below” capsules more prominent using the bioluminescent palette for consistency with Activity Feed chips.
 # BIOME UI/UX Improvements Summary
 
 ## Changes Implemented

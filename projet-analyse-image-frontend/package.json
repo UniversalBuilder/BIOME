@@ -1,6 +1,6 @@
 {
     "name": "biome-frontend",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "private": true,
     "description": "BIOME Frontend - Bio Imaging Organization and Management Environment",
     "author": "Yannick Krempp",

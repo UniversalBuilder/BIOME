@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) (adapted) and uses semantic, human-readable sections.
 
+## [1.2.1] - 2025-11-05
+### Fixed
+- Project list was truncating before the window bottom on some sizes; list now stretches correctly and only shows bottom hint when it actually overflows.
+### Changed
+- Scroll hint capsules restyled with the bioluminescent palette for better prominence and visual consistency with Activity Feed chips.
+
 ## [1.2.0] - 2025-09-24
 ### Added
 - Unified reusable `WizardFormModal` for create / edit / delete flows (projects, users, groups).
@@ -57,3 +63,4 @@ Get-FileHash .\BIOME_1.2.0_x64_en-US.msi -Algorithm SHA256
 - Automatic version synchronization script to reduce manual edits.
 
 [1.2.0]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.2.0
+[1.2.1]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.2.1
