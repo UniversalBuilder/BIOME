@@ -4,27 +4,30 @@ import Environment from '../utils/environmentDetection';
 // Debug flag for console output - only show in development or when debugging is explicitly enabled
 // Conditionally import Tauri APIs only when running in desktop mode
 let invoke, getCurrentWebviewWindow, readTextFile, exists, appDataDir, appWindow;
+let tauriApisReady = null;
 
 if (Environment.isTauri()) {
   // Dynamic imports for Tauri APIs
-  const importTauriApis = async () => {
-    const coreModule = await import('@tauri-apps/api/core');
-    invoke = coreModule.invoke;
-    
-    const webviewModule = await import('@tauri-apps/api/webviewWindow');
-    getCurrentWebviewWindow = webviewModule.getCurrentWebviewWindow;
-    appWindow = getCurrentWebviewWindow();
-    
-    const fsModule = await import('@tauri-apps/plugin-fs');
-    readTextFile = fsModule.readTextFile;
-    exists = fsModule.exists;
-    
-    const pathModule = await import('@tauri-apps/api/path');
-    appDataDir = pathModule.appDataDir;
-  };
-  
-  // Initialize Tauri APIs
-  importTauriApis().catch(err => console.error('Failed to load Tauri APIs:', err));
+    const importTauriApis = async () => {
+        const coreModule = await import('@tauri-apps/api/core');
+        invoke = coreModule.invoke;
+
+        const webviewModule = await import('@tauri-apps/api/webviewWindow');
+        getCurrentWebviewWindow = webviewModule.getCurrentWebviewWindow;
+        appWindow = getCurrentWebviewWindow();
+
+        const fsModule = await import('@tauri-apps/plugin-fs');
+        readTextFile = fsModule.readTextFile;
+        exists = fsModule.exists;
+
+        const pathModule = await import('@tauri-apps/api/path');
+        appDataDir = pathModule.appDataDir;
+    };
+
+    // Initialize Tauri APIs and expose a readiness promise we can await before use
+    tauriApisReady = importTauriApis().catch(err => {
+        console.error('Failed to load Tauri APIs:', err);
+    });
 }
 
 // Backend server configuration
@@ -67,6 +70,11 @@ class BackendLauncher {
 
     async init() {
         try {
+            // Ensure Tauri APIs are loaded before any usage
+            if (Environment.isTauri() && tauriApisReady) {
+                await tauriApisReady;
+            }
+
             // Check if we're running in web mode
             if (!Environment.isTauri()) {
                 console.log('Running in web mode - assuming backend is started separately');
@@ -300,8 +308,7 @@ class BackendLauncher {
             // Pass the port, app data directory, and correct backend path to the backend server
             await invoke('start_backend_server', { 
                 port: this.port,
-                logToFile: true,
-                backendPath: this.backendPath
+                backend_path: this.backendPath
             });
             
             // Wait for server to be ready

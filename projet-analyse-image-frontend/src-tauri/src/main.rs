@@ -798,67 +798,74 @@ fn main() {
                 });
             }
 
-            // Determine backend path based on build type
-            let backend_path = {
-                #[cfg(debug_assertions)]
-                {
-                    // Development mode - use the source backend
-                    debug_println!("Development mode: Using source backend");
-                    PathBuf::from("d:/DEV/BIOME/backend")
+            // In development, let the frontend launcher manage the backend to avoid double-start
+            #[cfg(debug_assertions)]
+            {
+                debug_println!("Development mode: skipping Rust auto-start of backend; frontend launcher will manage it.");
+                // Still prepare app data dir and env for consistency
+                let app_dir = app.path().app_data_dir()
+                    .unwrap_or_else(|_| PathBuf::from("."));
+                if !app_dir.exists() {
+                    let _ = fs::create_dir_all(&app_dir);
                 }
+                std::env::set_var("TAURI_APP_DATA", app_dir.to_string_lossy().to_string());
+                std::env::set_var("NODE_ENV", "production");
+                return Ok(());
+            }
 
-                #[cfg(not(debug_assertions))]
-                {
-                    // Production mode - look for bundled backend
-                    debug_println!("Production mode: Looking for bundled backend");
-                    // For production builds, the resource directory should be relative to the app directory
-                    // On Windows, this should be the directory containing BIOME.exe
-                    let app_exe_dir = std::env::current_exe()
-                        .unwrap_or_else(|_| app_dir.join("BIOME.exe"))
-                        .parent()
-                        .unwrap_or(&app_dir)
-                        .to_path_buf();
+            // Determine backend path based on build type (production only)
+            #[cfg(not(debug_assertions))]
+            let backend_path = {
+                // Production mode - look for bundled backend
+                debug_println!("Production mode: Looking for bundled backend");
+                // For production builds, the resource directory should be relative to the app directory
+                // On Windows, this should be the directory containing BIOME.exe
+                let app_exe_dir = std::env::current_exe()
+                    .unwrap_or_else(|_| app_dir.join("BIOME.exe"))
+                    .parent()
+                    .unwrap_or(&app_dir)
+                    .to_path_buf();
+                
+                debug_println!("App executable directory: {}", app_exe_dir.display());
+                
+                // Look for backend in resources subdirectory
+                let backend_in_resources = app_exe_dir.join("resources").join("backend");
+                if backend_in_resources.exists() && backend_in_resources.join("src").join("server.js").exists() {
+                    debug_println!("✅ Found backend in resources: {}", backend_in_resources.display());
+                    backend_in_resources
+                } else {
+                    debug_println!("Backend not found in resources, trying other locations");
                     
-                    debug_println!("App executable directory: {}", app_exe_dir.display());
+                    // Try other possible locations
+                    let other_locations = vec![
+                        app_exe_dir.join("backend"),
+                        app_dir.join("backend"),
+                        app_dir.parent().unwrap_or(&app_dir).join("backend"),
+                    ];
                     
-                    // Look for backend in resources subdirectory
-                    let backend_in_resources = app_exe_dir.join("resources").join("backend");
-                    if backend_in_resources.exists() && backend_in_resources.join("src").join("server.js").exists() {
-                        debug_println!("✅ Found backend in resources: {}", backend_in_resources.display());
-                        backend_in_resources
-                    } else {
-                        debug_println!("Backend not found in resources, trying other locations");
-                        
-                        // Try other possible locations
-                        let other_locations = vec![
-                            app_exe_dir.join("backend"),
-                            app_dir.join("backend"),
-                            app_dir.parent().unwrap_or(&app_dir).join("backend"),
-                        ];
-                        
-                        let mut found_backend = None;
-                        for location in &other_locations {
-                            if location.exists() && location.join("src").join("server.js").exists() {
-                                debug_println!("✅ Found backend at: {}", location.display());
-                                found_backend = Some(location.clone());
-                                break;
-                            }
+                    let mut found_backend = None;
+                    for location in &other_locations {
+                        if location.exists() && location.join("src").join("server.js").exists() {
+                            debug_println!("✅ Found backend at: {}", location.display());
+                            found_backend = Some(location.clone());
+                            break;
                         }
-                        
-                        found_backend.unwrap_or_else(|| {
-                            debug_println!("❌ Backend not found in any expected location");
-                            debug_println!("Searched locations:");
-                            debug_println!("  - {}", backend_in_resources.display());
-                            for location in other_locations {
-                                debug_println!("  - {}", location.display());
-                            }
-                            // Return the expected location anyway
-                            backend_in_resources
-                        })
                     }
+                    
+                    found_backend.unwrap_or_else(|| {
+                        debug_println!("❌ Backend not found in any expected location");
+                        debug_println!("Searched locations:");
+                        debug_println!("  - {}", backend_in_resources.display());
+                        for location in other_locations {
+                            debug_println!("  - {}", location.display());
+                        }
+                        // Return the expected location anyway
+                        backend_in_resources
+                    })
                 }
             };
 
+            #[cfg(not(debug_assertions))]
             debug_println!("Backend path: {}", backend_path.display());
             debug_println!("App data directory: {}", app_dir.display());
 
@@ -870,13 +877,6 @@ fn main() {
             let node_process_state = app.state::<NodeProcess>();
 
             // Start the backend server
-            #[cfg(debug_assertions)]
-            let node_path = if cfg!(target_os = "windows") {
-                "node.exe"
-            } else {
-                "node"
-            };
-            
             #[cfg(not(debug_assertions))]
             let node_path = {
                 // In production, look for Node.js in the installation directory (same as BIOME.exe)
@@ -917,8 +917,10 @@ fn main() {
             };
 
             // Build the path to the backend server.js file
+            #[cfg(not(debug_assertions))]
             let server_js_path = backend_path.join("src").join("server.js");
 
+            #[cfg(not(debug_assertions))]
             if !server_js_path.exists() {
                 debug_println!(
                     "Warning: Backend server.js not found at: {}",
@@ -931,6 +933,7 @@ fn main() {
             }
 
             // If a backend is already running on the expected port, reuse it instead of spawning a new one
+            #[cfg(not(debug_assertions))]
             let already_running = match std::process::Command::new("curl")
                 .args(&["-s", "-o", "/dev/null", "-w", "%{http_code}", "http://localhost:3001/api/test"])
                 .output()
@@ -942,14 +945,19 @@ fn main() {
                 Err(_) => false,
             };
 
+            #[cfg(not(debug_assertions))]
             if already_running {
                 println!("ℹ️ Backend already running at http://localhost:3001; reusing existing instance.");
                 return Ok(());
             }
 
+            #[cfg(not(debug_assertions))]
             println!("Starting Node.js backend server...");
+            #[cfg(not(debug_assertions))]
             println!("Node path: {}", node_path);
+            #[cfg(not(debug_assertions))]
             println!("Server.js path: {}", server_js_path.display());
+            #[cfg(not(debug_assertions))]
             println!("Working directory: {}", backend_path.display());
 
             // Create log file for backend output
@@ -960,7 +968,7 @@ fn main() {
             let log_file = log_dir.join("backend_startup.log");
             
             // Start the Node.js server with enhanced logging and no console window
-            #[cfg(target_os = "windows")]
+            #[cfg(all(not(debug_assertions), target_os = "windows"))]
             let command_result = Command::new(&node_path)
                 .current_dir(&backend_path)
                 .arg(&server_js_path)
@@ -973,7 +981,7 @@ fn main() {
                 .creation_flags(0x08000000) // CREATE_NO_WINDOW on Windows
                 .spawn();
 
-            #[cfg(not(target_os = "windows"))]
+            #[cfg(all(not(debug_assertions), not(target_os = "windows")))]
             let command_result = Command::new(&node_path)
                 .current_dir(&backend_path)
                 .arg(&server_js_path)
@@ -985,6 +993,7 @@ fn main() {
                 .stderr(Stdio::piped())
                 .spawn();
 
+            #[cfg(not(debug_assertions))]
             match command_result
             {
                 Ok(mut child) => {
@@ -1057,17 +1066,20 @@ fn main() {
                 Err(e) => {
                     println!("❌ Failed to start backend server: {}", e);
                     println!("📋 Error details:");
+                    #[cfg(not(debug_assertions))]
                     println!("   - Node path: {}", node_path);
+                    #[cfg(not(debug_assertions))]
                     println!("   - Working dir: {}", backend_path.display());
+                    #[cfg(not(debug_assertions))]
                     println!("   - Server.js: {}", server_js_path.display());
                     
                     // Write error to log file
                     let error_log = format!(
                         "Backend startup failed at {}\nNode path: {}\nWorking dir: {}\nServer.js: {}\nError: {}\n",
                         chrono::Utc::now().to_rfc3339(),
-                        node_path,
-                        backend_path.display(),
-                        server_js_path.display(),
+                        "(debug build)",
+                        app_dir.display(),
+                        "(debug build)",
                         e
                     );
                     let _ = fs::write(log_file, error_log);

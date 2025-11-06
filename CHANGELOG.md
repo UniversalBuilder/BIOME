@@ -6,6 +6,28 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [1.4.0] - 2025-11-06
+### Added
+- Attach files to projects (Resources):
+	- Backend: list/upload/serve/update/delete endpoints under `/api/projects/:id/references` and README resources updater at `/api/projects/:id/readme/resources`.
+	- Files saved inside the project's `reference/` folder; images (JPEG/PNG) previewable; documents (PDF/TXT/Word) downloadable.
+	- Database: `project_resources` table stores metadata (filename, original name, mime, kind, caption, size, created_at).
+	- Frontend: Resources section in Project Details with uploads, captions, preview grid for images, and a documents list. Button to update the README resources section.
+### Fixed
+- Desktop dev compile errors around backend startup were resolved by delegating backend start to the frontend launcher in debug builds and fixing Tauri invoke params.
+- SVG icon path error on LandingPage replaced with a valid path (removed console warning about arc flag).
+
+
+## [1.3.1] - 2025-11-06
+### Changed
+- Project list: selected project title now renders in cyan for stronger visual consistency with the table.
+- Output/result pictograms unified across list and table; 24px standard size retained.
+
+### Fixed
+- In Projects Table, the Output icon on the active row now turns cyan (icon + circular border) like the rest of the row.
+- Removed the inner table scrollbar; only the page scrollbar remains, so the table extends to the bottom naturally.
+- Resolved double tooltip on the Output icon (removed native title attribute; kept custom tooltip).
+
 ## [1.3.0] - 2025-11-05
 ### Added
 - Edit journal entries (mark edited time and optional editor). New API: PATCH /api/projects/:id/journal/:entryId
@@ -77,3 +99,6 @@ Get-FileHash .\BIOME_1.2.0_x64_en-US.msi -Algorithm SHA256
 
 [1.2.0]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.2.0
 [1.2.1]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.2.1
+[1.3.0]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.3.0
+[1.3.1]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.3.1
+[1.4.0]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.4.0

@@ -515,8 +515,8 @@ function LandingPage({ activeTab, onNavigateToTab }) {
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-lg shadow-md">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 000 16zM8.707 7.293a1 1 000-1.414 1.414L8.586 10l-1.293 1.293a1 1 101.414 1.414L10 11.414l1.293 1.293a1 1 001.414-1.414L11.414 10l1.293-1.293a1 1 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.414-5.293a1 1 011.414 0L10 13.414l.707-.707a1 1 111.414 1.414L11.414 14l.707.707a1 1 11-1.414 1.414L10 15.414l-.707.707a1 1 11-1.414-1.414L8.586 14l-.707-.707a1 1 111.414-1.414L10 12.586l.707-.707z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './StatusColors.css';
+import { Tooltip } from './Tooltip';
 
 function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedProject, onRefresh }) {
   const navigate = useNavigate();
@@ -12,12 +13,66 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
   const [statusFilter, setStatusFilter] = useState(filters.status || '');
   const [softwareFilter, setSoftwareFilter] = useState(filters.software || '');
   const [groupFilter, setGroupFilter] = useState(filters.group || '');
+  const [outputTypeFilter, setOutputTypeFilter] = useState(filters.output_type || '');
+  const PREDEFINED_OUTPUT_TYPES = [
+    'Counseling',
+    'Video Tutorial',
+    'Script',
+    'Workflow/Protocol',
+    'Training'
+  ];
+
+  // Monochrome pictogram per Output/Result Type
+  const renderOutputTypeIcon = (type, isSelected = false) => {
+    const common = `w-3.5 h-3.5 ${isSelected ? 'text-selected' : 'text-text-muted dark:text-text-muted'}`;
+    const strokeColor = isSelected ? '#00F7FF' : 'currentColor';
+    switch ((type || '').toLowerCase()) {
+      case 'video tutorial':
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <path d="M14.752 11.168l-4.596-2.65A1 1 0 008 9.35v5.3a1 1 0 001.156.832l4.596-2.65a1 1 0 000-1.664z" />
+            <rect x="3" y="4" width="18" height="16" rx="2" ry="2" />
+          </svg>
+        );
+      case 'script':
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <path d="M8 16l-4-4 4-4" />
+            <path d="M16 8l4 4-4 4" />
+          </svg>
+        );
+      case 'workflow/protocol':
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <circle cx="6" cy="6" r="2" />
+            <circle cx="18" cy="6" r="2" />
+            <circle cx="12" cy="18" r="2" />
+            <path d="M8 6h8M12 8v6" />
+          </svg>
+        );
+      case 'training':
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <path d="M22 10l-10-5-10 5 10 5 10-5z" />
+            <path d="M6 12v5a6 6 0 0012 0v-5" />
+          </svg>
+        );
+      case 'counseling':
+      default:
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <path d="M21 15a4 4 0 01-4 4H7l-4 4V7a4 4 0 014-4h10a4 4 0 014 4v8z" />
+          </svg>
+        );
+    }
+  };
 
   const resetFilters = useCallback(() => {
     setSearchTerm('');
     setStatusFilter('');
     setSoftwareFilter('');
     setGroupFilter('');
+    setOutputTypeFilter('');
     // Clear the global filters as well
     if (window.setTableFilter) {
       window.setTableFilter({});
@@ -37,8 +92,8 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
 
   // Check if any filters are currently active
   const hasActiveFilters = useMemo(() => {
-    return !!(searchTerm || statusFilter || softwareFilter || groupFilter || filters.searchResults);
-  }, [searchTerm, statusFilter, softwareFilter, groupFilter, filters.searchResults]);
+    return !!(searchTerm || statusFilter || softwareFilter || groupFilter || outputTypeFilter || filters.searchResults);
+  }, [searchTerm, statusFilter, softwareFilter, groupFilter, outputTypeFilter, filters.searchResults]);
 
   // Update local state when filters prop changes
   useEffect(() => {
@@ -46,6 +101,7 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
     setStatusFilter(filters.status || '');
     setSoftwareFilter(filters.software || '');
     setGroupFilter(filters.group || '');
+    setOutputTypeFilter(filters.output_type || '');
   }, [filters]);
 
   // Add hover effects to table rows programmatically
@@ -184,6 +240,9 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
     if (groupFilter) {
       filtered = filtered.filter(project => project.group_name === groupFilter);
     }
+    if (outputTypeFilter) {
+      filtered = filtered.filter(project => (project.output_type || '') === outputTypeFilter);
+    }
     
     // Sort the filtered results
     return filtered.sort((a, b) => {
@@ -249,7 +308,7 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
         return bValue.localeCompare(aValue);
       }
     });
-  }, [projects, sortField, sortOrder, searchTerm, statusFilter, softwareFilter, groupFilter, filters.searchResults]);
+  }, [projects, sortField, sortOrder, searchTerm, statusFilter, softwareFilter, groupFilter, outputTypeFilter, filters.searchResults]);
 
   // Format time spent minutes to hours and minutes
   const formatTimeSpent = (minutes) => {
@@ -294,6 +353,17 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
             onChange={(e) => setSearchTerm(e.target.value)}
             className="px-3 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-sm rounded-md"
           />
+          <select
+            value={outputTypeFilter}
+            onChange={(e) => setOutputTypeFilter(e.target.value)}
+            className="px-3 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-sm rounded-md"
+            title="Filter by Output/Result Type"
+          >
+            <option value="">All output types</option>
+            {PREDEFINED_OUTPUT_TYPES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
           <button 
             onClick={resetFilters} 
             className={`btn btn-icon btn-sm transition-all duration-200 ${
@@ -324,7 +394,7 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
           </button>
         </div>
       </div>
-      <div className="overflow-y-auto" style={{maxHeight: "calc(100vh - 300px)"}}>
+      <div>
         <table className="w-full">
           <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-night-700 border-b border-gray-200 dark:border-night-600">
             <tr>
@@ -376,6 +446,13 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
               >
                 Updated {renderSortArrow('last_updated')}
               </th>
+              <th 
+                className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200"
+                onClick={() => handleSort('output_type')}
+                title="Output/Result Type"
+              >
+                Output {renderSortArrow('output_type')}
+              </th>
               <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider">
                 Actions
               </th>
@@ -401,7 +478,9 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
                       selectedProject?.id === project.id 
                         ? 'text-selected' 
                         : 'text-text dark:text-text-dark'
-                    }`}>{project.name}</div>
+                    }`}>
+                      {project.name}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <span 
@@ -452,6 +531,30 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
                         : 'text-text-muted dark:text-text-muted'
                     }`}>{formatDate(project.last_updated || project.creation_date)}</div>
                   </td>
+                  <td className="px-4 py-3">
+                    {project.output_type ? (
+                      <Tooltip>
+                        <Tooltip.Trigger asChild>
+                          <span
+                            className={`inline-flex items-center justify-center w-6 h-6 rounded-full 
+                              ${selectedProject?.id === project.id
+                                ? 'text-selected bg-bioluminescent-50/20 dark:bg-bioluminescent-900/30'
+                                : 'border bg-gray-50 dark:bg-night-700/40 text-text-muted dark:text-text-muted border-gray-200 dark:border-night-600'}`}
+                            style={selectedProject?.id === project.id ? { border: '1px solid #00F7FF' } : undefined}
+                            role="img"
+                            aria-label={`Output type: ${project.output_type}`}
+                          >
+                            {renderOutputTypeIcon(project.output_type, selectedProject?.id === project.id)}
+                          </span>
+                        </Tooltip.Trigger>
+                        <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">
+                          {project.output_type}
+                        </Tooltip.Panel>
+                      </Tooltip>
+                    ) : (
+                      <span className="text-xs text-text-muted">-</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right text-sm whitespace-nowrap">
                     <button
                       onClick={(e) => {
@@ -471,7 +574,7 @@ function ProjectTableView({ projects, onProjectSelect, filters = {}, selectedPro
               ))
             ) : (
               <tr>
-                <td colSpan="9" className="px-4 py-4 text-center text-text-muted">
+                <td colSpan="10" className="px-4 py-4 text-center text-text-muted">
                   <div className="flex flex-col items-center py-6">
                     <svg className="w-12 h-12 text-border mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

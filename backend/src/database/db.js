@@ -90,6 +90,40 @@ class DatabaseManager {
                 console.log('Applying migration: add edited_by to journal_entries');
                 await this.run("ALTER TABLE journal_entries ADD COLUMN edited_by TEXT");
             }
+
+            // Check for output_type column on projects
+            try {
+                const projectCols = await this.all("PRAGMA table_info('projects')");
+                const hasOutputType = projectCols.some(c => c.name === 'output_type');
+                if (!hasOutputType) {
+                    console.log('Applying migration: add output_type to projects');
+                    await this.run("ALTER TABLE projects ADD COLUMN output_type TEXT");
+                }
+            } catch (e) {
+                console.warn('Could not verify/add output_type column on projects:', e.message || e);
+            }
+
+            // Ensure project_resources table exists (create if missing)
+            try {
+                const table = await this.get("SELECT name FROM sqlite_master WHERE type='table' AND name='project_resources'");
+                if (!table) {
+                    console.log('Applying migration: create project_resources table');
+                    await this.run(`CREATE TABLE IF NOT EXISTS project_resources (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        project_id INTEGER NOT NULL,
+                        filename TEXT NOT NULL,
+                        original_name TEXT,
+                        mime_type TEXT,
+                        kind TEXT,
+                        caption TEXT,
+                        size INTEGER,
+                        created_at TEXT DEFAULT (datetime('now')),
+                        FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+                    )`);
+                }
+            } catch (e) {
+                console.warn('Could not verify/create project_resources table:', e.message || e);
+            }
         } catch (err) {
             console.error('Migration check/apply failed:', err);
             // Do not throw to avoid blocking app startup; log only.

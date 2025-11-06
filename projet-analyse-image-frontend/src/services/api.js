@@ -1,23 +1,27 @@
 // Use environment-specific API URL with dynamic port detection
+import Environment from '../utils/environmentDetection';
+
 const getApiUrl = () => {
-  // Check if we're in a Tauri environment
-  const isTauri = typeof window !== 'undefined' && window.__TAURI__;
-  
-  if (isTauri) {
-    // In Tauri desktop app, always use localhost:3001
-    // The backend should be auto-started by the Rust application
-    return 'http://localhost:3001/api';
-  }
-  
-  // In web environment, check production vs development
-  if (process.env.NODE_ENV === 'production') {
-    // Web production mode - may use different backend
-    const port = localStorage.getItem('biome_backend_port') || '3001';
-    return `http://localhost:${port}/api`;
-  }
-  
-  // In development, use the standard port or environment variable
-  return process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+    const isDesktop = Environment.isTauri();
+
+    // Prefer a port previously stored by the launcher/initializer
+    const storedPort = (typeof window !== 'undefined' && window.localStorage)
+        ? (localStorage.getItem('biome_backend_port') || localStorage.getItem('backend_port'))
+        : null;
+    const port = storedPort || '3001';
+
+    if (isDesktop) {
+        // Desktop (Tauri): backend is local; honor dynamic port when available
+        return `http://localhost:${port}/api`;
+    }
+
+    // Web environment
+    if (process.env.NODE_ENV === 'production') {
+        return `http://localhost:${port}/api`;
+    }
+
+    // Development web fallback
+    return process.env.REACT_APP_API_URL || `http://localhost:${port}/api`;
 };
 
 // Utility function to handle API responses
@@ -228,6 +232,7 @@ export const projectService = {
             description: projectData.description || '',
             status: projectData.status || 'Intake',
             software: projectData.software || null,
+            output_type: projectData.output_type || null,
             time_spent_minutes: parseInt(projectData.time_spent_minutes) || 0,
             project_path: projectData.project_path || null,
             folder_created: projectData.folder_created || false,
@@ -334,5 +339,54 @@ export const projectService = {
         const response = await fetchWithRetry(`${apiUrl}/projects/activities/export`);
         await handleResponse(response, 'Failed to export activities');
         return response.blob();
+    },
+
+    // Project resources (references) APIs
+    getResources: async (projectId) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/projects/${projectId}/references`);
+        await handleResponse(response, 'Failed to fetch project resources');
+        return response.json();
+    },
+
+    uploadResources: async (projectId, files) => {
+        const apiUrl = getApiUrl();
+        const form = new FormData();
+        (files || []).forEach(f => form.append('files', f));
+        const response = await fetchWithRetry(`${apiUrl}/projects/${projectId}/references/upload`, {
+            method: 'POST',
+            body: form
+        });
+        await handleResponse(response, 'Failed to upload resources');
+        return response.json();
+    },
+
+    updateResource: async (projectId, resId, data) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/projects/${projectId}/references/${resId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data || {})
+        });
+        await handleResponse(response, 'Failed to update resource');
+        return response.json();
+    },
+
+    deleteResource: async (projectId, resId) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/projects/${projectId}/references/${resId}`, {
+            method: 'DELETE'
+        });
+        await handleResponse(response, 'Failed to delete resource');
+        return response.json();
+    },
+
+    updateReadmeResources: async (projectId) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/projects/${projectId}/readme/resources`, {
+            method: 'POST'
+        });
+        await handleResponse(response, 'Failed to update README resources');
+        return response.json();
     }
 };

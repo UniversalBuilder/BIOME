@@ -33,6 +33,7 @@ const schema = [
     sample_type TEXT,
     objective_magnification TEXT,
     analysis_goal TEXT,
+    output_type TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
   )`,
 
@@ -53,6 +54,20 @@ const schema = [
     activity_date TEXT DEFAULT (datetime('now')),
     details TEXT,
     changed_fields TEXT,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+  )`,
+
+  // References/resources attached to projects (files saved under project folder /reference)
+  `CREATE TABLE IF NOT EXISTS project_resources (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    project_id INTEGER NOT NULL,
+    filename TEXT NOT NULL,             /* stored relative to the project's reference folder */
+    original_name TEXT,
+    mime_type TEXT,
+    kind TEXT,                          /* 'image' | 'document' */
+    caption TEXT,
+    size INTEGER,
+    created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
   )`
 ];

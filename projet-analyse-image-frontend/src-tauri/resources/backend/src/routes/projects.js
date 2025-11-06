@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
 
 // Add a helper function to record project activity
 const recordProjectActivity = async (projectId, activityType, details, changedFields = null) => {
@@ -162,7 +166,7 @@ router.get('/activities/export', async (req, res) => {
 router.post('/', async (req, res) => {
     const { name, description, status, software, time_spent_minutes, project_path, 
             folder_created, readme_last_updated, start_date, user_id,
-            image_types, sample_type, objective_magnification, analysis_goal } = req.body;
+            image_types, sample_type, objective_magnification, analysis_goal, output_type } = req.body;
     
     try {
         // Validate required fields
@@ -189,8 +193,8 @@ router.post('/', async (req, res) => {
                     name, description, status, software, time_spent_minutes,
                     project_path, folder_created, readme_last_updated,
                     start_date, user_id, creation_date, last_updated,
-                    image_types, sample_type, objective_magnification, analysis_goal
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?, ?, ?, ?)`,
+                    image_types, sample_type, objective_magnification, analysis_goal, output_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?, ?, ?, ?, ?)`,
                 [
                     name,
                     description || '',
@@ -205,7 +209,8 @@ router.post('/', async (req, res) => {
                     image_types || null,
                     sample_type || null,
                     objective_magnification || null,
-                    analysis_goal || null
+                    analysis_goal || null,
+                    output_type || null
                 ]
             );
             
@@ -228,7 +233,8 @@ router.post('/', async (req, res) => {
                     software: { from: null, to: software || null },
                     start_date: { from: null, to: start_date || new Date().toISOString().split('T')[0] },
                     user_id: { from: null, to: user_id || null },
-                    time_spent_minutes: { from: null, to: parseInt(time_spent_minutes) || 0 }
+                    time_spent_minutes: { from: null, to: parseInt(time_spent_minutes) || 0 },
+                    output_type: { from: null, to: output_type || null }
                 }
             );
             
@@ -443,6 +449,183 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// List project resources (references)
+router.get('/:id/references', async (req, res) => {
+    try {
+        const rows = await db.all(
+            `SELECT id, project_id, filename, original_name, mime_type, kind, caption, size, datetime(created_at) as created_at
+             FROM project_resources WHERE project_id = ? ORDER BY created_at DESC`,
+            [req.params.id]
+        );
+        res.json(rows || []);
+    } catch (err) {
+        console.error('Error getting project resources:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Upload one or more resources
+router.post('/:id/references/upload', upload.array('files', 20), async (req, res) => {
+    const projectId = req.params.id;
+    try {
+        const project = await db.get('SELECT id, project_path FROM projects WHERE id = ?', [projectId]);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        if (!project.project_path) return res.status(400).json({ error: 'Project path is not set' });
+
+        const referenceDir = path.join(project.project_path, 'reference');
+        if (!fs.existsSync(referenceDir)) fs.mkdirSync(referenceDir, { recursive: true });
+
+        const allowedDocs = new Set([
+            'application/pdf', 'text/plain',
+            'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ]);
+
+        const saved = [];
+        for (const file of (req.files || [])) {
+            const mime = file.mimetype || '';
+            const isImage = mime.startsWith('image/') && (mime === 'image/jpeg' || mime === 'image/png');
+            const isDoc = allowedDocs.has(mime);
+            if (!isImage && !isDoc) {
+                console.warn('Skipping unsupported file type:', mime, file.originalname);
+                continue;
+            }
+            const kind = isImage ? 'image' : 'document';
+            // Ensure unique filename by avoiding overwrite
+            const baseName = path.basename(file.originalname).replace(/[\\/:*?"<>|]/g, '_');
+            let target = path.join(referenceDir, baseName);
+            const ext = path.extname(baseName);
+            const nameNoExt = ext ? baseName.slice(0, -ext.length) : baseName;
+            let idx = 1;
+            while (fs.existsSync(target)) {
+                const candidate = `${nameNoExt} (${idx})${ext}`;
+                target = path.join(referenceDir, candidate);
+                idx++;
+            }
+            fs.writeFileSync(target, file.buffer);
+            const filename = path.basename(target);
+
+            const result = await db.run(
+                `INSERT INTO project_resources (project_id, filename, original_name, mime_type, kind, size)
+                 VALUES (?, ?, ?, ?, ?, ?)`,
+                [projectId, filename, file.originalname, mime, kind, file.size || null]
+            );
+            saved.push({ id: result.lastID, project_id: projectId, filename, original_name: file.originalname, mime_type: mime, kind, size: file.size || null });
+        }
+
+        // Touch project last_updated
+        await db.run('UPDATE projects SET last_updated = datetime("now") WHERE id = ?', [projectId]);
+        res.json({ uploaded: saved });
+    } catch (err) {
+        console.error('Error uploading project resources:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Download/serve a resource file
+router.get('/:id/references/:resId/file', async (req, res) => {
+    try {
+        const project = await db.get('SELECT id, project_path FROM projects WHERE id = ?', [req.params.id]);
+        if (!project || !project.project_path) return res.status(404).json({ error: 'Project not found or path missing' });
+        const row = await db.get('SELECT * FROM project_resources WHERE id = ? AND project_id = ?', [req.params.resId, req.params.id]);
+        if (!row) return res.status(404).json({ error: 'Resource not found' });
+        const filePath = path.join(project.project_path, 'reference', row.filename);
+        if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File missing on disk' });
+        res.sendFile(path.resolve(filePath));
+    } catch (err) {
+        console.error('Error serving resource file:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update resource metadata (caption only for now)
+router.patch('/:id/references/:resId', async (req, res) => {
+    try {
+        const { caption } = req.body || {};
+        const row = await db.get('SELECT * FROM project_resources WHERE id = ? AND project_id = ?', [req.params.resId, req.params.id]);
+        if (!row) return res.status(404).json({ error: 'Resource not found' });
+        await db.run('UPDATE project_resources SET caption = ? WHERE id = ?', [caption || null, req.params.resId]);
+        const updated = await db.get('SELECT * FROM project_resources WHERE id = ?', [req.params.resId]);
+        res.json(updated);
+    } catch (err) {
+        console.error('Error updating resource:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete a resource (record + file)
+router.delete('/:id/references/:resId', async (req, res) => {
+    try {
+        const project = await db.get('SELECT id, project_path FROM projects WHERE id = ?', [req.params.id]);
+        const row = await db.get('SELECT * FROM project_resources WHERE id = ? AND project_id = ?', [req.params.resId, req.params.id]);
+        if (!row) return res.status(404).json({ error: 'Resource not found' });
+        await db.run('DELETE FROM project_resources WHERE id = ?', [req.params.resId]);
+        if (project && project.project_path) {
+            const filePath = path.join(project.project_path, 'reference', row.filename);
+            if (fs.existsSync(filePath)) {
+                try { fs.unlinkSync(filePath); } catch {}
+            }
+        }
+        await db.run('UPDATE projects SET last_updated = datetime("now") WHERE id = ?', [req.params.id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting resource:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update README to include resources section between markers
+router.post('/:id/readme/resources', async (req, res) => {
+    try {
+        const project = await db.get('SELECT id, project_path FROM projects WHERE id = ?', [req.params.id]);
+        if (!project || !project.project_path) return res.status(400).json({ error: 'Project path is not set' });
+        const readmePathTxt = path.join(project.project_path, 'README.txt');
+        const readmePathMd = path.join(project.project_path, 'README.md');
+        const targetReadme = fs.existsSync(readmePathTxt) ? readmePathTxt : readmePathMd;
+        if (!fs.existsSync(targetReadme)) return res.status(404).json({ error: 'README not found' });
+
+        const resources = await db.all('SELECT * FROM project_resources WHERE project_id = ? ORDER BY created_at DESC', [req.params.id]);
+        const imgs = resources.filter(r => r.kind === 'image');
+        const docs = resources.filter(r => r.kind !== 'image');
+
+        const header = '\n\n=== RESOURCES (auto-generated) ===\n';
+        const footer = '\n=== END RESOURCES ===\n';
+        const lines = [];
+        lines.push(header.trim());
+        if (imgs.length) {
+            lines.push('Images:');
+            imgs.forEach(r => {
+                lines.push(` - ${path.posix.join('reference', r.filename)}${r.caption ? ` — ${r.caption}` : ''}`);
+            });
+            lines.push('');
+        }
+        if (docs.length) {
+            lines.push('Documents:');
+            docs.forEach(r => {
+                lines.push(` - ${path.posix.join('reference', r.filename)}${r.caption ? ` — ${r.caption}` : ''}`);
+            });
+            lines.push('');
+        }
+        const section = lines.join('\n').trim() + '\n' + footer.trim();
+
+        let content = fs.readFileSync(targetReadme, 'utf8');
+        const startIdx = content.indexOf('=== RESOURCES (auto-generated) ===');
+        const endIdx = content.indexOf('=== END RESOURCES ===');
+        if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+            const before = content.substring(0, startIdx);
+            const after = content.substring(endIdx + '=== END RESOURCES ==='.length);
+            content = before + section + after;
+        } else {
+            content = content.trimEnd() + '\n' + section;
+        }
+        fs.writeFileSync(targetReadme, content, 'utf8');
+        await db.run('UPDATE projects SET last_updated = datetime("now") WHERE id = ?', [req.params.id]);
+        res.json({ updated: true, readme: path.basename(targetReadme) });
+    } catch (err) {
+        console.error('Error updating README resources:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Update project
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
@@ -470,7 +653,7 @@ router.put('/:id', async (req, res) => {
                 'name', 'description', 'status', 'software', 'time_spent_minutes',
                 'project_path', 'folder_created', 'readme_last_updated',
                 'start_date', 'user_id', 'image_types', 'sample_type', 
-                'objective_magnification', 'analysis_goal'
+                'objective_magnification', 'analysis_goal', 'output_type'
             ];
 
             const fields = Object.keys(updates).filter(key => allowedFields.includes(key));

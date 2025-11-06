@@ -172,6 +172,13 @@ const Analytics = ({ projects = [], analytics = {} }) => {
           ]
         },
         {
+          name: 'Output Type Distribution',
+          data: [
+            ['Output/Result Type', 'Count'],
+            ...Object.entries(outputTypeCounts).map(([type, count]) => [type, count])
+          ]
+        },
+        {
           name: 'Software Distribution',
           data: [
             ['Software', 'Count'],
@@ -444,6 +451,30 @@ const Analytics = ({ projects = [], analytics = {} }) => {
         data: softwareData,
         backgroundColor: chartColors.pandoraColors,
         borderColor: chartColors.pandoraBorders,
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Output/Result Type Distribution
+  const outputTypeCounts = {};
+  filteredProjects.forEach(project => {
+    const type = project.output_type || 'Unspecified';
+    outputTypeCounts[type] = (outputTypeCounts[type] || 0) + 1;
+  });
+
+  const outputTypeData = {
+    labels: Object.keys(outputTypeCounts),
+    datasets: [
+      {
+        label: 'Projects by Output/Result Type',
+        data: Object.values(outputTypeCounts),
+        backgroundColor: Object.keys(outputTypeCounts).map((_, i) => 
+          chartColors.pandoraColors[i % chartColors.pandoraColors.length]
+        ),
+        borderColor: Object.keys(outputTypeCounts).map((_, i) => 
+          chartColors.pandoraBorders[i % chartColors.pandoraBorders.length]
+        ),
         borderWidth: 1,
       },
     ],
@@ -1316,6 +1347,28 @@ const Analytics = ({ projects = [], analytics = {} }) => {
             </div>
           </div>
           
+          {/* Output/Result Type Distribution */}
+          <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm hover:shadow-lg transition-colors">
+            <div className="p-4 border-b border-gray-200 dark:border-night-600">
+              <Tooltip>
+                <Tooltip.Trigger asChild>
+                  <h3 className="font-medium text-gray-900 dark:text-night-100">Output/Result Type Distribution</h3>
+                </Tooltip.Trigger>
+                <Tooltip.Panel className="bg-surface text-text text-sm px-2 py-1 rounded shadow-lg">
+                  Distribution of projects by declared output/result type
+                </Tooltip.Panel>
+              </Tooltip>
+            </div>
+            <div className="p-4" style={{ height: '300px' }}>
+              <Pie key={`outputtype-${chartKey}`} data={outputTypeData} options={commonOptions} />
+            </div>
+            <div className="px-4 pb-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                Shows how projects are classified by their primary outcome (e.g., Counseling, Script, Training)
+              </p>
+            </div>
+          </div>
+
           {/* Software Distribution */}
           <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm hover:shadow-lg transition-colors">
             <div className="p-4 border-b border-gray-200 dark:border-night-600">

@@ -48,6 +48,15 @@ const PREDEFINED_SOFTWARE = [
   'Other'
 ];
 
+// Output/Result type categories
+const PREDEFINED_OUTPUT_TYPES = [
+  'Counseling',
+  'Video Tutorial',
+  'Script',
+  'Workflow/Protocol',
+  'Training'
+];
+
 // Multi-select checkbox component
 const MultiSelectField = ({ options, value, onChange, placeholder, fieldName }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -144,6 +153,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
     name: 'New Project',
     description: '',
     software: '',
+    output_type: '',
     sample_type: '[]',
     image_types: '[]',
     analysis_goal: '[]',
@@ -332,6 +342,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
     description: data.description,
     status: data.status || 'Intake',
     software: data.software || null,
+    output_type: data.output_type || null,
     time_spent_minutes: 0,
     project_path: data.project_path || null,
     folder_created: data.folder_created || false,
@@ -627,6 +638,25 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                   {errors.analysis_software && (
                     <p className="text-red-600 text-xs mt-1">{errors.analysis_software}</p>
                   )}
+                </div>
+              </div>
+
+              {/* Output/Result Type */}
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Output / Result Type
+                  </label>
+                  <select
+                    value={projectData.output_type}
+                    onChange={(e) => handleInputChange('output_type', e.target.value)}
+                    className={inputBaseClasses}
+                  >
+                    <option value="">Select output type (optional)</option>
+                    {PREDEFINED_OUTPUT_TYPES.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

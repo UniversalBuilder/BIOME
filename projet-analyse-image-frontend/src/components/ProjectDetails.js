@@ -39,6 +39,59 @@ const PREDEFINED_OPTIONS = {
   ]
 };
 
+// Output/Result type categories
+const PREDEFINED_OUTPUT_TYPES = [
+  'Counseling',
+  'Video Tutorial',
+  'Script',
+  'Workflow/Protocol',
+  'Training'
+];
+
+// Monochrome pictogram per Output/Result Type
+const renderOutputTypeIcon = (type) => {
+  const common = 'w-4 h-4';
+  switch ((type || '').toLowerCase()) {
+    case 'video tutorial':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M14.752 11.168l-4.596-2.65A1 1 0 008 9.35v5.3a1 1 0 001.156.832l4.596-2.65a1 1 0 000-1.664z" />
+          <rect x="3" y="4" width="18" height="16" rx="2" ry="2" />
+        </svg>
+      );
+    case 'script':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M8 16l-4-4 4-4" />
+          <path d="M16 8l4 4-4 4" />
+        </svg>
+      );
+    case 'workflow/protocol':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="6" cy="6" r="2" />
+          <circle cx="18" cy="6" r="2" />
+          <circle cx="12" cy="18" r="2" />
+          <path d="M8 6h8M12 8v6" />
+        </svg>
+      );
+    case 'training':
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M22 10l-10-5-10 5 10 5 10-5z" />
+          <path d="M6 12v5a6 6 0 0012 0v-5" />
+        </svg>
+      );
+    case 'counseling':
+    default:
+      return (
+        <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 15a4 4 0 01-4 4H7l-4 4V7a4 4 0 014-4h10a4 4 0 014 4v8z" />
+        </svg>
+      );
+  }
+};
+
 // Multi-select checkbox component
 const MultiSelectField = ({ options, value, onChange, placeholder, fieldName }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -188,6 +241,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   const [isTauri, setIsTauri] = useState(false);
   const [folderStatus, setFolderStatus] = useState({ isValid: false, isEmpty: false });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Resources (reference files)
+  const [resources, setResources] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [, setSavingCaptionId] = useState(null);
   // Used in the web fallback path selection system - see handleBrowseProjectFolder function
   const [isPathFallbackOpen, setIsPathFallbackOpen] = useState(false); 
   // Used to store suggested project paths for web fallback - see handleBrowseProjectFolder function
@@ -394,6 +451,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         description: localEditingData.description,
         status: localEditingData.status || 'Intake',
         software: localEditingData.software,
+        output_type: localEditingData.output_type || null,
         time_spent_minutes: localEditingData.time_spent_minutes || 0,
         project_path: localEditingData.project_path,
         folder_created: localEditingData.folder_created,
@@ -626,6 +684,103 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   };
 
   const displayData = isEditing && localEditingData ? localEditingData : project;
+
+  // Compute API base URL (mirror of services/api.js)
+  const getApiBase = () => {
+    const isTauriEnv = Environment.isTauri();
+    if (isTauriEnv) return 'http://localhost:3001/api';
+    if (process.env.NODE_ENV === 'production') {
+      const port = localStorage.getItem('biome_backend_port') || '3001';
+      return `http://localhost:${port}/api`;
+    }
+    return process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+  };
+
+  const loadResources = useCallback(async () => {
+    try {
+      if (!project?.id) return;
+      const items = await projectService.getResources(project.id);
+      setResources(items || []);
+    } catch (e) {
+      console.error('Failed to load resources', e);
+      setResources([]);
+    }
+  }, [project?.id]);
+
+  useEffect(() => {
+    loadResources();
+  }, [loadResources]);
+
+  const handleUploadImages = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !project?.id) return;
+    setUploading(true);
+    try {
+      const onlySupported = files.filter(f => ['image/jpeg','image/png'].includes(f.type));
+      if (!onlySupported.length) { alert('Only JPEG or PNG images are allowed.'); return; }
+      await projectService.uploadResources(project.id, onlySupported);
+      await loadResources();
+    } catch (err) {
+      console.error('Upload images failed', err);
+      alert('Failed to upload images');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleUploadDocs = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !project?.id) return;
+    setUploading(true);
+    try {
+      const allowed = new Set(['application/pdf','text/plain','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
+      const onlySupported = files.filter(f => allowed.has(f.type));
+      if (!onlySupported.length) { alert('Only PDF, TXT, or Word documents are allowed.'); return; }
+      await projectService.uploadResources(project.id, onlySupported);
+      await loadResources();
+    } catch (err) {
+      console.error('Upload documents failed', err);
+      alert('Failed to upload documents');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleSaveCaption = async (resId, caption) => {
+    try {
+      setSavingCaptionId(resId);
+      await projectService.updateResource(project.id, resId, { caption });
+      await loadResources();
+    } catch (err) {
+      console.error('Failed to save caption', err);
+      alert('Failed to save caption');
+    } finally {
+      setSavingCaptionId(null);
+    }
+  };
+
+  const handleDeleteResource = async (resId) => {
+    if (!window.confirm('Delete this resource?')) return;
+    try {
+      await projectService.deleteResource(project.id, resId);
+      await loadResources();
+    } catch (err) {
+      console.error('Failed to delete resource', err);
+      alert('Failed to delete resource');
+    }
+  };
+
+  const handleUpdateReadmeResources = async () => {
+    try {
+      const result = await projectService.updateReadmeResources(project.id);
+      alert(`README resources section updated (${result.readme})`);
+    } catch (err) {
+      console.error('Failed to update README resources', err);
+      alert('Failed to update README resources');
+    }
+  };
 
   useEffect(() => {
     const validateFolder = async () => {
@@ -1022,7 +1177,8 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             displayData.description || 'No description provided',
             localJournalEntries,
             displayData.status,
-            displayData.software
+            displayData.software,
+            displayData.output_type
           );
           
           // Update the readme timestamp anyway for better UX
@@ -2005,6 +2161,52 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                       )}
                     </td>
                   </tr>
+
+                  {/* Output / Result Type */}
+                  <tr>
+                    <td className="px-4 py-3">
+                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Output / Result Type</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {isEditing ? (
+                        <select
+                          id="output-type-select"
+                          name="output-type-select"
+                          className={inputBaseClasses}
+                          value={displayData.output_type || ''}
+                          onChange={(e) => handleInputChange('output_type', e.target.value)}
+                        >
+                          <option value="">Select output type</option>
+                          {PREDEFINED_OUTPUT_TYPES.map(t => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div className="inline-flex items-center gap-2 text-sm">
+                          <span className="px-3 py-1 inline-flex items-center rounded-full text-xs font-medium bg-blue-50 dark:bg-bioluminescent-900/30 text-blue-700 dark:text-bioluminescent-300 border border-blue-200 dark:border-bioluminescent-800">
+                            {project.output_type || '—'}
+                          </span>
+                          {project.output_type && (
+                            <Tooltip>
+                              <Tooltip.Trigger asChild>
+                                <span
+                                  className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-50 dark:bg-night-700/40 text-gray-700 dark:text-night-200 border border-gray-200 dark:border-night-600"
+                                  role="img"
+                                  aria-label={`Output type: ${project.output_type}`}
+                                  title={project.output_type}
+                                >
+                                  {renderOutputTypeIcon(project.output_type)}
+                                </span>
+                              </Tooltip.Trigger>
+                              <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">
+                                {project.output_type}
+                              </Tooltip.Panel>
+                            </Tooltip>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
                   
                   {/* Image Types */}
                   <tr>
@@ -2312,6 +2514,121 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
               )}
             </div>
           </div>
+
+          {/* Section 4.5: Project Resources */}
+          {!isEditing && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M4 12l8-8 8 8M12 4v12" />
+                  </svg>
+                  Resources
+                </h4>
+                <div className="flex items-center gap-2">
+                  <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer" style={{ background: 'linear-gradient(45deg, #00BFFF, #0080FF)'}}>
+                    Upload Images
+                    <input type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={handleUploadImages} disabled={uploading} />
+                  </label>
+                  <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer" style={{ background: 'linear-gradient(45deg, #6366F1, #8B5CF6)'}}>
+                    Upload Docs
+                    <input type="file" accept="application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple className="hidden" onChange={handleUploadDocs} disabled={uploading} />
+                  </label>
+                  <button onClick={handleUpdateReadmeResources} className="px-3 py-2 rounded-md text-sm font-medium text-white" style={{ background: 'linear-gradient(45deg, #10B981, #059669)'}}>
+                    Update README Resources
+                  </button>
+                </div>
+              </div>
+
+              {/* Images grid */}
+              <div className="mb-4">
+                <h5 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Reference Images</h5>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {resources.filter(r => r.kind === 'image').map((r) => (
+                    <div key={r.id} className="bg-white/70 dark:bg-gray-800/60 rounded-lg p-2 shadow-sm hover:shadow-md transition-all">
+                      <div className="relative w-full pb-[75%] bg-gray-100 dark:bg-gray-700 rounded overflow-hidden">
+                        <img
+                          src={`${getApiBase()}/projects/${project.id}/references/${r.id}/file`}
+                          alt={r.original_name}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="mt-2 text-xs text-gray-700 dark:text-gray-200 break-all">{r.original_name}</div>
+                      <div className="mt-1">
+                        <input
+                          type="text"
+                          defaultValue={r.caption || ''}
+                          className="w-full px-2 py-1 text-xs rounded bg-white/70 dark:bg-gray-800/60"
+                          placeholder="Add caption..."
+                          onBlur={(e) => {
+                            const val = e.target.value.trim();
+                            if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center mt-2 text-[11px] text-gray-500">
+                        <span>{(r.size || 0) > 0 ? `${Math.round(r.size/1024)} KB` : ''}</span>
+                        <button className="text-red-600 hover:text-red-800" onClick={() => handleDeleteResource(r.id)}>
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {resources.filter(r => r.kind === 'image').length === 0 && (
+                    <div className="text-sm text-gray-500">No images yet.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Documents list */}
+              <div className="mb-2">
+                <h5 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Reference Documents</h5>
+                <div className="bg-white/70 dark:bg-gray-800/60 rounded-xl shadow-sm">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs uppercase text-gray-500">
+                        <th className="px-3 py-2">File</th>
+                        <th className="px-3 py-2 w-1/3">Caption</th>
+                        <th className="px-3 py-2 w-24 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {resources.filter(r => r.kind !== 'image').map(r => (
+                        <tr key={r.id}>
+                          <td className="px-3 py-2">
+                            <a className="text-blue-600 hover:underline break-all" href={`${getApiBase()}/projects/${project.id}/references/${r.id}/file`} target="_blank" rel="noreferrer">
+                              {r.original_name}
+                            </a>
+                          </td>
+                          <td className="px-3 py-2">
+                            <input
+                              type="text"
+                              defaultValue={r.caption || ''}
+                              className="w-full px-2 py-1 text-sm rounded bg-white/70 dark:bg-gray-800/60"
+                              placeholder="Add caption..."
+                              onBlur={(e) => {
+                                const val = e.target.value.trim();
+                                if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
+                              }}
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <button className="text-red-600 hover:text-red-800 text-sm" onClick={() => handleDeleteResource(r.id)}>Delete</button>
+                          </td>
+                        </tr>
+                      ))}
+                      {resources.filter(r => r.kind !== 'image').length === 0 && (
+                        <tr>
+                          <td className="px-3 py-3 text-gray-500" colSpan="3">No documents yet.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Section 5: Journal Entries - only shown in view mode */}
           {!isEditing && (

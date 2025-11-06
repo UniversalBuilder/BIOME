@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import './StatusColors.css';
 import './ProjectList.css';
+import { Tooltip } from './Tooltip';
 
 function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewProject, showScroll = true }) {
   const [sortField, setSortField] = useState('last_updated');
@@ -11,21 +12,21 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
 
   // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {
-    return (projects || []).sort((a, b) => {
+    // Copy to avoid mutating the incoming prop array during sort
+    return ([...(projects || [])]).sort((a, b) => {
       // Handle null values
       const aValue = a[sortField] ?? '';
       const bValue = b[sortField] ?? '';
       
       // Sort in the specified order
       return sortOrder === 'asc' ? 
-        aValue < bValue ? -1 : aValue > bValue ? 1 : 0 
-        : aValue > bValue ? -1 
-        : aValue < bValue ? 1 : 0;
+        (aValue < bValue ? -1 : aValue > bValue ? 1 : 0)
+        : (aValue > bValue ? -1 : aValue < bValue ? 1 : 0);
     });
   }, [projects, sortField, sortOrder]);
 
   // Check scroll position to show/hide scroll indicators
-  const checkScrollPosition = () => {
+  const checkScrollPosition = useCallback(() => {
     const element = scrollContainerRef.current;
     if (!element) return;
 
@@ -40,9 +41,59 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
       }
       return prev;
     });
+  }, []);
+
+  // Monochrome pictogram per Output/Result Type (keeps current icon style)
+  const renderOutputTypeIcon = (type, isSelected = false) => {
+    const common = `w-3.5 h-3.5 ${isSelected ? 'text-selected' : 'text-text-muted dark:text-text-muted'}`;
+    const strokeColor = isSelected ? '#00F7FF' : 'currentColor';
+    switch ((type || '').toLowerCase()) {
+      case 'video tutorial':
+        // Play icon
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <path d="M14.752 11.168l-4.596-2.65A1 1 0 008 9.35v5.3a1 1 0 001.156.832l4.596-2.65a1 1 0 000-1.664z" />
+            <rect x="3" y="4" width="18" height="16" rx="2" ry="2" />
+          </svg>
+        );
+      case 'script':
+        // Code brackets
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <path d="M8 16l-4-4 4-4" />
+            <path d="M16 8l4 4-4 4" />
+          </svg>
+        );
+      case 'workflow/protocol':
+        // Flow / nodes
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <circle cx="6" cy="6" r="2" />
+            <circle cx="18" cy="6" r="2" />
+            <circle cx="12" cy="18" r="2" />
+            <path d="M8 6h8M12 8v6" />
+          </svg>
+        );
+      case 'training':
+        // Graduation cap
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <path d="M22 10l-10-5-10 5 10 5 10-5z" />
+            <path d="M6 12v5a6 6 0 0012 0v-5" />
+          </svg>
+        );
+      case 'counseling':
+      default:
+        // Chat bubble
+        return (
+          <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
+            <path d="M21 15a4 4 0 01-4 4H7l-4 4V7a4 4 0 014-4h10a4 4 0 014 4v8z" />
+          </svg>
+        );
+    }
   };
 
-  // Effect to set up scroll listener and initial state
+  // Effect to set up scroll listener and initial state (run once)
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) return;
@@ -77,7 +128,13 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
       window.removeEventListener('resize', onWinResize);
       if (resizeRafRef.current) cancelAnimationFrame(resizeRafRef.current);
     };
-  }, [filteredAndSortedProjects]);
+  }, [checkScrollPosition]);
+
+  // Re-measure when the list contents change (without re-attaching listeners)
+  useEffect(() => {
+    if (resizeRafRef.current) cancelAnimationFrame(resizeRafRef.current);
+    resizeRafRef.current = requestAnimationFrame(checkScrollPosition);
+  }, [filteredAndSortedProjects, checkScrollPosition]);
 
   const handleCreateProject = () => {
     // Use the wizard if the prop is provided, otherwise fall back to old method
@@ -203,7 +260,7 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
       </div>
       
       {/* Projects List with Custom Scroll */}
-  <div className="flex-1 min-h-0 relative stable-scroll-container">
+      <div className="flex-1 min-h-0 relative stable-scroll-container">
         {/* Top scroll indicator */}
         {showScroll && scrollState.canScrollUp && (
           <div className="absolute top-0 left-0 right-0 z-10 h-8 bg-gradient-to-b from-white/90 via-white/60 to-transparent dark:from-gray-900/90 dark:via-gray-900/60 dark:to-transparent pointer-events-none">
@@ -237,75 +294,93 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
           ref={scrollContainerRef}
           className={`h-full p-4 project-list-container ${showScroll ? 'scrollbar-hidden' : ''}`}
         >
-        <div className="space-y-3">
-          {filteredAndSortedProjects.length > 0 ? (
-            filteredAndSortedProjects.map((project, index) => (
-              <div
-                key={project.id || `temp_${index}`}
-                onClick={() => onProjectSelect(project)}
-                className={`
-                  p-5 rounded-xl transition-all duration-300 cursor-pointer backdrop-filter backdrop-blur-lg shadow-sm project-hover
-                  ${selectedProject?.id === project.id 
-                    ? 'project-selected bg-gradient-to-br from-bioluminescent-50/90 to-white/70 dark:from-bioluminescent-900/40 dark:to-gray-800/60 shadow-lg' 
-                    : 'bg-white/70 dark:bg-gray-800/60'
-                  }
-                `}
-                style={{ 
-                  animationDelay: `${index * 30}ms`
-                }}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2 flex-grow">
-                    <div className="flex flex-col gap-2">
-                      <h4 
-                        className={`text-sm font-medium ${
-                          selectedProject?.id === project.id 
-                            ? 'text-bioluminescent-700 dark:text-bioluminescent-300' 
-                            : 'text-gray-900 dark:text-gray-100'
-                        }`}
-                        title={project.name || 'Untitled Project'}
-                      >
-                        <span className="break-words leading-tight">
-                          {project.name || 'Untitled Project'}
+          <div className="space-y-3">
+            {filteredAndSortedProjects.length > 0 ? (
+              filteredAndSortedProjects.map((project, index) => (
+                <div
+                  key={project.id || `temp_${index}`}
+                  onClick={() => onProjectSelect(project)}
+                  className={`
+                    p-5 rounded-xl transition-all duration-300 cursor-pointer backdrop-filter backdrop-blur-lg shadow-sm project-hover
+                    ${selectedProject?.id === project.id 
+                      ? 'project-selected bg-gradient-to-br from-bioluminescent-50/90 to-white/70 dark:from-bioluminescent-900/40 dark:to-gray-800/60 shadow-lg' 
+                      : 'bg-white/70 dark:bg-gray-800/60'
+                    }
+                  `}
+                  style={{ 
+                    animationDelay: `${index * 30}ms`
+                  }}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2 flex-grow">
+                      <div className="flex flex-col gap-2">
+                        <h4 
+                          className={`text-sm font-medium text-gray-900 dark:text-gray-100`}
+                          title={project.name || 'Untitled Project'}
+                        >
+                          <span className={`break-words leading-tight ${selectedProject?.id === project.id ? 'text-selected' : ''}`}>
+                            {project.name || 'Untitled Project'}
+                          </span>
+                        </h4>
+                        <span 
+                          className={`${getStatusColor(project.status)} inline-flex w-fit`}
+                        >
+                          {mapStatusName(project.status)}
                         </span>
-                      </h4>
-                      <span 
-                        className={`${getStatusColor(project.status)} inline-flex w-fit`}
-                      >
-                        {mapStatusName(project.status)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex gap-4">
-                      <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
-                        <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        {project.user_name || '—'}
                       </div>
-                      <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
-                        <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        {project.group_name || '—'}
+                      
+                      <div className="flex gap-4">
+                        <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                          <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          {project.user_name || '—'}
+                        </div>
+                        <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                          <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          {project.group_name || '—'}
+                        </div>
+                        {project.output_type && (
+                          <div className="flex items-center text-xs">
+                            <Tooltip>
+                              <Tooltip.Trigger asChild>
+                                <span
+                                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full 
+                                    ${selectedProject?.id === project.id
+                                      ? 'text-selected bg-bioluminescent-50/20 dark:bg-bioluminescent-900/30'
+                                      : 'border bg-gray-50 dark:bg-night-700/40 text-text-muted dark:text-text-muted border-gray-200 dark:border-night-600'}`}
+                                  style={selectedProject?.id === project.id ? { border: '1px solid #00F7FF' } : undefined}
+                                  role="img"
+                                  aria-label={`Output type: ${project.output_type}`}
+                                >
+                                  {renderOutputTypeIcon(project.output_type, selectedProject?.id === project.id)}
+                                </span>
+                              </Tooltip.Trigger>
+                              <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">
+                                {project.output_type}
+                              </Tooltip.Panel>
+                            </Tooltip>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <div className="w-12 h-12 rounded-full bg-gray-50/60 dark:bg-surface-dark/60 backdrop-filter backdrop-blur-sm flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <p className="text-sm">No projects yet.</p>
+                <p className="text-xs mt-1">Click "New Project" to get started</p>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <div className="w-12 h-12 rounded-full bg-gray-50/60 dark:bg-surface-dark/60 backdrop-filter backdrop-blur-sm flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-              </div>
-              <p className="text-sm">No projects yet.</p>
-              <p className="text-xs mt-1">Click "New Project" to get started</p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

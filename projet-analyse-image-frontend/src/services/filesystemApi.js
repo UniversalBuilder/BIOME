@@ -106,7 +106,7 @@ export const validateProjectStructure = async (projectPath, folderCreated) => {
 /**
  * Generate and download a README file for web users
  */
-export const downloadReadmeTemplate = async (projectName, projectDescription, journalEntries = [], status = '', software = '') => {
+export const downloadReadmeTemplate = async (projectName, projectDescription, journalEntries = [], status = '', software = '', outputType = '') => {
   const date = new Date().toISOString().split('T')[0];
   
   let readmeContent = 
@@ -114,8 +114,9 @@ export const downloadReadmeTemplate = async (projectName, projectDescription, jo
     `## Description\n${projectDescription || 'No description provided'}\n\n` +
     `## Project Details\n` +
     `- Created: ${date}\n` +
-    `- Status: ${status || 'Not specified'}\n` +
-    `- Software: ${software || 'Not specified'}\n\n` +
+  `- Status: ${status || 'Not specified'}\n` +
+  `- Software: ${software || 'Not specified'}\n` +
+  `- Output/Result Type: ${outputType || 'Unspecified'}\n\n` +
     `## Journal Entries\n\n`;
     
   // Add journal entries if available
