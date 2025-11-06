@@ -90,7 +90,7 @@ Foundational release establishing core project management, analytics scaffolding
 
 ### Checksum Example
 ```powershell
-Get-FileHash .\BIOME_1.2.0_x64_en-US.msi -Algorithm SHA256
+Get-FileHash .\BIOME_1.4.0_x64_en-US.msi -Algorithm SHA256
 ```
 
 ### Future Automation Ideas

@@ -1,4 +1,4 @@
-﻿# BIOME Desktop Application - Installation Instructions (v1.2.1)
+﻿# BIOME Desktop Application - Installation Instructions (v1.4.0)
 
 ## System Requirements
 * Windows 10/11 (64-bit)
@@ -8,22 +8,22 @@
 ## Installation Steps
 
 ### Standard Installation
-1. Download the BIOME MSI installer
-	File name: BIOME_1.2.1_x64_en-US.msi
+1. Download the BIOME MSI installer from GitHub Releases
+	Latest: BIOME_1.4.0_x64_en-US.msi
 2. Right-click the MSI file and select 'Run as administrator'
 3. Follow the installation wizard
 4. Launch BIOME from Start Menu or Desktop shortcut
 
 ### Silent Installation (IT Administrators)
 Use the command line for silent installation:
-msiexec /i BIOME_1.2.1_x64_en-US.msi /quiet
+msiexec /i BIOME_1.4.0_x64_en-US.msi /quiet
 
 ### Uninstallation
 * Use Windows 'Add or Remove Programs'
-* Or run: msiexec /x BIOME_1.2.1_x64_en-US.msi
+* Or run: msiexec /x BIOME_1.4.0_x64_en-US.msi
 
 ## Integrity Check (optional)
-SHA256: 000C1A529BB1737FA35269A147B29A42301ADF29B0D9BACB85C833869B31D907
+SHA256: (see checksum on the Release page or generate locally)
 
 ## First Launch
 * BIOME will create a local database on first run

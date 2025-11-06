@@ -5,7 +5,7 @@
 **A comprehensive bioimage analysis project management tool for research facilities and laboratories**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](#download)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](#download)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#installation)
 
 [🚀 Quick Start](#quick-start) • [📦 Download](#download) • [📚 Documentation](#documentation) • [🤝 Contributing](#contributing)
@@ -25,7 +25,8 @@ BIOME is a specialized project management application designed for **bioimage an
 - 🏢 **Multi-Facility Support**: Organize projects across imaging cores (Confocal, Widefield, Digital Pathology)
 - 👥 **Team Management**: Track projects by facility staff and research groups  
 - 📊 **Project Tracking**: Monitor analysis progress, time investment, and project status
-- � **Digital Lab Journal**: Document methodology, results, and analysis notes
+- 📓 **Digital Lab Journal**: Document methodology, results, and analysis notes
+- 📎 **Project Resources (New in 1.4.0)**: Attach images/documents to projects; auto-inject a Resources section into the project README
 - 🔬 **Analysis Integration**: Designed for common bioimage analysis software workflows
 - 📈 **Progress Analytics**: Visualize project timelines, workload distribution, and productivity
 - 💻 **Dual Mode**: Available as both web application and native desktop app
@@ -43,8 +44,8 @@ BIOME is a specialized project management application designed for **bioimage an
 
 ### Option 1: Desktop Application (Recommended)
 
-1. **Download** the latest MSI installer: [BIOME_1.2.0_x64_en-US.msi (local copy)](./BIOME-Distribution/BIOME_1.2.0_x64_en-US.msi)
-   - Or from Releases (recommended for integrity): [GitHub Releases Page](https://github.com/UniversalBuilder/BIOME/releases/latest)
+1. **Download** the latest MSI installer from Releases: [BIOME_1.4.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v1.4.0/BIOME_1.4.0_x64_en-US.msi)
+   - Or visit the [GitHub Releases Page](https://github.com/UniversalBuilder/BIOME/releases/latest) to pick another version
 2. **Install** by double-clicking the MSI file
 3. **Launch** BIOME from your Start Menu
 4. **Explore** the demo data featuring realistic bioimage analysis projects
@@ -78,14 +79,14 @@ You can obtain BIOME in two ways:
 | Source Code | `git clone https://github.com/UniversalBuilder/BIOME.git` | Contains full source (clean, lightweight history) |
 
 Release assets include:
-- `BIOME_1.2.0_x64_en-US.msi` – Windows 10/11 desktop installer
+- `BIOME_1.4.0_x64_en-US.msi` – Windows 10/11 desktop installer
 - Auto-generated source archives (ZIP/TAR.GZ)
 
 Integrity / Verification (optional):
 - After download, right‑click the MSI → Properties → ensure file size ~46–53 MB
 - You may generate a checksum locally:
    ```powershell
-   Get-FileHash .\BIOME_1.2.0_x64_en-US.msi -Algorithm SHA256
+   Get-FileHash .\BIOME_1.4.0_x64_en-US.msi -Algorithm SHA256
    ```
 
 If SmartScreen warns, select “More info” → “Run anyway” (unsigned development build).
@@ -105,7 +106,7 @@ If SmartScreen warns, select “More info” → “Run anyway” (unsigned deve
 #### Installation Steps
 
 1. **Download the MSI Installer**
-   - Download [BIOME_1.2.0_x64_en-US.msi](./BIOME-Distribution/BIOME_1.2.0_x64_en-US.msi) (~53 MB)
+   - Download [BIOME_1.4.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v1.4.0/BIOME_1.4.0_x64_en-US.msi)
    - Verify the file downloaded completely
 
 2. **Run the Installer**
@@ -143,7 +144,7 @@ Once installed, you should see:
 - Installation folder at `C:\Program Files\BIOME\`
 - Demo data with 10 sample projects ready for exploration
 
-*[Screenshot placeholder: BIOME main dashboard with demo data]*
+![Dashboard (dark)](./screenshots/biome_dashboard_dark.png)
 
 ### 🌐 Web Application Setup (Development)
 
@@ -188,7 +189,7 @@ npm install
 npm start  # Runs on http://localhost:3000
 ```
 
-*[Screenshot placeholder: Web application running in browser]*
+![Projects (dark)](./screenshots/biome_projects_dark.png)
 
 ---
 
@@ -205,7 +206,7 @@ The main dashboard shows:
 - **Quick Stats**: Total projects, time invested, and facility distribution
 - **Analytics Preview**: Visual insights into your project portfolio
 
-*[Screenshot placeholder: Main dashboard with annotated areas]*
+![Dashboard (dark)](./screenshots/biome_dashboard_dark.png)
 
 #### 2. **Exploring Demo Projects**
 Click on any project to see detailed information:
@@ -216,7 +217,7 @@ Click on any project to see detailed information:
 - **File Management**: Project folder structure and README files
 - **Lab Journal**: Research notes and methodology documentation
 
-*[Screenshot placeholder: Project details view with expanded information]*
+![Table view (dark)](./screenshots/biome_table_view_dark.png)
 
 #### 3. **Navigation Basics**
 - **Dashboard**: Overview of all projects and recent activity
@@ -224,7 +225,7 @@ Click on any project to see detailed information:
 - **Analytics**: Visual insights and progress reports
 - **Settings**: Application preferences and configuration
 
-*[Screenshot placeholder: Navigation menu with labels]*
+![Users & Groups (dark)](./screenshots/biome_users_and_groups_dark.png)
 
 ### Creating Your First Project
 
@@ -237,7 +238,7 @@ Click on any project to see detailed information:
    - **Research Group**: Select your facility or core
    - **Primary Software**: Main analysis tool (Imaris, FIJI, QuPath, etc.)
 
-*[Screenshot placeholder: New project creation form]*
+![Database (dark)](./screenshots/biome_database_dark.png)
 
 #### Step 2: Configure Project Details
 Fill in specialized bioimage analysis fields:
@@ -246,7 +247,7 @@ Fill in specialized bioimage analysis fields:
 - **Objective Magnification**: Record imaging parameters (e.g., "63x oil immersion")
 - **Analysis Goals**: Define project objectives (counting, measurement, classification, etc.)
 
-*[Screenshot placeholder: Project detail configuration with dropdown menus]*
+![Analytics (dark)](./screenshots/biome_analytics_dark.png)
 
 #### Step 3: Set Up Project Structure
 1. **Choose Project Directory**: Select where analysis files will be stored
@@ -254,7 +255,7 @@ Fill in specialized bioimage analysis fields:
 3. **Initialize README**: Generate documentation template for your project
 4. **Verify Setup**: Review project configuration before saving
 
-*[Screenshot placeholder: Project folder structure creation dialog]*
+![Projects (dark)](./screenshots/biome_projects_dark.png)
 
 #### Step 4: Begin Documentation
 Use the integrated lab journal to document:
@@ -263,7 +264,7 @@ Use the integrated lab journal to document:
 - **Observations**: Results, issues, and discoveries
 - **Progress Updates**: Timeline and milestone tracking
 
-*[Screenshot placeholder: Lab journal interface with sample entries]*
+![Table view (dark)](./screenshots/biome_table_view_dark.png)
 
 ### Working with Projects
 
@@ -276,7 +277,7 @@ BIOME uses six main project statuses:
 - **On Hold**: Temporarily paused
 - **Cancelled**: Discontinued projects
 
-*[Screenshot placeholder: Status dropdown menu with color coding]*
+![Dashboard (dark)](./screenshots/biome_dashboard_dark.png)
 
 #### Time Tracking
 Accurate time tracking helps with:
@@ -291,7 +292,7 @@ Track time through:
 3. Automatic activity logging
 4. Bulk time updates for similar projects
 
-*[Screenshot placeholder: Time tracking interface and analytics]*
+![Analytics (dark)](./screenshots/biome_analytics_dark.png)
 
 #### File Management Integration
 BIOME helps organize your analysis files:
@@ -300,7 +301,7 @@ BIOME helps organize your analysis files:
 - **File Validation**: Check folder structure compliance
 - **Path Management**: Track and update project locations
 
-*[Screenshot placeholder: File management interface showing folder structure]*
+![Database (dark)](./screenshots/biome_database_dark.png)
 
 ### Understanding Analytics
 
@@ -311,7 +312,7 @@ The analytics dashboard provides several views:
 - **Time Investment**: How resources are allocated across projects
 - **Facility Workload**: Distribution among research groups
 
-*[Screenshot placeholder: Analytics dashboard with multiple charts]*
+![Analytics (dark)](./screenshots/biome_analytics_dark.png)
 
 #### Sample Type Analysis
 Track the diversity of biological samples:
@@ -320,7 +321,7 @@ Track the diversity of biological samples:
 - **Model Systems**: Organoids, organ slices, whole organisms
 - **Other Samples**: Nanoparticles, synthetic materials
 
-*[Screenshot placeholder: Sample type distribution chart]*
+![Analytics (dark)](./screenshots/biome_analytics_dark.png)
 
 #### Imaging Technique Trends
 Monitor facility usage patterns:
@@ -329,7 +330,7 @@ Monitor facility usage patterns:
 - **Super-resolution**: Advanced imaging techniques
 - **Slide Scanning**: Digital pathology applications
 
-*[Screenshot placeholder: Imaging technique usage chart]*
+![Analytics (dark)](./screenshots/biome_analytics_dark.png)
 
 ---
 
@@ -379,7 +380,7 @@ Export project data for analysis or migration:
 3. Choose data range and filters
 4. Generate export file
 
-*[Screenshot placeholder: Data export interface]*
+![Database (dark)](./screenshots/biome_database_dark.png)
 
 #### Performance Optimization
 For large datasets (>1000 projects):
@@ -444,7 +445,7 @@ Associate BIOME projects with analysis software:
 3. Verify Node.js is properly installed and running
 4. Check Windows Firewall isn't blocking the application
 
-*[Screenshot placeholder: Debug console showing backend status]*
+![Dashboard (dark)](./screenshots/biome_dashboard_dark.png)
 
 #### Issue: Slow Application Performance
 **Symptoms:** Long loading times, UI lag, slow project switching
@@ -468,7 +469,7 @@ Associate BIOME projects with analysis software:
 1. Switch to light mode: Settings → Appearance → Light Theme
 2. This will be resolved in a future update
 
-*[Screenshot placeholder: Settings menu showing theme options]*
+![Users & Groups (dark)](./screenshots/biome_users_and_groups_dark.png)
 
 ### File Management Issues
 
@@ -524,7 +525,7 @@ Debug information is stored in:
 - **Issue Reporting**: Open GitHub issues with detailed reproduction steps
 - **Community**: Join bioimage analysis forums for user discussions
 
-*[Screenshot placeholder: Debug console showing system diagnostics]*
+![Dashboard (dark)](./screenshots/biome_dashboard_dark.png)
 
 ---
 
@@ -615,20 +616,20 @@ npm run simple-exe
 ```
 
 ### Output Location
-Built installers are available in:
+Built installers are available locally after a build in:
 ```
 projet-analyse-image-frontend/src-tauri/target/release/bundle/
-├── msi/BIOME_1.2.0_x64_en-US.msi
-└── nsis/BIOME_1.2.0_x64-setup.exe
+├── msi/BIOME_1.4.0_x64_en-US.msi
+└── nsis/BIOME_1.4.0_x64-setup.exe
 ```
 
-## � What’s New (UI polish)
+## ✨ What’s New (UI polish)
 
 - Unified modal design across the app using a reusable Wizard-style modal
 - Dashboard Quick Start: clearer hover feedback on recent projects
 - Fixed layout gap so the Completion Rate card fills its slot in the stats row
 
-## �📦 Dependency Management
+## 📦 Dependency Management
 
 BIOME uses an automated dependency management system to keep the Git repository lightweight while ensuring consistent builds.
 
@@ -711,8 +712,8 @@ BIOME/
 │   │   ├── tauri.conf.json           # Tauri config
 │   │   └── resources/                # Bundled resources (auto-generated)
 │   └── package.json                  # Frontend dependencies
-├── BIOME-Distribution/               # Pre-built installers
-│   └── BIOME_1.2.0_x64_en-US.msi    # Ready-to-install desktop app
+├── BIOME-Distribution/               # Pre-built installers (published via GitHub Releases)
+│   └── INSTALL_INSTRUCTIONS.txt      # Installation guide; installers are on Releases
 ├── docs/                             # Documentation
 ├── LICENSE                           # CC BY-NC 4.0 License
 ├── setup-dependencies.bat            # Dependency setup script (recommended)
@@ -769,7 +770,7 @@ BIOME follows a consistent design language inspired by James Cameron's Avatar:
 
 ## 🏷️ Version Information
 
-- **Current Version**: 1.2.0
+- **Current Version**: 1.4.0
 - **Tauri Version**: 2.0.0
 - **Node.js Requirement**: 16.0.0+
 - **Target Platform**: Windows (with console debugging support)
@@ -838,13 +839,13 @@ The following features are planned for future versions of BIOME:
 **BIOME v1.0** is the initial release focused on core functionality. Please note:
 
 - 🔄 **Project structure and features may evolve** in future versions
-- � **Database schema updates** may require data migration
+- 🗄️ **Database schema updates** may require data migration
 - 🎨 **User interface elements** are subject to improvement
 - 🔧 **Configuration options** may change between releases
 
 We recommend backing up your project data before updating to future versions.
 
-## �📄 License
+## 📄 License
 
 **BIOME** is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
 
