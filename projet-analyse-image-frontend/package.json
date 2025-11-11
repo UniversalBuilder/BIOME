@@ -1,13 +1,13 @@
 {
     "name": "biome-frontend",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "private": true,
     "description": "BIOME Frontend - Bio Imaging Organization and Management Environment",
     "author": "Yannick Krempp",
     "license": "CC-BY-NC-4.0",
     "repository": {
         "type": "git",
-        "url": "https://github.com/[username]/BIOME.git"
+        "url": "https://github.com/UniversalBuilder/BIOME.git"
     },
     "homepage": "./",
     "dependencies": {
@@ -31,11 +31,11 @@
         "xlsx": "^0.18.5"
     },
     "scripts": {
-        "start-both": "concurrently \"npm run start-react\" \"npm run start-backend\"",
+    "start-both": "concurrently \"npm run start-react\" \"npm run start-backend\"",
         "start": "npm run start-react",
         "build": "react-scripts build",
         "start-react": "cross-env BROWSER=none react-scripts start",
-        "start-backend": "cd d:/DEV/BIOME/backend && node src/server.js",
+    "start-backend": "cd d:/DEV/BIOME/backend && node src/server.js",
         "test": "react-scripts test",
         "test:coverage": "react-scripts test --coverage --watchAll=false",
         "test:unit": "react-scripts test src/tests/unit --watchAll=false",
@@ -45,10 +45,13 @@
         "test:watch": "react-scripts test",
         "cypress:open": "cypress open",
         "eject": "react-scripts eject",
-        "tauri": "tauri",
-        "tauri-dev": "tauri dev",
+    "tauri": "tauri",
+    "pretauri-dev": "node ../scripts/generate-app-meta.js",
+    "tauri-dev": "tauri dev",
         "tauri-build": "tauri build --bundles msi",
-        "build-production": "powershell -ExecutionPolicy Bypass -File ./build-production.ps1",
+    "prestart-both": "node ../scripts/generate-app-meta.js",
+    "prebuild": "node ../scripts/generate-app-meta.js",
+    "build-production": "powershell -ExecutionPolicy Bypass -File ./build-production.ps1",
         "build-production-clean": "powershell -ExecutionPolicy Bypass -File ./build-production.ps1 -Clean",
         "build-msi": "powershell -ExecutionPolicy Bypass -File ./build-production.ps1 -BuildType msi",
         "build-exe": "powershell -ExecutionPolicy Bypass -File ./build-production.ps1 -BuildType nsis",
