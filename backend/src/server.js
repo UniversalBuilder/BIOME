@@ -24,7 +24,7 @@ const logger = winston.createLogger({
     winston.format.timestamp(),
     winston.format.json()
   ),
-  defaultMeta: { service: 'biamanger-backend' },
+    defaultMeta: { service: 'BIOME-backend' },
   transports: [
     // Console logging
     new winston.transports.Console({
@@ -178,6 +178,116 @@ dbManager.connect().then(() => {
             }
         });
     });
+
+        // Application metadata endpoint (version, description, short changelog)
+        app.get('/api/app/meta', (req, res) => {
+            try {
+                const rootDir = path.resolve(__dirname, '..', '..');
+                // Prefer pre-generated app-meta.json if available (bundled or generated at build/dev)
+                const bundledMetaCandidates = [
+                    process.env.APP_META_FILE,
+                    path.join(__dirname, '..', 'app-meta.json'),
+                    path.join(__dirname, '..', '..', 'app-meta.json'),
+                    path.join(rootDir, 'projet-analyse-image-frontend', 'resources', 'app-meta.json')
+                ].filter(Boolean);
+
+                for (const p of bundledMetaCandidates) {
+                    try {
+                        if (p && fs.existsSync(p)) {
+                            const meta = JSON.parse(fs.readFileSync(p, 'utf8'));
+                            // Ensure minimum fields
+                            if (!meta.releaseDate) meta.releaseDate = new Date().toISOString().slice(0,10);
+                            return res.json(meta);
+                        }
+                    } catch (e) {
+                        logger.warn(`Failed reading bundled app meta at ${p}: ${e.message}`);
+                    }
+                }
+                const fePkgPath = path.join(rootDir, 'projet-analyse-image-frontend', 'package.json');
+                const bePkgPath = path.join(rootDir, 'backend', 'package.json');
+                const changelogPath = path.join(rootDir, 'CHANGELOG.md');
+
+                let version = null;
+                let description = null;
+                let source = null;
+
+                const readJsonSafely = (p) => {
+                    try {
+                        if (fs.existsSync(p)) {
+                            const txt = fs.readFileSync(p, 'utf8');
+                            return JSON.parse(txt);
+                        }
+                    } catch (e) {
+                        logger.warn(`Failed to read JSON at ${p}: ${e.message}`);
+                    }
+                    return null;
+                };
+
+                const fePkg = readJsonSafely(fePkgPath);
+                if (fePkg && fePkg.version) {
+                    version = fePkg.version;
+                    description = fePkg.description || null;
+                    source = 'frontend';
+                }
+                if (!version) {
+                    const bePkg = readJsonSafely(bePkgPath);
+                    if (bePkg && bePkg.version) {
+                        version = bePkg.version;
+                        description = description || bePkg.description || null;
+                        source = source || 'backend';
+                    }
+                }
+
+                // Parse changelog for the most recent released version
+                let changelog = { version: null, date: null, summary: [] };
+                try {
+                    if (fs.existsSync(changelogPath)) {
+                        const content = fs.readFileSync(changelogPath, 'utf8');
+                        // Find first release header after Unreleased
+                        const releaseRegex = /^## \[([^\]]+)\]\s*-\s*([^\n]+)$/m;
+                        // Skip the first match if it's Unreleased; use exec in order
+                        const lines = content.split(/\r?\n/);
+                        let foundHeader = null;
+                        for (let i = 0; i < lines.length; i++) {
+                            const line = lines[i];
+                            const m = line.match(/^## \[([^\]]+)\]\s*-\s*([^\n]+)$/);
+                            if (m && m[1] && m[1].toLowerCase() !== 'unreleased') {
+                                foundHeader = { idx: i, ver: m[1], date: m[2] };
+                                break;
+                            }
+                        }
+                        if (foundHeader) {
+                            changelog.version = foundHeader.ver;
+                            changelog.date = foundHeader.date;
+                            // Collect bullet points until next release header
+                            const bullets = [];
+                            for (let j = foundHeader.idx + 1; j < lines.length; j++) {
+                                const l = lines[j];
+                                if (/^## \[/.test(l)) break; // next release section
+                                const bulletMatch = /^\s*-\s+(.+)$/.exec(l);
+                                if (bulletMatch) {
+                                    bullets.push(bulletMatch[1].trim());
+                                }
+                            }
+                            changelog.summary = bullets.slice(0, 6); // limit to 6 items
+                        }
+                    }
+                } catch (e) {
+                    logger.warn(`Failed to parse CHANGELOG.md: ${e.message}`);
+                }
+
+                res.json({
+                    version: version || 'unknown',
+                    description: description || 'BIOME - Bio Imaging Organization and Management Environment',
+                    releaseDate: changelog.date || new Date().toISOString().slice(0,10),
+                    source,
+                    changelog
+                });
+            } catch (error) {
+                logger.error('Error building app meta:', error);
+                res.status(500).json({ error: 'Failed to read application metadata' });
+            }
+        });
     
     // Add shutdown endpoint
     app.post('/api/shutdown', async (req, res) => {

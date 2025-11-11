@@ -388,5 +388,24 @@ export const projectService = {
         });
         await handleResponse(response, 'Failed to update README resources');
         return response.json();
+    },
+
+    // Unified README update that regenerates the entire README
+    updateReadmeAll: async (projectId) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/projects/${projectId}/readme/update`, {
+            method: 'POST'
+        });
+        await handleResponse(response, 'Failed to update README');
+        return response.json();
+    }
+};
+
+export const appService = {
+    getMeta: async () => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl.replace('/api', '')}/api/app/meta`);
+        await handleResponse(response, 'Failed to fetch app metadata');
+        return response.json();
     }
 };

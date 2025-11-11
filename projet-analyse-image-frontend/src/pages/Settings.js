@@ -215,7 +215,7 @@ function Settings() {
             </div>
             
             <div className="text-sm text-gray-600 dark:text-gray-300 p-3 bg-gray-50 dark:bg-night-700 rounded-lg">
-              🌙 Dark mode features the Avatar Pandora-inspired nighttime color palette with deep ocean blues and vibrant bioluminescent accents.
+              🌙 Dark mode uses a bioluminescent forest palette with deep ocean blues and vibrant glow accents. Light mode evokes primal shores with soft sands and teal waters.
             </div>
           </div>
         </div>

@@ -626,6 +626,244 @@ router.post('/:id/readme/resources', async (req, res) => {
     }
 });
 
+// Unified README update: regenerates the entire README with project info, folder listings, journal, and resources
+router.post('/:id/readme/update', async (req, res) => {
+    try {
+        const projectId = req.params.id;
+
+        // Load project with basic fields
+        const project = await db.get('SELECT * FROM projects WHERE id = ?', [projectId]);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        if (!project.project_path) return res.status(400).json({ error: 'Project path is not set' });
+
+        const projectDir = project.project_path;
+
+        // Resolve README target: prefer existing README.txt or README.md; otherwise create README.md
+        const readmeTxt = path.join(projectDir, 'README.txt');
+        const readmeMd = path.join(projectDir, 'README.md');
+        let targetReadme = null;
+        if (fs.existsSync(readmeTxt)) targetReadme = readmeTxt;
+        else if (fs.existsSync(readmeMd)) targetReadme = readmeMd;
+        else {
+            // default to md when missing
+            targetReadme = readmeMd;
+        }
+
+        // Fetch journal entries latest first
+        const journal = await db.all(
+            'SELECT entry_text, datetime(entry_date) as entry_date, edited_at, edited_by FROM journal_entries WHERE project_id = ? ORDER BY entry_date DESC',
+            [projectId]
+        );
+
+        // Fetch resources
+        const resources = await db.all('SELECT * FROM project_resources WHERE project_id = ? ORDER BY created_at DESC', [projectId]);
+        const imgs = resources.filter(r => r.kind === 'image');
+        const docs = resources.filter(r => r.kind !== 'image');
+
+        // Helper: parse JSON arrays stored as strings
+        const parseArray = (val) => {
+            if (!val) return null;
+            try {
+                const parsed = Array.isArray(val) ? val : JSON.parse(val);
+                if (Array.isArray(parsed)) return parsed.join(', ');
+            } catch { /* noop */ }
+            return String(val);
+        };
+
+        // Helper: format file sizes
+        const sizeStr = (bytes) => {
+            if (typeof bytes !== 'number') return '';
+            if (bytes >= 1024 * 1024) return `${(bytes / (1024*1024)).toFixed(1)} MB`;
+            if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+            return `${bytes} bytes`;
+        };
+
+        // Scan folders and produce listings by known structure (depth 2) and include any extra folders at root
+        const ensureArray = (x) => Array.isArray(x) ? x : (x ? [x] : []);
+        const structure = [
+            { folder: 'request', sub: ['documents', 'images', 'notes'] },
+            { folder: 'sample_data', sub: ['original', 'test_subset'] },
+            { folder: 'processed_data', sub: ['converted', 'preprocessed', 'intermediate'] },
+            { folder: 'references', sub: ['articles', 'protocols', 'manuals'] },
+            { folder: 'reference', sub: [] }, // where uploaded attachments live
+            { folder: 'scripts', sub: [] },
+            { folder: 'results', sub: ['analysis_results', 'tutorials', 'protocols', 'examples'] }
+        ];
+
+        const listFiles = (dir) => {
+            try {
+                return (fs.readdirSync(dir, { withFileTypes: true }) || [])
+                    .filter(d => d.isFile())
+                    .map(d => ({ name: d.name, size: (() => { try { return fs.statSync(path.join(dir, d.name)).size; } catch { return 0; } })() }));
+            } catch { return []; }
+        };
+
+        const listDirs = (dir) => {
+            try {
+                return (fs.readdirSync(dir, { withFileTypes: true }) || [])
+                    .filter(d => d.isDirectory())
+                    .map(d => d.name);
+            } catch { return []; }
+        };
+
+        const folderSections = [];
+        // Track top-level entries to include any custom folders not in structure
+        const topLevelDirs = new Set(listDirs(projectDir));
+        for (const item of structure) {
+            const folderPath = path.join(projectDir, item.folder);
+            if (!fs.existsSync(folderPath)) continue;
+            topLevelDirs.delete(item.folder);
+
+            const topFiles = listFiles(folderPath);
+            const subLines = [];
+            let folderBytes = topFiles.reduce((s, f) => s + (f.size || 0), 0);
+
+            // List files directly under the folder
+            if (topFiles.length) {
+                subLines.push('  Files:');
+                topFiles.slice(0, 200).forEach(f => subLines.push(`  - ${f.name} (${sizeStr(f.size)})`));
+                if (topFiles.length > 200) subLines.push(`  - … ${topFiles.length - 200} more`);
+            }
+
+            // Known subfolders first
+            const desiredSubs = ensureArray(item.sub);
+            const existingSubs = new Set(listDirs(folderPath));
+            for (const sub of desiredSubs) {
+                const subPath = path.join(folderPath, sub);
+                if (!fs.existsSync(subPath)) {
+                    subLines.push(`  - ${sub}/ (not created)`);
+                    continue;
+                }
+                existingSubs.delete(sub);
+                const files = listFiles(subPath);
+                const bytes = files.reduce((s, f) => s + (f.size || 0), 0);
+                folderBytes += bytes;
+                subLines.push(`  - ${sub}/ (${files.length} files, ${sizeStr(bytes)})`);
+                files.slice(0, 200).forEach(f => subLines.push(`    • ${f.name} (${sizeStr(f.size)})`));
+                if (files.length > 200) subLines.push(`    • … ${files.length - 200} more`);
+            }
+
+            // Any extra subfolders get listed too
+            for (const sub of Array.from(existingSubs).sort()) {
+                const subPath = path.join(folderPath, sub);
+                const files = listFiles(subPath);
+                const bytes = files.reduce((s, f) => s + (f.size || 0), 0);
+                folderBytes += bytes;
+                subLines.push(`  - ${sub}/ (${files.length} files, ${sizeStr(bytes)})`);
+                files.slice(0, 100).forEach(f => subLines.push(`    • ${f.name} (${sizeStr(f.size)})`));
+                if (files.length > 100) subLines.push(`    • … ${files.length - 100} more`);
+            }
+
+            const titleLine = `- ${item.folder}/ (${sizeStr(folderBytes)})`;
+            folderSections.push([titleLine, ...subLines].join('\n'));
+        }
+
+        // Include any top-level folders not part of our standard structure
+        for (const extra of Array.from(topLevelDirs).sort()) {
+            const p = path.join(projectDir, extra);
+            const files = listFiles(p);
+            const bytes = files.reduce((s, f) => s + (f.size || 0), 0);
+            const lines = [`- ${extra}/ (${files.length} files, ${sizeStr(bytes)})`];
+            files.slice(0, 100).forEach(f => lines.push(`  • ${f.name} (${sizeStr(f.size)})`));
+            if (files.length > 100) lines.push(`  • … ${files.length - 100} more`);
+            folderSections.push(lines.join('\n'));
+        }
+
+        // Build README content (Markdown-compatible, but readable as text)
+        const nowIso = new Date().toISOString();
+        const header = `# ${project.name || 'Untitled Project'}\n\n` +
+            `## Overview\n` +
+            `${project.description || 'No description provided.'}\n\n` +
+            `## Project Metadata\n` +
+            `- Status: ${project.status || 'Preparing'}\n` +
+            `- Software: ${project.software || '—'}\n` +
+            `- Output/Result Type: ${project.output_type || '—'}\n` +
+            `- Imaging Techniques: ${parseArray(project.image_types) || '—'}\n` +
+            `- Sample Type: ${parseArray(project.sample_type) || '—'}\n` +
+            `- Objective Magnification: ${project.objective_magnification || '—'}\n` +
+            `- Analysis Goal: ${parseArray(project.analysis_goal) || '—'}\n` +
+            `- Project Path: ${project.project_path || '—'}\n` +
+            `- Time Spent: ${(() => { const m = parseInt(project.time_spent_minutes||0); const h=Math.floor(m/60), mm=m%60; return mm?`${h}h ${mm}m`:`${h}h`; })()}\n` +
+            `- Last Updated in BIOME: ${nowIso}\n\n`;
+
+        const structureTitle = `## Project Structure\n`;
+        const structureBody = folderSections.length
+            ? folderSections.join('\n') + '\n\n'
+            : 'No folders found yet.\n\n';
+
+        // Journal section
+        const journalTitle = '## Journal\n';
+        const journalLines = [];
+        if (journal && journal.length) {
+            for (const e of journal) {
+                const dateStr = (() => { try { return new Date(e.entry_date).toLocaleString(); } catch { return String(e.entry_date||''); } })();
+                const edited = e.edited_at ? `\n(edited${e.edited_by ? ` by ${e.edited_by}` : ''} on ${new Date(e.edited_at).toLocaleString()})` : '';
+                journalLines.push(`### ${dateStr}\n${e.entry_text}${edited}\n`);
+            }
+        } else {
+            journalLines.push('No journal entries yet.');
+        }
+
+        // Resources section with markers
+        const resTitle = '## Resources\n\n=== RESOURCES (auto-generated) ===\n';
+        const resLines = [];
+        if (imgs.length) {
+            resLines.push('Images:');
+            imgs.forEach(r => {
+                const rel = path.posix.join('reference', r.filename);
+                resLines.push(` - ${rel}${r.caption ? ` — ${r.caption}` : ''}`);
+            });
+            resLines.push('');
+        }
+        if (docs.length) {
+            resLines.push('Documents:');
+            docs.forEach(r => {
+                const rel = path.posix.join('reference', r.filename);
+                resLines.push(` - ${rel}${r.caption ? ` — ${r.caption}` : ''}`);
+            });
+            resLines.push('');
+        }
+        if (!imgs.length && !docs.length) {
+            resLines.push('No resources have been uploaded yet.');
+        }
+        const resFooter = '=== END RESOURCES ===\n\n';
+
+        const content = header + structureTitle + structureBody + journalTitle + journalLines.join('\n') + '\n\n' + resTitle + resLines.join('\n') + '\n' + resFooter;
+
+        // If a README already exists and has resource markers, replace that block to avoid duplicates when switching formats
+        if (fs.existsSync(targetReadme)) {
+            try {
+                let existing = fs.readFileSync(targetReadme, 'utf8');
+                const start = existing.indexOf('=== RESOURCES (auto-generated) ===');
+                const end = existing.indexOf('=== END RESOURCES ===');
+                if (start !== -1 && end !== -1 && end > start) {
+                    // Replace only the resources section while keeping potential manual edits around it
+                    const before = existing.substring(0, start);
+                    const after = existing.substring(end + '=== END RESOURCES ==='.length);
+                    existing = before + '=== RESOURCES (auto-generated) ===\n' + resLines.join('\n') + '\n=== END RESOURCES ===' + after;
+                    // Now rebuild around the new header/structure/journal sections to ensure completeness
+                    fs.writeFileSync(targetReadme, content, 'utf8');
+                } else {
+                    fs.writeFileSync(targetReadme, content, 'utf8');
+                }
+            } catch {
+                fs.writeFileSync(targetReadme, content, 'utf8');
+            }
+        } else {
+            // Create new file
+            fs.writeFileSync(targetReadme, content, 'utf8');
+        }
+
+        // Touch project last_updated and readme_last_updated
+        await db.run('UPDATE projects SET last_updated = datetime("now"), readme_last_updated = datetime("now") WHERE id = ?', [projectId]);
+
+        res.json({ updated: true, readme: path.basename(targetReadme), timestamp: new Date().toISOString() });
+    } catch (err) {
+        console.error('Error updating README (unified):', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Update project
 router.put('/:id', async (req, res) => {
     const { id } = req.params;

@@ -4,6 +4,7 @@ import { Tooltip } from './Tooltip';
 import GroupAnalytics from './GroupAnalytics';
 import QuickActions from './QuickActions';
 import { useTheme } from '../contexts/ThemeContext';
+import { appService } from '../services/api';
 
 const getActivityIcon = (activityType) => {
   switch (activityType) {
@@ -328,6 +329,7 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [appMeta, setAppMeta] = useState(null);
 
   // Calculate derived statistics
   const totalProjects = useMemo(() => {
@@ -419,6 +421,20 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
       }
     }
   };
+
+  // Fetch app metadata (version/description/changelog)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const meta = await appService.getMeta();
+        if (mounted) setAppMeta(meta);
+      } catch (e) {
+        console.warn('Failed to load app meta:', e.message);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="w-full">
@@ -629,9 +645,19 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
               <div className="text-xs text-slate-600 dark:text-gray-400 space-y-1 flex-grow">
                 <p>Bio Imaging Organization and Management Environment</p>
                 <div className="mt-3 space-y-1">
-                  <p>Version: 1.2.0</p>
-                  <p>Released: September 2025</p>
+                  <p>Version: {appMeta?.version || '—'}</p>
+                  <p>Released: {appMeta?.releaseDate || (appMeta?.version ? new Date().toISOString().slice(0,10) : '—')}</p>
                   <p>Runtime: Tauri + React</p>
+                  {appMeta?.changelog?.summary?.length > 0 && (
+                    <div className="pt-1">
+                      <p className="font-medium text-slate-700 dark:text-gray-300">Latest changes:</p>
+                      <ul className="list-disc pl-4 space-y-0.5">
+                        {appMeta.changelog.summary.slice(0,3).map((item, idx) => (
+                          <li key={idx}>{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-3">
                   <p>© 2025 CIF UNIL</p>

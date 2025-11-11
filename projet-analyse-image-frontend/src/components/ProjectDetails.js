@@ -3,7 +3,7 @@ import './StatusColors.css';
 import { Tooltip } from './Tooltip';
 import { projectService, groupService } from '../services/api';
 import { selectDirectory } from '../services/tauriApi';
-import { createProjectStructure, validateProjectStructure, updateReadme, scanProjectFolder, downloadReadmeTemplate } from '../services/filesystemApi';
+import { createProjectStructure, validateProjectStructure, scanProjectFolder, downloadReadmeTemplate } from '../services/filesystemApi';
 import Modal from './Modal';
 import WizardFormModal from './WizardFormModal';
 import Environment from '../utils/environmentDetection';
@@ -772,15 +772,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     }
   };
 
-  const handleUpdateReadmeResources = async () => {
-    try {
-      const result = await projectService.updateReadmeResources(project.id);
-      alert(`README resources section updated (${result.readme})`);
-    } catch (err) {
-      console.error('Failed to update README resources', err);
-      alert('Failed to update README resources');
-    }
-  };
+  // Removed: dedicated resources updater (merged into unified README update)
 
   useEffect(() => {
     const validateFolder = async () => {
@@ -1104,129 +1096,38 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   };
 
   const handleUpdateReadme = async () => {
-    // Check if project is saved first
+    // Basic guardrails
     if (!isProjectSaved()) {
-      alert('Please save the project first before updating the README. This ensures the README contains the most current project information.');
+      alert('Please save the project first before updating the README.');
       return;
     }
-
     if (!displayData.project_path) {
       alert('Please select a project folder first');
       return;
     }
-
     if (!folderStatus.isValid) {
       alert('The selected folder must have a valid project structure');
       return;
     }
-    
+
     try {
-      console.log('Update README requested, Tauri available:', isTauri);
-      
-      if (isTauri) {
-        console.log('✅ Updating README for project at:', displayData.project_path);
-        
-        // First scan the project folder to ensure it exists and has content
-        const scanResult = await scanProjectFolder(displayData.project_path);
-        console.log('Project folder scan result:', scanResult);
-        
-        // Ask for confirmation if a readme already exists
-        try {
-          const result = await updateReadme(
-            displayData.project_path,
-            displayData.name || 'Untitled Project',
-            displayData.description || 'No description provided',
-            localJournalEntries
-          );
-          
-          console.log('README updated successfully');
-          
-          // Update the project to reflect that the README has been updated
-          if (isEditing) {
-            setLocalEditingData(prev => ({
-              ...prev,
-              readme_last_updated: result
-            }));
-          } else {
-            await projectService.update(project.id, {
-              readme_last_updated: result
-            });
-            
-            const freshProject = await projectService.getById(project.id);
-            onProjectSelect(freshProject);
-            onProjectUpdate();
-          }
-          
-          alert('README.txt has been updated successfully');
-        } catch (tauriError) {
-          console.error('Error updating README:', tauriError);
-          alert(`Failed to update README: ${tauriError.toString()}`);
-        }
+      // Call unified backend endpoint (works in desktop and web, desktop bundles backend)
+      const result = await projectService.updateReadmeAll(project.id);
+
+      const timestamp = result?.timestamp || new Date().toISOString();
+      if (isEditing) {
+        setLocalEditingData(prev => ({ ...prev, readme_last_updated: timestamp }));
       } else {
-        console.warn('❌ Not running in Tauri environment - cannot update README');
-        
-        // Use a more helpful message with the modal system
-        if (window.confirm(
-          'README Update - Web Version Limitations\n\n' +
-          'The README update feature requires direct file system access, which is only available in the desktop application.\n\n' +
-          'Would you like to download a template README file based on your project information instead?'
-        )) {
-          // If user confirms, generate and download a README template using our API adapter
-          await downloadReadmeTemplate(
-            displayData.name || 'Untitled Project',
-            displayData.description || 'No description provided',
-            localJournalEntries,
-            displayData.status,
-            displayData.software,
-            displayData.output_type
-          );
-          
-          // Update the readme timestamp anyway for better UX
-          const mockTimestamp = new Date().toISOString();
-          
-          if (isEditing) {
-            setLocalEditingData(prev => ({
-              ...prev,
-              readme_last_updated: mockTimestamp
-            }));
-          } else {
-            await projectService.update(project.id, {
-              readme_last_updated: mockTimestamp
-            });
-            
-            const freshProject = await projectService.getById(project.id);
-            onProjectSelect(freshProject);
-            onProjectUpdate();
-          }
-        }
-        
-        // Development mode simulation
-        if (process.env.NODE_ENV === 'development' && !isTauri && window.confirm('DEV MODE: Simulate successful README update?')) {
-          console.log('[DEV] Simulating successful README update');
-          
-          const mockTimestamp = new Date().toISOString();
-          
-          if (isEditing) {
-            setLocalEditingData(prev => ({
-              ...prev,
-              readme_last_updated: mockTimestamp
-            }));
-          } else {
-            await projectService.update(project.id, {
-              readme_last_updated: mockTimestamp
-            });
-            
-            const freshProject = await projectService.getById(project.id);
-            onProjectSelect(freshProject);
-            onProjectUpdate();
-          }
-          
-          alert('[DEV MODE] Simulated README update successfully');
-        }
+        await projectService.update(project.id, { readme_last_updated: timestamp });
+        const fresh = await projectService.getById(project.id);
+        onProjectSelect(fresh);
+        onProjectUpdate();
       }
+
+      alert(`README updated (${result?.readme || 'README.md'})`);
     } catch (err) {
       console.error('Failed to update README:', err);
-      alert('An error occurred while trying to update the README. Please try again.');
+      alert('Failed to update README.');
     }
   };
 
@@ -1451,7 +1352,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
-              Update README.txt
+              Update README
               {!isTauri && (
                 <svg className="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
@@ -2534,9 +2435,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                     Upload Docs
                     <input type="file" accept="application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple className="hidden" onChange={handleUploadDocs} disabled={uploading} />
                   </label>
-                  <button onClick={handleUpdateReadmeResources} className="px-3 py-2 rounded-md text-sm font-medium text-white" style={{ background: 'linear-gradient(45deg, #10B981, #059669)'}}>
-                    Update README Resources
-                  </button>
+                  {/* Unified README update replaces the separate resources updater */}
                 </div>
               </div>
 

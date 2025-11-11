@@ -1,15 +1,15 @@
 {
   "name": "bia-manager-backend",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "BIOME Backend - Bio Imaging Organization and Management Environment",
   "main": "src/server.js",
   "author": "Yannick Krempp",
   "license": "CC-BY-NC-4.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/[username]/BIOME.git"
+    "url": "https://github.com/UniversalBuilder/BIOME.git"
   },
-  "homepage": "https://github.com/[username]/BIOME",
+  "homepage": "https://github.com/UniversalBuilder/BIOME",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js"

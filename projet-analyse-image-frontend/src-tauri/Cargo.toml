@@ -1,6 +1,6 @@
 [package]
 name = "biome-app"
-version = "1.2.0"
+version = "1.4.1"
 description = "Bio Imaging Organization and Management Environment"
 authors = ["BIOME Team"]
 license = ""
