@@ -44,7 +44,7 @@ BIOME is a specialized project management application designed for **bioimage an
 
 ### Option 1: Desktop Application (Recommended)
 
-1. **Download** the latest MSI installer from Releases: [BIOME_1.4.1_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v1.4.1/BIOME_1.4.1_x64_en-US.msi)
+1. **Download** the latest MSI installer from Releases: [BIOME_1.4.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v1.4.0/BIOME_1.4.0_x64_en-US.msi)
    - Or visit the [GitHub Releases Page](https://github.com/UniversalBuilder/BIOME/releases/latest) to pick another version
 2. **Install** by double-clicking the MSI file
 3. **Launch** BIOME from your Start Menu
@@ -79,14 +79,14 @@ You can obtain BIOME in two ways:
 | Source Code | `git clone https://github.com/UniversalBuilder/BIOME.git` | Contains full source (clean, lightweight history) |
 
 Release assets include:
-- `BIOME_1.4.1_x64_en-US.msi` – Windows 10/11 desktop installer
+- `BIOME_1.4.0_x64_en-US.msi` – Windows 10/11 desktop installer
 - Auto-generated source archives (ZIP/TAR.GZ)
 
 Integrity / Verification (optional):
 - After download, right‑click the MSI → Properties → ensure file size ~46–53 MB
 - You may generate a checksum locally:
    ```powershell
-   Get-FileHash .\BIOME_1.4.1_x64_en-US.msi -Algorithm SHA256
+   Get-FileHash .\BIOME_1.4.0_x64_en-US.msi -Algorithm SHA256
    ```
 
 If SmartScreen warns, select “More info” → “Run anyway” (unsigned development build).
@@ -106,7 +106,7 @@ If SmartScreen warns, select “More info” → “Run anyway” (unsigned deve
 #### Installation Steps
 
 1. **Download the MSI Installer**
-   - Download [BIOME_1.4.1_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v1.4.1/BIOME_1.4.1_x64_en-US.msi)
+   - Download [BIOME_1.4.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v1.4.0/BIOME_1.4.0_x64_en-US.msi)
    - Verify the file downloaded completely
 
 2. **Run the Installer**
@@ -619,8 +619,8 @@ npm run simple-exe
 Built installers are available locally after a build in:
 ```
 projet-analyse-image-frontend/src-tauri/target/release/bundle/
-├── msi/BIOME_1.4.1_x64_en-US.msi
-└── nsis/BIOME_1.4.1_x64-setup.exe
+├── msi/BIOME_1.4.0_x64_en-US.msi
+└── nsis/BIOME_1.4.0_x64-setup.exe
 ```
 
 ## ✨ What’s New (UI polish)
@@ -744,10 +744,9 @@ cd ..
 
 ## 🎨 Design System
 
-BIOME uses a cohesive visual style designed for clarity and focus:
-- **Light theme**: soft shoreline neutrals with calm blues and teals
-- **Dark theme**: deep ocean/forest tones with subtle bioluminescent accents (cyan, pink, orange)
-- **Interaction**: consistent hover/focus utilities with accessible contrast targets
+BIOME follows a consistent design language inspired by James Cameron's Avatar:
+- **Light colors**: Beige, off-white, blue, teal (beach/seascape from Avatar 2)
+- **Dark colors**: Dark blue, dark teal backgrounds with bioluminescent pink, orange, and cyan accents
 
 ## 📚 Documentation
 
@@ -771,7 +770,7 @@ BIOME uses a cohesive visual style designed for clarity and focus:
 
 ## 🏷️ Version Information
 
-- **Current Version**: 1.4.1
+- **Current Version**: 1.4.0
 - **Tauri Version**: 2.0.0
 - **Node.js Requirement**: 16.0.0+
 - **Target Platform**: Windows (with console debugging support)
