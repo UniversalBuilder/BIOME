@@ -183,7 +183,7 @@ const EnvironmentInfo = () => {
             onClick={(e) => {
               e.stopPropagation();
               Environment.detect(true); // Log details to console
-              alert('Environment details logged to console');
+              try { window.toast?.('Environment details logged to console', { type: 'info', duration: 1600 }); } catch {}
             }}
           >
             Log Details

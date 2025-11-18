@@ -3,7 +3,7 @@ import './StatusColors.css';
 import { Tooltip } from './Tooltip';
 import { projectService, groupService } from '../services/api';
 import { selectDirectory } from '../services/tauriApi';
-import { createProjectStructure, validateProjectStructure, scanProjectFolder, downloadReadmeTemplate } from '../services/filesystemApi';
+import { createProjectStructure, validateProjectStructure, scanProjectFolder, downloadReadmeTemplate, openFolderInExplorer } from '../services/filesystemApi';
 import Modal from './Modal';
 import WizardFormModal from './WizardFormModal';
 import Environment from '../utils/environmentDetection';
@@ -67,12 +67,10 @@ const renderOutputTypeIcon = (type) => {
         </svg>
       );
     case 'workflow/protocol':
+      // Minimal list icon for clear recognition at small sizes
       return (
         <svg className={common} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="6" cy="6" r="2" />
-          <circle cx="18" cy="6" r="2" />
-          <circle cx="12" cy="18" r="2" />
-          <path d="M8 6h8M12 8v6" />
+          <path d="M5 7h14M5 12h14M5 17h10" />
         </svg>
       );
     case 'training':
@@ -244,7 +242,8 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   // Resources (reference files)
   const [resources, setResources] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [, setSavingCaptionId] = useState(null);
+  const [savingCaptionId, setSavingCaptionId] = useState(null);
+  const [lastSavedCaptionId, setLastSavedCaptionId] = useState(null);
   // Used in the web fallback path selection system - see handleBrowseProjectFolder function
   const [isPathFallbackOpen, setIsPathFallbackOpen] = useState(false); 
   // Used to store suggested project paths for web fallback - see handleBrowseProjectFolder function
@@ -487,6 +486,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       
       onProjectSelect(savedProject);
       onProjectUpdate(); // Call this to refresh the projects list
+      try { window.toast?.(`Project saved: ${savedProject?.name || 'Untitled'}`, { type: 'success', duration: 1600 }); } catch {}
       
       // Force refresh of activities to show recent changes
       if (window.location.pathname === '/' || window.location.pathname.includes('dashboard')) {
@@ -505,7 +505,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       }
     } catch (err) {
       console.error('Failed to save project:', err);
-      alert('Failed to save project. Please try again.');
+      try { window.toast?.('Failed to save project', { type: 'error' }); } catch {}
     }
   };
 
@@ -578,7 +578,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
 
   const handleAddJournalEntry = async () => {
     if (!journalEntry.trim() || !project?.id) {
-      alert('Please enter some text for the journal entry');
+      try { window.toast?.('Please enter some text for the journal entry', { type: 'warning' }); } catch {}
       return;
     }
     
@@ -596,6 +596,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       // Add the new entry at the start of the array
       setLocalJournalEntries(prev => [newEntry, ...prev]);
       setJournalEntry('');
+      try { window.toast?.('Journal entry added', { type: 'success', duration: 1400 }); } catch {}
       
       // Get fresh project data without reloading the whole page
       try {
@@ -613,7 +614,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       }
     } catch (err) {
       console.error('Failed to add journal entry:', err);
-      alert('Failed to add journal entry. Please try again.');
+      try { window.toast?.('Failed to add journal entry', { type: 'error' }); } catch {}
     }
   };
 
@@ -628,7 +629,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     if (!editingJournalEntry || !project?.id) return;
     const newText = (editingJournalText || '').trim();
     if (!newText) {
-      alert('Please enter some text for the journal entry');
+      try { window.toast?.('Please enter some text for the journal entry', { type: 'warning' }); } catch {}
       return;
     }
     try {
@@ -640,9 +641,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       setEditingJournalText('');
       // Optionally refresh activities/list
       onProjectUpdate?.();
+      try { window.toast?.('Journal entry updated', { type: 'success', duration: 1400 }); } catch {}
     } catch (err) {
       console.error('Failed to edit journal entry:', err);
-      alert('Failed to edit journal entry. Please try again.');
+      try { window.toast?.('Failed to edit journal entry', { type: 'error' }); } catch {}
     }
   };
 
@@ -660,9 +662,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       setShowDeleteJournalModal(false);
       setDeletingJournalEntry(null);
       onProjectUpdate?.();
+      try { window.toast?.('Journal entry deleted', { type: 'success', duration: 1400 }); } catch {}
     } catch (err) {
       console.error('Failed to delete journal entry:', err);
-      alert('Failed to delete journal entry. Please try again.');
+      try { window.toast?.('Failed to delete journal entry', { type: 'error' }); } catch {}
     }
   };
 
@@ -717,12 +720,12 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     setUploading(true);
     try {
       const onlySupported = files.filter(f => ['image/jpeg','image/png'].includes(f.type));
-      if (!onlySupported.length) { alert('Only JPEG or PNG images are allowed.'); return; }
+      if (!onlySupported.length) { try { window.toast?.('Only JPEG or PNG images are allowed.', { type: 'warning' }); } catch {} ; return; }
       await projectService.uploadResources(project.id, onlySupported);
       await loadResources();
     } catch (err) {
       console.error('Upload images failed', err);
-      alert('Failed to upload images');
+      try { window.toast?.('Failed to upload images', { type: 'error' }); } catch {}
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -736,12 +739,12 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     try {
       const allowed = new Set(['application/pdf','text/plain','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
       const onlySupported = files.filter(f => allowed.has(f.type));
-      if (!onlySupported.length) { alert('Only PDF, TXT, or Word documents are allowed.'); return; }
+      if (!onlySupported.length) { try { window.toast?.('Only PDF, TXT, or Word documents are allowed.', { type: 'warning' }); } catch {} ; return; }
       await projectService.uploadResources(project.id, onlySupported);
       await loadResources();
     } catch (err) {
       console.error('Upload documents failed', err);
-      alert('Failed to upload documents');
+      try { window.toast?.('Failed to upload documents', { type: 'error' }); } catch {}
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -753,9 +756,12 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       setSavingCaptionId(resId);
       await projectService.updateResource(project.id, resId, { caption });
       await loadResources();
+      setLastSavedCaptionId(resId);
+      setTimeout(() => setLastSavedCaptionId((current) => (current === resId ? null : current)), 2000);
+      try { window.toast?.('Caption saved', { type: 'success', duration: 1000 }); } catch {}
     } catch (err) {
       console.error('Failed to save caption', err);
-      alert('Failed to save caption');
+      try { window.toast?.('Failed to save caption', { type: 'error' }); } catch {}
     } finally {
       setSavingCaptionId(null);
     }
@@ -768,7 +774,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       await loadResources();
     } catch (err) {
       console.error('Failed to delete resource', err);
-      alert('Failed to delete resource');
+      try { window.toast?.('Failed to delete resource', { type: 'error' }); } catch {}
     }
   };
 
@@ -912,12 +918,12 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             handleInputChange('project_path', fullProjectPath);
             
             // Show confirmation to user
-            const message = `Parent folder selected: ${selectedParentPath}\n\nProject folder will be created as:\n${suggestedProjectName}\n\nFull path: ${fullProjectPath}`;
-            alert(message);
+            const message = `Parent folder selected: ${selectedParentPath}\n${suggestedProjectName}\nFull path: ${fullProjectPath}`;
+            try { window.toast?.(message.replace(/\n/g, ' • '), { type: 'info', duration: 2800 }); } catch {}
           }
         } catch (tauriError) {
           console.error('Tauri dialog error:', tauriError);
-          alert(`Error selecting directory: ${tauriError.message || 'Unknown error'}`);
+          try { window.toast?.(`Error selecting directory: ${tauriError.message || 'Unknown error'}`, { type: 'error' }); } catch {}
         }
       } else {
         console.warn('❌ Not running in Tauri environment - using browser fallback');
@@ -951,38 +957,31 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
           }
           
           // Show confirmation
-          alert(`Parent folder: ${cleanParentPath}\nProject folder will be: ${suggestedProjectName}\nFull path: ${fullProjectPath}`);
+          try { window.toast?.(`Folder set: ${fullProjectPath}`, { type: 'success', duration: 2200 }); } catch {}
         }
       }
     } catch (err) {
       console.error('Failed to set project path:', err);
-      alert('An error occurred while trying to set the project path. Please try again.');
+      try { window.toast?.('An error occurred while trying to set the project path. Please try again.', { type: 'error' }); } catch {}
     }
   };
 
   const handleCreateFolderStructure = async () => {
     // Step 1: Check if project is saved first
     if (!isProjectSaved()) {
-      alert('⚠️ Please save the project first before creating the folder structure.\n\n' +
-            'The system needs your project information to be permanently saved before it can create folders and generate documentation.\n\n' +
-            'Please click "Save" to save your project details, then you can create the folder structure.');
+      try { window.toast?.('Save the project before creating the folder structure.', { type: 'warning' }); } catch {}
       return;
     }
 
     // Step 2: Check if we have adequate project information
     if (!hasAdequateProjectInfo()) {
-      alert('📝 Please provide complete project information before creating the folder structure:\n\n' +
-            '• Project name (not just "New Project")\n' +
-            '• Project description\n' +
-            '• Analysis software to be used\n\n' +
-            'This ensures the folder structure and README contain accurate information.');
+      try { window.toast?.('Please complete project info (name, description, software) before creating structure.', { type: 'warning', duration: 2600 }); } catch {}
       return;
     }
 
     // Step 3: Check if project folder is selected
     if (!displayData.project_path) {
-      alert('📁 Please select a project folder first by clicking the "Browse" button.\n\n' +
-            'You need to choose where on your computer the bioimage analysis project folders should be created.');
+      try { window.toast?.('Please select a project folder (Browse) before creating structure.', { type: 'warning' }); } catch {}
       return;
     }
 
@@ -1039,7 +1038,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
               onProjectSelect(savedProject, false);
             } catch (saveError) {
               console.error('Failed to auto-save project:', saveError);
-              alert('Folder structure created successfully, but failed to save project. Please save manually.');
+              try { window.toast?.('Folder created, but failed to auto-save project. Please save manually.', { type: 'warning' }); } catch {}
             }
           } else {
             // Update existing project
@@ -1062,10 +1061,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             console.log('Validation failed after folder creation, but continuing...');
           }
           
-          alert('Project folder structure created successfully!');
+          try { window.toast?.('Project folder structure created successfully!', { type: 'success', duration: 1800 }); } catch {}
         } catch (createError) {
           console.error('Failed to create folder structure:', createError);
-          alert('Failed to create folder structure: ' + (createError.message || 'Unknown error'));
+          try { window.toast?.('Failed to create folder structure: ' + (createError.message || 'Unknown error'), { type: 'error' }); } catch {}
         }
       } else {
         console.warn('❌ Not running in Tauri environment - opening web options');
@@ -1091,24 +1090,15 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       }
     } catch (err) {
       console.error('Failed to create folder structure:', err);
-      alert('An error occurred while trying to create the folder structure. Please try again.');
+      try { window.toast?.('An error occurred while trying to create the folder structure. Please try again.', { type: 'error' }); } catch {}
     }
   };
 
   const handleUpdateReadme = async () => {
     // Basic guardrails
-    if (!isProjectSaved()) {
-      alert('Please save the project first before updating the README.');
-      return;
-    }
-    if (!displayData.project_path) {
-      alert('Please select a project folder first');
-      return;
-    }
-    if (!folderStatus.isValid) {
-      alert('The selected folder must have a valid project structure');
-      return;
-    }
+    if (!isProjectSaved()) { try { window.toast?.('Save the project before updating the README', { type: 'warning' }); } catch {} ; return; }
+    if (!displayData.project_path) { try { window.toast?.('Please select a project folder first', { type: 'warning' }); } catch {} ; return; }
+    if (!folderStatus.isValid) { try { window.toast?.('Folder must have a valid project structure', { type: 'warning' }); } catch {} ; return; }
 
     try {
       // Call unified backend endpoint (works in desktop and web, desktop bundles backend)
@@ -1123,11 +1113,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         onProjectSelect(fresh);
         onProjectUpdate();
       }
-
-      alert(`README updated (${result?.readme || 'README.md'})`);
+      try { window.toast?.(`README updated (${result?.readme || 'README.md'})`, { type: 'success', duration: 1600 }); } catch {}
     } catch (err) {
       console.error('Failed to update README:', err);
-      alert('Failed to update README.');
+      try { window.toast?.('Failed to update README', { type: 'error' }); } catch {}
     }
   };
 
@@ -1143,7 +1132,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       onProjectSelect(null);
     } catch (err) {
       console.error('Failed to delete project:', err);
-      alert('Failed to delete project. Please try again.');
+      try { window.toast?.('Failed to delete project. Please try again.', { type: 'error' }); } catch {}
     }
   };
 
@@ -1315,6 +1304,57 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             isTauri ? 
             'Create bioimage analysis folder structure for this project' : 
             'Web version: Get bioimage folder structure template and instructions'}
+        </Tooltip.Panel>
+      </Tooltip>
+      
+      <Tooltip>
+        <Tooltip.Trigger asChild>
+          <button
+            id="open-folder-button"
+            className={`px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center whitespace-nowrap ${
+              isTauri && displayData.project_path && folderStatus.isValid ? '' : 'opacity-50 cursor-not-allowed'
+            }`}
+            onClick={() => {
+              if (isTauri && displayData.project_path && folderStatus.isValid) {
+                openFolderInExplorer(displayData.project_path);
+              }
+            }}
+            disabled={!isTauri || !displayData.project_path || !folderStatus.isValid}
+            aria-label="Open project folder in Explorer"
+            style={{
+              background: (isTauri && displayData.project_path && folderStatus.isValid)
+                ? 'linear-gradient(45deg, #22c55e, #16a34a)'
+                : 'rgba(156, 163, 175, 0.3)',
+              borderColor: (isTauri && displayData.project_path && folderStatus.isValid)
+                ? 'rgba(34, 197, 94, 0.35)'
+                : 'rgba(156, 163, 175, 0.3)',
+              color: (isTauri && displayData.project_path && folderStatus.isValid)
+                ? 'white'
+                : 'rgba(107, 114, 128, 0.7)',
+              backdropFilter: 'blur(10px)',
+              border: (isTauri && displayData.project_path && folderStatus.isValid)
+                ? '1px solid rgba(34, 197, 94, 0.35)'
+                : '1px solid rgba(156, 163, 175, 0.3)',
+              boxShadow: (isTauri && displayData.project_path && folderStatus.isValid)
+                ? '0 2px 8px rgba(34, 197, 94, 0.25)'
+                : 'none'
+            }}
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+              Open Folder
+              {!isTauri && (
+                <svg className="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                </svg>
+              )}
+            </span>
+          </button>
+        </Tooltip.Trigger>
+        <Tooltip.Panel className="bg-gray-800/90 text-white text-sm px-2 py-1 rounded shadow-lg backdrop-filter backdrop-blur-sm">
+          {!displayData.project_path ? 'No project folder set' : !folderStatus.isValid ? 'Folder structure not yet created' : (isTauri ? 'Open this project folder in your system file explorer' : 'Desktop only')}
         </Tooltip.Panel>
       </Tooltip>
       
@@ -1677,7 +1717,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         setGeneratedStructureContent(content);
         
         if (!content) {
-          alert('Error generating structure template');
+          try { window.toast?.('Error generating structure template', { type: 'error' }); } catch {}
           return;
         }
         
@@ -1689,7 +1729,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       }
     } catch (error) {
       console.error('Error downloading structure template:', error);
-      alert('Failed to generate downloadable structure template');
+      try { window.toast?.('Failed to generate downloadable structure template', { type: 'error' }); } catch {}
     }
   };
   
@@ -1753,10 +1793,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       
       // Close the modal and show success message
       setShowWebFolderModal(false);
-      alert('Project structure has been marked as created. You can now use the "Update README" feature to keep your project documentation in sync.');
+      try { window.toast?.('Project structure marked as created. You can now update README.', { type: 'success', duration: 2200 }); } catch {}
     } catch (error) {
       console.error('Error handling web folder creation:', error);
-      alert('Failed to update project status. Please try again.');
+      try { window.toast?.('Failed to update project status. Please try again.', { type: 'error' }); } catch {}
     }
   };
 
@@ -2091,7 +2131,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                             <Tooltip>
                               <Tooltip.Trigger asChild>
                                 <span
-                                  className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-50 dark:bg-night-700/40 text-gray-700 dark:text-night-200 border border-gray-200 dark:border-night-600"
+                                  className="inline-flex items-center justify-center h-6 px-2 rounded-md bg-gray-50 dark:bg-night-700/40 text-gray-700 dark:text-night-200 ring-1 ring-gray-200/70 dark:ring-night-600/70"
                                   role="img"
                                   aria-label={`Output type: ${project.output_type}`}
                                   title={project.output_type}
@@ -2454,17 +2494,36 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                         />
                       </div>
                       <div className="mt-2 text-xs text-gray-700 dark:text-gray-200 break-all">{r.original_name}</div>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          defaultValue={r.caption || ''}
-                          className="w-full px-2 py-1 text-xs rounded bg-white/70 dark:bg-gray-800/60"
-                          placeholder="Add caption..."
-                          onBlur={(e) => {
-                            const val = e.target.value.trim();
-                            if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
-                          }}
-                        />
+                      <div className="mt-1 flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            defaultValue={r.caption || ''}
+                            className="w-full px-2 py-1 pr-6 text-xs rounded bg-white/70 dark:bg-gray-800/60 truncate"
+                            placeholder="Add caption..."
+                            title={r.caption || ''}
+                            onMouseEnter={(e) => { e.currentTarget.title = e.currentTarget.value; }}
+                            onBlur={(e) => {
+                              const val = e.target.value.trim();
+                              if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
+                            }}
+                          />
+                          {/* inline status icon */}
+                          {savingCaptionId === r.id && (
+                            <span className="absolute right-1 top-1.5 text-slate-400" title="Saving…">
+                              <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                              </svg>
+                            </span>
+                          )}
+                          {lastSavedCaptionId === r.id && (
+                            <span className="absolute right-1 top-1.5 text-emerald-500" title="Saved">
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M5 13l4 4L19 7" />
+                              </svg>
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex justify-between items-center mt-2 text-[11px] text-gray-500">
                         <span>{(r.size || 0) > 0 ? `${Math.round(r.size/1024)} KB` : ''}</span>
@@ -2501,16 +2560,34 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                             </a>
                           </td>
                           <td className="px-3 py-2">
-                            <input
-                              type="text"
-                              defaultValue={r.caption || ''}
-                              className="w-full px-2 py-1 text-sm rounded bg-white/70 dark:bg-gray-800/60"
-                              placeholder="Add caption..."
-                              onBlur={(e) => {
-                                const val = e.target.value.trim();
-                                if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
-                              }}
-                            />
+                            <div className="relative">
+                              <input
+                                type="text"
+                                defaultValue={r.caption || ''}
+                                className="w-full px-2 py-1 pr-7 text-sm rounded bg-white/70 dark:bg-gray-800/60 truncate"
+                                placeholder="Add caption..."
+                                title={r.caption || ''}
+                                onMouseEnter={(e) => { e.currentTarget.title = e.currentTarget.value; }}
+                                onBlur={(e) => {
+                                  const val = e.target.value.trim();
+                                  if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
+                                }}
+                              />
+                              {savingCaptionId === r.id && (
+                                <span className="absolute right-1 top-1.5 text-slate-400" title="Saving…">
+                                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                                  </svg>
+                                </span>
+                              )}
+                              {lastSavedCaptionId === r.id && (
+                                <span className="absolute right-1 top-1.5 text-emerald-500" title="Saved">
+                                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="px-3 py-2 text-right">
                             <button className="text-red-600 hover:text-red-800 text-sm" onClick={() => handleDeleteResource(r.id)}>Delete</button>
@@ -2700,10 +2777,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             onProjectSelect(freshProject);
             onProjectUpdate();
             
-            alert('Project folder structure marked as created');
+            try { window.toast?.('Project folder structure marked as created', { type: 'success', duration: 1600 }); } catch {}
           } catch (err) {
             console.error('Failed to update project folder status:', err);
-            alert('Failed to update project folder status. Please try again.');
+            try { window.toast?.('Failed to update project folder status. Please try again.', { type: 'error' }); } catch {}
           }
         }}
       />

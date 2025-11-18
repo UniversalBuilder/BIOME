@@ -139,3 +139,21 @@ export const scanProjectFolder = async (projectPath) => {
     throw error;
   }
 };
+
+/**
+ * Helper to open a path in the system file explorer
+ */
+export const openInExplorer = async (path) => {
+  try {
+    if (!Environment.isTauri()) {
+      throw new Error('Not running in Tauri environment');
+    }
+    const cleanPath = (path || '').replace(/["']/g, '');
+    if (!cleanPath) throw new Error('Invalid path');
+    await invoke('open_in_explorer', { path: cleanPath });
+    return true;
+  } catch (error) {
+    console.error('Error opening in explorer:', error);
+    throw error;
+  }
+};

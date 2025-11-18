@@ -438,6 +438,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
                     filters={tableFilters}
                     selectedProject={selectedProject}
                     onRefresh={handleProjectUpdate}
+                    loading={loading}
                   />
                 </div>
               </div>
@@ -510,21 +511,21 @@ function LandingPage({ activeTab, onNavigateToTab }) {
 
   if (error) {
     return (
-      <div className="w-full h-full bg-slate-50">
+      <div className="w-full h-full bg-slate-50 dark:bg-night-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-lg shadow-md">
+          <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-400 p-4 mb-4 rounded-lg shadow-md">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <svg className="h-5 w-5 text-red-500 dark:text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1.414-5.293a1 1 011.414 0L10 13.414l.707-.707a1 1 111.414 1.414L11.414 14l.707.707a1 1 11-1.414 1.414L10 15.414l-.707.707a1 1 11-1.414-1.414L8.586 14l-.707-.707a1 1 111.414-1.414L10 12.586l.707-.707z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-3">
-                <p className="text-sm text-red-700">
+                <p className="text-sm text-red-700 dark:text-red-300">
                   Error loading data: {error}
                 </p>
                 <button
-                  className="mt-2 px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 text-sm"
+                  className="mt-2 px-4 py-2 text-sm rounded-md border border-red-500 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-none focus:ring-2 focus:ring-red-400"
                   onClick={loadProjects}
                 >
                   Retry

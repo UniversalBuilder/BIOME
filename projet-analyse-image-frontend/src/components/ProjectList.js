@@ -65,13 +65,10 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
           </svg>
         );
       case 'workflow/protocol':
-        // Flow / nodes
+        // Minimal list icon for clear recognition at small sizes
         return (
           <svg className={common} viewBox="0 0 24 24" fill="none" stroke={strokeColor} strokeWidth="2">
-            <circle cx="6" cy="6" r="2" />
-            <circle cx="18" cy="6" r="2" />
-            <circle cx="12" cy="18" r="2" />
-            <path d="M8 6h8M12 8v6" />
+            <path d="M5 7h14M5 12h14M5 17h10" />
           </svg>
         );
       case 'training':
@@ -347,11 +344,10 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
                             <Tooltip>
                               <Tooltip.Trigger asChild>
                                 <span
-                                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full 
+                                  className={`inline-flex items-center justify-center h-6 px-2 rounded-md 
                                     ${selectedProject?.id === project.id
-                                      ? 'text-selected bg-bioluminescent-50/20 dark:bg-bioluminescent-900/30'
-                                      : 'border bg-gray-50 dark:bg-night-700/40 text-text-muted dark:text-text-muted border-gray-200 dark:border-night-600'}`}
-                                  style={selectedProject?.id === project.id ? { border: '1px solid #00F7FF' } : undefined}
+                                      ? 'text-selected bg-bioluminescent-50/20 dark:bg-bioluminescent-900/30 ring-1 ring-bioluminescent-400/40'
+                                      : 'bg-gray-50 dark:bg-night-700/40 text-text-muted dark:text-text-muted ring-1 ring-gray-200/70 dark:ring-night-600/70'}`}
                                   role="img"
                                   aria-label={`Output type: ${project.output_type}`}
                                 >

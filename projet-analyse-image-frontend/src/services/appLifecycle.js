@@ -214,7 +214,7 @@ export const exitApp = async () => {
     // For web version, we can't actually exit the browser
     // Just inform the user
     if (process.env.NODE_ENV !== 'development') {
-      alert('You can now close this browser tab.');
+      try { window.toast?.('You can now close this browser tab.', { type: 'info', duration: 2000 }); } catch {}
     }
   }
 };

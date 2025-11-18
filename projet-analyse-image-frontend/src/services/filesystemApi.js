@@ -1,7 +1,7 @@
 // Filesystem API Service
 // This service provides filesystem operations that work in both Tauri and web environments
 
-import { createFolderStructure, validateProjectFolder, updateReadme, scanProjectFolder } from './tauriApi';
+import { createFolderStructure, validateProjectFolder, updateReadme, scanProjectFolder, openInExplorer } from './tauriApi';
 import Environment from '../utils/environmentDetection';
 
 // Base URL for API endpoints
@@ -144,6 +144,25 @@ export const downloadReadmeTemplate = async (projectName, projectDescription, jo
   }, 100);
   
   return date;
+};
+
+/**
+ * Open folder in OS file explorer (desktop only). Returns true if triggered.
+ */
+export const openFolderInExplorer = async (projectPath) => {
+  try {
+    if (Environment.isTauri()) {
+      await openInExplorer(projectPath);
+      try { window.toast?.('Opened folder in Explorer', { type: 'success', duration: 1200 }); } catch {}
+      return true;
+    }
+    try { window.toast?.('Desktop-only: opening folders requires the BIOME app', { type: 'info', duration: 2200 }); } catch {}
+    return false;
+  } catch (e) {
+    console.error('openFolderInExplorer failed:', e);
+    try { window.toast?.('Failed to open folder', { type: 'error' }); } catch {}
+    return false;
+  }
 };
 
 // Export all filesystem-related functions including direct Tauri functions

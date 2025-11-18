@@ -91,7 +91,7 @@ export const showEnvironmentOverlay = (isTauri) => {
   overlay.addEventListener('click', () => {
     const details = printEnvironmentInfo();
     console.log('Environment details:', details);
-    alert(`Running in ${isTauri ? 'DESKTOP' : 'WEB'} mode\n\nDetails logged to console.`);
+    try { window.toast?.(`Running in ${isTauri ? 'DESKTOP' : 'WEB'} mode — details logged to console`, { type: 'info', duration: 2000 }); } catch {}
   });
   
   // Add to document

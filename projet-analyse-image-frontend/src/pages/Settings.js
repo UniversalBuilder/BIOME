@@ -48,7 +48,7 @@ function Settings() {
       
     } catch (error) {
       console.error('Failed to clear cache:', error);
-      alert('Failed to clear cache. Please try refreshing the page manually.');
+      try { window.toast?.('Failed to clear cache. Please refresh the page manually.', { type: 'error' }); } catch {}
     }
   };
 

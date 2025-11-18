@@ -256,7 +256,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
       }
     } catch (error) {
       console.error('Error exporting to Excel:', error);
-      alert('Failed to export data. Please try again.');
+      try { window.toast?.('Failed to export data. Please try again.', { type: 'error' }); } catch {}
     }
   };
 

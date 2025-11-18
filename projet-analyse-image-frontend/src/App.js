@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LandingPage from './pages/LandingPage';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
+import ToastProvider from './components/ToastProvider';
 import { ensureBackendRunning } from './services/backendLauncher';
 import { initializeProduction } from './services/productionInitializer';
 import { checkBackendHealth } from './services/api';
@@ -120,7 +121,7 @@ function App() {
       <div className="App min-h-screen bg-slate-50 dark:bg-night-900 font-sans antialiased">
         {/* Add environment info component (only shows in dev) */}
         <EnvironmentInfo />
-        
+        <ToastProvider>
         <Layout>
           <Routes>
             <Route path="/" element={
@@ -163,6 +164,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
+        </ToastProvider>
         
         {/* Hidden element to prevent CSS purging of status classes */}
         <div className="hidden">

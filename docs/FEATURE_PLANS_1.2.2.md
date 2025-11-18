@@ -85,3 +85,23 @@ This document outlines the next set of features to be implemented after 1.2.1 bu
 
 - Follow environment detection pattern via `Environment.isTauri()`
 - Reuse WizardFormModal for create/edit flows
+
+## Upcoming Features
+
+### Relink Resources (QuPath-like)
+
+- Problem: Projects reference large images/resources stored on shared drives; paths can break when files or project base directories move.
+- Goal: Provide a dialog to detect missing resources and remap paths in bulk, inspired by QuPath’s “Fix paths”.
+- Approach:
+  - Store both absolute and optional relative URIs for resources; keep file metadata (size, mtime, optional checksum) for verification.
+  - On load, validate references. If missing, show “Relink Resources” dialog with options:
+    - Browse and relink per-item
+    - Bulk search within a selected directory and auto-remap matches
+    - If project and images moved together, suggest updating a project base to repair relative paths
+  - Desktop (Tauri): implement validation/search via Rust/Node FS with directory chooser
+  - Web: implement validation/search in backend Node with a configured root; frontend delegates
+  - Safety: never modify source files; show counts and allow Ignore/Apply
+- API Sketch:
+  - Desktop/Web backend: `GET /api/resources/validate`, `POST /api/resources/relink`, `POST /api/resources/set-base`
+- Acceptance:
+  - Missing resources are detected and can be relinked interactively; updated paths persist.

@@ -6,10 +6,14 @@
 
 use std::fs;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
+use std::process::Command;
+#[cfg(not(debug_assertions))]
+use std::process::Stdio;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State};
+#[cfg(not(debug_assertions))]
 use std::io::{BufRead, BufReader, Write};
+#[cfg(not(debug_assertions))]
 use std::fs::OpenOptions;
 
 #[cfg(target_os = "windows")]
@@ -662,6 +666,41 @@ fn scan_project_folder(project_path: String) -> Result<serde_json::Value, String
     Ok(result)
 }
 
+// Command to open a folder in the OS file explorer
+#[tauri::command]
+fn open_in_explorer(path: String) -> Result<(), String> {
+    let folder_path = PathBuf::from(&path);
+    if !folder_path.exists() {
+        return Err(format!("Path does not exist: {}", path));
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        Command::new("explorer")
+            .arg(folder_path)
+            .spawn()
+            .map_err(|e| format!("Failed to open Explorer: {}", e))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        Command::new("open")
+            .arg(folder_path)
+            .spawn()
+            .map_err(|e| format!("Failed to open Finder: {}", e))?;
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        Command::new("xdg-open")
+            .arg(folder_path)
+            .spawn()
+            .map_err(|e| format!("Failed to open file manager: {}", e))?;
+    }
+
+    Ok(())
+}
+
 // Command to get the application directory
 #[tauri::command]
 fn get_app_dir() -> String {
@@ -810,7 +849,6 @@ fn main() {
                 }
                 std::env::set_var("TAURI_APP_DATA", app_dir.to_string_lossy().to_string());
                 std::env::set_var("NODE_ENV", "production");
-                return Ok(());
             }
 
             // Determine backend path based on build type (production only)
@@ -867,13 +905,18 @@ fn main() {
 
             #[cfg(not(debug_assertions))]
             debug_println!("Backend path: {}", backend_path.display());
+            #[cfg(not(debug_assertions))]
             debug_println!("App data directory: {}", app_dir.display());
 
-            // Set environment variables for the backend
-            std::env::set_var("TAURI_APP_DATA", app_dir.to_string_lossy().to_string());
-            std::env::set_var("NODE_ENV", "production");
+            // Set environment variables for the backend (production only)
+            #[cfg(not(debug_assertions))]
+            {
+                std::env::set_var("TAURI_APP_DATA", app_dir.to_string_lossy().to_string());
+                std::env::set_var("NODE_ENV", "production");
+            }
 
-            // Get the NodeProcess state
+            // Get the NodeProcess state (production only)
+            #[cfg(not(debug_assertions))]
             let node_process_state = app.state::<NodeProcess>();
 
             // Start the backend server
@@ -960,11 +1003,14 @@ fn main() {
             #[cfg(not(debug_assertions))]
             println!("Working directory: {}", backend_path.display());
 
-            // Create log file for backend output
+            // Create log file for backend output (production only)
+            #[cfg(not(debug_assertions))]
             let log_dir = app_dir.join("logs");
+            #[cfg(not(debug_assertions))]
             if !log_dir.exists() {
                 let _ = fs::create_dir_all(&log_dir);
             }
+            #[cfg(not(debug_assertions))]
             let log_file = log_dir.join("backend_startup.log");
             
             // Start the Node.js server with enhanced logging and no console window
@@ -1096,6 +1142,7 @@ fn main() {
             create_folder_structure,
             update_readme_file,
             scan_project_folder,
+            open_in_explorer,
             get_app_dir,
             check_dir_exists,
             start_backend_server,

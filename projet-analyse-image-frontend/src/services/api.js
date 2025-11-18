@@ -407,5 +407,13 @@ export const appService = {
         const response = await fetchWithRetry(`${apiUrl.replace('/api', '')}/api/app/meta`);
         await handleResponse(response, 'Failed to fetch app metadata');
         return response.json();
+    },
+
+    getCurrentUserName: async () => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/system/username`);
+        await handleResponse(response, 'Failed to fetch current OS username');
+        const data = await response.json();
+        return (data && data.username) || null;
     }
 };

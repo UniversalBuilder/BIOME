@@ -428,7 +428,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
       }
     } catch (error) {
       console.error('Error selecting folder:', error);
-      alert('Failed to select folder: ' + error.message);
+      try { window.toast?.('Failed to select folder: ' + (error.message || 'Unknown error'), { type: 'error' }); } catch {}
     } finally {
       setIsLoading(false);
     }
@@ -445,7 +445,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
           await saveDraft(projectData);
           setCurrentStep(2);
         } catch (error) {
-          alert('Failed to save project information. Please try again.');
+          try { window.toast?.('Failed to save project information. Please try again.', { type: 'error' }); } catch {}
         } finally {
           setIsLoading(false);
         }
@@ -486,7 +486,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
       
     } catch (error) {
       console.error('Failed to complete project creation:', error);
-      alert('Failed to create project structure: ' + error.message);
+      try { window.toast?.('Failed to create project structure: ' + (error.message || 'Unknown error'), { type: 'error' }); } catch {}
     } finally {
       setIsLoading(false);
     }
