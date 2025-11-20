@@ -5,6 +5,7 @@ const projectRoutes = require('./routes/projects');
 const userRoutes = require('./routes/users');
 const groupRoutes = require('./routes/groups');
 const filesystemRoutes = require('./routes/filesystem');
+const systemRoutes = require('./routes/system');
 const dbManager = require('./database/db');
 const fs = require('fs');
 
@@ -90,6 +91,7 @@ dbManager.connect().then(() => {
     app.use('/api/users', userRoutes);
     app.use('/api/groups', groupRoutes);
     app.use('/api/filesystem', filesystemRoutes);
+    app.use('/api/system', systemRoutes);
 
     // Database management routes
     app.get('/api/database/info', (req, res) => {
