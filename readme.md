@@ -623,6 +623,10 @@ projet-analyse-image-frontend/src-tauri/target/release/bundle/
 └── nsis/BIOME_1.4.2_x64-setup.exe
 ```
 
+## ✨ What’s New in 1.4.2
+
+- Rebuilt Windows MSI and synchronized version metadata; no functional changes from 1.4.1.
+
 ## ✨ What’s New in 1.4.1
 
 - New endpoint: `/api/app/meta` exposes version, description, and a short changelog summary.

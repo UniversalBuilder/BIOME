@@ -6,6 +6,14 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [1.4.2] - 2025-11-24
+### Changed
+- Rebuilt Windows MSI and synchronized version metadata across frontend, backend, and Tauri config.
+- Updated README links and version badge to 1.4.2.
+
+### Notes
+- No functional changes from 1.4.1; this release ensures the downloadable installer matches the current source tree.
+
 ## [1.4.1] - 2025-11-11
 ### Added
 - Backend endpoint `/api/app/meta` exposing application version, description, and short changelog summary (web + packaged backend).
@@ -120,3 +128,4 @@ Get-FileHash .\BIOME_1.4.0_x64_en-US.msi -Algorithm SHA256
 [1.3.1]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.3.1
 [1.4.0]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.4.0
 [1.4.1]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.4.1
+[1.4.2]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.4.2
