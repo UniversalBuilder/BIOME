@@ -1,11 +1,34 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 const ScrollTopButton = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const location = useLocation();
 
   // Show button when page is scrolled down
-  const toggleVisibility = () => {
-    if (window.scrollY > 0 || document.body.scrollTop > 0 || document.documentElement.scrollTop > 0) {
+  const toggleVisibility = (e) => {
+    // Check window scroll
+    if (window.scrollY > 300 || document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+      setIsVisible(true);
+      return;
+    }
+    
+    // Check event target scroll if available
+    if (e && e.target && e.target.scrollTop !== undefined) {
+      if (e.target.scrollTop > 300) {
+        setIsVisible(true);
+        return;
+      }
+    }
+    
+    // Check any overflow-auto element
+    const scrollableElements = document.querySelectorAll('.overflow-auto');
+    let anyScrolled = false;
+    scrollableElements.forEach(el => {
+      if (el.scrollTop > 300) anyScrolled = true;
+    });
+    
+    if (anyScrolled) {
       setIsVisible(true);
     } else {
       setIsVisible(false);
@@ -30,25 +53,29 @@ const ScrollTopButton = () => {
   };
 
   useEffect(() => {
-    // Add scroll event listener
+    // Add scroll event listener to window
     window.addEventListener('scroll', toggleVisibility);
     
     // Find scrollable containers and add event listeners to them
-    const scrollableElements = document.querySelectorAll('.overflow-auto');
-    scrollableElements.forEach(element => {
-      element.addEventListener('scroll', toggleVisibility);
-    });
+    // We need a small delay to ensure DOM is updated after route change
+    const timer = setTimeout(() => {
+      const scrollableElements = document.querySelectorAll('.overflow-auto');
+      scrollableElements.forEach(element => {
+        element.addEventListener('scroll', toggleVisibility);
+      });
+    }, 500);
     
     return () => {
       // Clean up
       window.removeEventListener('scroll', toggleVisibility);
+      clearTimeout(timer);
       
       const scrollableElements = document.querySelectorAll('.overflow-auto');
       scrollableElements.forEach(element => {
         element.removeEventListener('scroll', toggleVisibility);
       });
     };
-  }, []);
+  }, [location.pathname]); // Re-run when route changes
 
   return (
     <button

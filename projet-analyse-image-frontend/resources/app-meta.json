@@ -1,18 +1,15 @@
 {
-  "version": "1.4.1",
+  "version": "1.4.3",
   "description": "BIOME Frontend - Bio Imaging Organization and Management Environment",
-  "releaseDate": "2025-11-11",
+  "releaseDate": "2025-11-25",
   "source": "frontend",
   "changelog": {
-    "version": "1.4.1",
-    "date": "2025-11-11",
+    "version": "1.4.3",
+    "date": "2025-11-25",
     "summary": [
-      "Backend endpoint `/api/app/meta` exposing application version, description, and short changelog summary (web + packaged backend).",
-      "Build-time generator `scripts/generate-app-meta.js` creates `app-meta.json` (bundled for desktop and available in dev) as a stable metadata source.",
-      "Dashboard About card now loads dynamic version/release date and displays top recent changes (fallback to current date if missing).",
-      "Theme description wording updated to neutral “bioluminescent forest” (dark) / “primal shores” (light) language.",
-      "Version bumped to 1.4.1 across frontend and backend for metadata consistency.",
-      "Empty version/date display in About card when changelog parsing failed; now falls back gracefully and uses generated metadata."
+      "Project Table View rendering issues where the table appeared empty despite having data.",
+      "Resolved conflict between `react-window` v2.2.3 and `react-virtualized-auto-sizer` by removing the external sizer and relying on the library's internal `ResizeObserver`.",
+      "Updated `react-window` API usage to match the installed version (v2.2.3)."
     ]
   }
 }

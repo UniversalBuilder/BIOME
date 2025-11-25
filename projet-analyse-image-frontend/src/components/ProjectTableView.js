@@ -1,9 +1,125 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { List } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import './StatusColors.css';
 import { Tooltip } from './Tooltip';
 import Environment from '../utils/environmentDetection';
 import { openFolderInExplorer } from '../services/filesystemApi';
+
+const COL_CLASSES = {
+  name: 'flex-1 min-w-[200px]',
+  status: 'w-32 flex-none',
+  user: 'w-32 flex-none',
+  group: 'w-32 flex-none',
+  software: 'w-28 flex-none',
+  time: 'w-20 flex-none',
+  start: 'w-28 flex-none',
+  updated: 'w-36 flex-none',
+  output: 'w-20 flex-none flex justify-center',
+  actions: 'w-24 flex-none flex justify-center'
+};
+
+const Row = ({ index, style, projects, visibleCols, selectedProject, handleSelectProject, dense, getStatusClass, mapStatusName, formatTimeSpent, formatDate, renderOutputTypeIcon }) => {
+  const project = projects && projects[index];
+  const cellPad = dense ? 'px-3 py-2' : 'px-4 py-3';
+  
+  if (!project) return null;
+
+  const safeVisibleCols = visibleCols || { name: true };
+
+  return (
+    <div 
+      style={style} 
+      className={`flex items-center border-b border-border dark:border-border-dark hover:bg-gray-50 dark:hover:bg-night-700 transition-colors ${
+        selectedProject?.id === project.id ? 'bg-sky-50 dark:bg-night-700/50' : ''
+      }`}
+      onClick={() => handleSelectProject(project)}
+      role="button"
+    >
+      {safeVisibleCols.name && (
+        <div className={`${COL_CLASSES.name} ${cellPad}`}>
+          <div className={`text-sm font-medium truncate ${selectedProject?.id === project.id ? 'text-selected' : 'text-text dark:text-text-dark'}`}>
+            {project.name}
+          </div>
+        </div>
+      )}
+      {safeVisibleCols.status && (
+        <div className={`${COL_CLASSES.status} ${cellPad}`}>
+          <span className={`status-badge ${getStatusClass(project.status)} !py-1 !px-2 !text-xs !leading-tight`}>
+            {mapStatusName(project.status)}
+          </span>
+        </div>
+      )}
+      {safeVisibleCols.user && (
+        <div className={`${COL_CLASSES.user} ${cellPad}`}>
+          <div className="text-xs truncate text-text-muted dark:text-text-muted">{project.user_name || "-"}</div>
+        </div>
+      )}
+      {safeVisibleCols.group && (
+        <div className={`${COL_CLASSES.group} ${cellPad}`}>
+          <div className="text-xs truncate text-text-muted dark:text-text-muted">{project.group_name || "-"}</div>
+        </div>
+      )}
+      {safeVisibleCols.software && (
+        <div className={`${COL_CLASSES.software} ${cellPad}`}>
+          <div className="text-xs truncate text-text-muted dark:text-text-muted">{project.software || "-"}</div>
+        </div>
+      )}
+      {safeVisibleCols.time && (
+        <div className={`${COL_CLASSES.time} ${cellPad}`}>
+          <div className="text-xs text-text-muted dark:text-text-muted">{formatTimeSpent(project.time_spent_minutes)}</div>
+        </div>
+      )}
+      {safeVisibleCols.start && (
+        <div className={`${COL_CLASSES.start} ${cellPad}`}>
+          <div className="text-xs text-text-muted dark:text-text-muted">{project.start_date ? formatDate(project.start_date).split(' ')[0] : "-"}</div>
+        </div>
+      )}
+      {safeVisibleCols.updated && (
+        <div className={`${COL_CLASSES.updated} ${cellPad}`}>
+          <div className="text-xs text-text-muted dark:text-text-muted">{formatDate(project.last_updated || project.creation_date)}</div>
+        </div>
+      )}
+      {safeVisibleCols.output && (
+        <div className={`${COL_CLASSES.output} ${cellPad} flex items-center justify-center`}>
+          {project.output_type ? (
+            <Tooltip>
+              <Tooltip.Trigger asChild>
+                <span className={`inline-flex items-center justify-center h-6 px-2 rounded-md ${selectedProject?.id === project.id ? 'bg-bioluminescent-500/10 text-bioluminescent-300 ring-1 ring-bioluminescent-400/30' : 'bg-slate-500/10 text-slate-400 dark:text-slate-300 ring-1 ring-slate-300/20 dark:ring-night-600'}`}>
+                  {renderOutputTypeIcon(project.output_type, selectedProject?.id === project.id)}
+                </span>
+              </Tooltip.Trigger>
+              <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">{project.output_type}</Tooltip.Panel>
+            </Tooltip>
+          ) : <span className="text-xs text-text-muted">-</span>}
+        </div>
+      )}
+      {safeVisibleCols.actions && (
+        <div className={`${COL_CLASSES.actions} ${cellPad} flex items-center justify-center gap-1.5`}>
+          {Environment.isTauri() && project.project_path && project.folder_created && (
+            <Tooltip>
+              <Tooltip.Trigger asChild>
+                <button onClick={(e) => { e.stopPropagation(); openFolderInExplorer(project.project_path); }} className="btn btn-icon btn-sm text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-100">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+                </button>
+              </Tooltip.Trigger>
+              <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">Open</Tooltip.Panel>
+            </Tooltip>
+          )}
+          <Tooltip>
+            <Tooltip.Trigger asChild>
+              <button onClick={(e) => { e.stopPropagation(); handleSelectProject(project, true); }} className={`btn btn-icon btn-sm ${selectedProject?.id === project.id ? 'text-selected hover:text-selected' : 'text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-100'}`}>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">View</Tooltip.Panel>
+          </Tooltip>
+        </div>
+      )}
+    </div>
+  );
+};
 
 function ProjectTableView({
   projects,
@@ -25,7 +141,11 @@ function ProjectTableView({
   const [visibleCols, setVisibleCols] = useState(() => {
     try {
       const raw = localStorage.getItem('biome_table_cols_v1');
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Ensure parsed is a valid object and not null
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
     } catch {}
     return {
       name: true,
@@ -328,6 +448,7 @@ function ProjectTableView({
   // Filter projects based on all criteria including search results
   const filteredProjects = useMemo(() => {
     let filtered = [...projects];
+    // console.log('Filtering projects. Total:', projects.length);
     
     // If we have search results from the dashboard, use only those
     if (filters.searchResults) {
@@ -388,7 +509,7 @@ function ProjectTableView({
     }
     
     // Sort the filtered results
-    return filtered.sort((a, b) => {
+    const result = filtered.sort((a, b) => {
       let aValue, bValue;
       
       switch (sortField) {
@@ -451,6 +572,8 @@ function ProjectTableView({
         return bValue.localeCompare(aValue);
       }
     });
+    // console.log('Filtered count:', result.length);
+    return result;
   }, [projects, sortField, sortOrder, searchTerm, statusFilter, softwareFilter, groupFilter, userFilter, timeWindow, outputTypeFilter, filters.searchResults]);
 
   // Format time spent minutes to hours and minutes
@@ -479,11 +602,11 @@ function ProjectTableView({
     return sortOrder === 'asc' ? '↑' : '↓';
   };
 
-  const visibleCount = useMemo(() => Object.values(visibleCols).filter(Boolean).length, [visibleCols]);
+  const visibleCount = useMemo(() => Object.values(visibleCols || {}).filter(Boolean).length, [visibleCols]);
 
   return (
-    <div className="h-full bg-white dark:bg-night-800 rounded-lg shadow-sm transition-all duration-300 hover:shadow-lg">
-      <div className="p-4 flex flex-col gap-3">
+    <div className="h-full bg-white dark:bg-night-800 rounded-lg shadow-sm transition-all duration-300 hover:shadow-lg flex flex-col">
+      <div className="p-4 flex flex-col gap-3 flex-none">
         <div className="flex justify-between items-center">
           <h3 className="text-base font-medium text-text dark:text-text-dark flex items-center gap-2">
           <svg className="w-5 h-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -641,236 +764,129 @@ function ProjectTableView({
           </select>
         </div>
       </div>
-      <div>
-        <table className="w-full">
-          <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-night-700 border-b border-gray-200 dark:border-night-600">
-            <tr>
-              {visibleCols.name && (<th 
-                className={`${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
-                onClick={() => handleSort('name')}
-              >
-                Name {renderSortArrow('name')}
-              </th>)}
-              {visibleCols.status && (<th 
-                className={`${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
-                onClick={() => handleSort('status')}
-              >
-                Status {renderSortArrow('status')}
-              </th>)}
-              {visibleCols.user && (<th 
-                className={`${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
-                onClick={() => handleSort('user_name')}
-              >
-                User {renderSortArrow('user_name')}
-              </th>)}
-              {visibleCols.group && (<th 
-                className={`${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
-                onClick={() => handleSort('group_name')}
-              >
-                Group {renderSortArrow('group_name')}
-              </th>)}
-              {visibleCols.software && (<th 
-                className={`${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
-                onClick={() => handleSort('software')}
-              >
-                Software {renderSortArrow('software')}
-              </th>)}
-              {visibleCols.time && (<th 
-                className={`${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
-                onClick={() => handleSort('time_spent_minutes')}
-              >
-                Time {renderSortArrow('time_spent_minutes')}
-              </th>)}
-              {visibleCols.start && (<th 
-                className={`${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
-                onClick={() => handleSort('start_date')}
-              >
-                Start Date {renderSortArrow('start_date')}
-              </th>)}
-              {visibleCols.updated && (<th 
-                className={`${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
-                onClick={() => handleSort('last_updated')}
-              >
-                Updated {renderSortArrow('last_updated')}
-              </th>)}
-              {visibleCols.output && (<th 
-                className={`${headerPad} text-center ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
-                onClick={() => handleSort('output_type')}
-                title="Output/Result Type"
-              >
-                Output {renderSortArrow('output_type')}
-              </th>)}
-              {visibleCols.actions && (<th className={`${headerPad} text-center w-24 ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider`}>
-                Actions
-              </th>)}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border dark:divide-border-dark">
-            {loading ? (
-              Array.from({ length: 8 }).map((_, i) => (
-                <tr key={`sk-${i}`} className="animate-pulse">
-                  {Array.from({ length: visibleCount }).map((__, j) => (
-                    <td key={`sk-${i}-${j}`} className={`${cellPad}`}>
-                      <div className="h-3 bg-slate-200 dark:bg-night-700 rounded w-3/4"></div>
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : filteredProjects.length > 0 ? (
-              filteredProjects.map((project, index) => (
-                <tr 
-                  key={project.id} 
-                  className={`hover:bg-gray-50 dark:hover:bg-night-700 transition-colors animate-fade-in ${
-                    selectedProject?.id === project.id ? 'row-selected' : ''
-                  }`}
-                  onClick={() => handleSelectProject(project)}
-                  style={{ 
-                    animationDelay: `${index * 30}ms`
-                  }}
-                  role="button"
-                  aria-label={`View details for project ${project.name}`}
-                >
-                  {visibleCols.name && (<td className={`${cellPad}`}>
-                    <div className={`text-sm font-medium break-words ${
-                      selectedProject?.id === project.id 
-                        ? 'text-selected' 
-                        : 'text-text dark:text-text-dark'
-                    }`}>
-                      {project.name}
-                    </div>
-                  </td>)}
-                  {visibleCols.status && (<td className={`${cellPad}`}>
-                    <span 
-                      className={`status-badge ${getStatusClass(project.status)} !py-1 !px-2 !text-xs !leading-tight`}
-                    >
-                      {mapStatusName(project.status)}
-                    </span>
-                  </td>)}
-                  {visibleCols.user && (<td className={`${cellPad}`}>
-                    <div className={`text-xs break-words ${
-                      selectedProject?.id === project.id 
-                        ? 'text-selected-muted' 
-                        : 'text-text-muted dark:text-text-muted'
-                    }`}>{project.user_name || "-"}</div>
-                  </td>)}
-                  {visibleCols.group && (<td className={`${cellPad}`}>
-                    <div className={`text-xs break-words ${
-                      selectedProject?.id === project.id 
-                        ? 'text-selected-muted' 
-                        : 'text-text-muted dark:text-text-muted'
-                    }`}>{project.group_name || "-"}</div>
-                  </td>)}
-                  {visibleCols.software && (<td className={`${cellPad}`}>
-                    <div className={`text-xs break-words ${
-                      selectedProject?.id === project.id 
-                        ? 'text-selected-muted' 
-                        : 'text-text-muted dark:text-text-muted'
-                    }`}>{project.software || "-"}</div>
-                  </td>)}
-                  {visibleCols.time && (<td className={`${cellPad}`}>
-                    <div className={`text-xs ${
-                      selectedProject?.id === project.id 
-                        ? 'text-selected-muted' 
-                        : 'text-text-muted dark:text-text-muted'
-                    }`}>{formatTimeSpent(project.time_spent_minutes)}</div>
-                  </td>)}
-                  {visibleCols.start && (<td className={`${cellPad}`}>
-                    <div className={`text-xs ${
-                      selectedProject?.id === project.id 
-                        ? 'text-selected-muted' 
-                        : 'text-text-muted dark:text-text-muted'
-                    }`}>{project.start_date ? formatDate(project.start_date).split(' ')[0] : "-"}</div>
-                  </td>)}
-                  {visibleCols.updated && (<td className={`${cellPad}`}>
-                    <div className={`text-xs ${
-                      selectedProject?.id === project.id 
-                        ? 'text-selected-muted' 
-                        : 'text-text-muted dark:text-text-muted'
-                    }`}>{formatDate(project.last_updated || project.creation_date)}</div>
-                  </td>)}
-                  {visibleCols.output && (<td className={`${cellPad} text-center align-middle`}>
-                    <div className="flex items-center justify-center">
-                      {project.output_type ? (
-                        <Tooltip>
-                          <Tooltip.Trigger asChild>
-                            <span
-                              className={`inline-flex items-center justify-center h-6 px-2 rounded-md
-                                ${selectedProject?.id === project.id
-                                  ? 'bg-bioluminescent-500/10 text-bioluminescent-300 ring-1 ring-bioluminescent-400/30'
-                                  : 'bg-slate-500/10 text-slate-400 dark:text-slate-300 ring-1 ring-slate-300/20 dark:ring-night-600'}`}
-                              role="img"
-                              aria-label={`Output type: ${project.output_type}`}
-                            >
-                              {renderOutputTypeIcon(project.output_type, selectedProject?.id === project.id)}
-                            </span>
-                          </Tooltip.Trigger>
-                          <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">
-                            {project.output_type}
-                          </Tooltip.Panel>
-                        </Tooltip>
-                      ) : (
-                        <span className="text-xs text-text-muted">-</span>
-                      )}
-                    </div>
-                  </td>)}
-                  {visibleCols.actions && (<td className={`${cellPad} text-center text-sm whitespace-nowrap align-middle`}>
-                    <div className="inline-flex items-center gap-1.5">
-                      {Environment.isTauri() && project.project_path && project.folder_created && (
-                        <Tooltip>
-                          <Tooltip.Trigger asChild>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); openFolderInExplorer(project.project_path); }}
-                              className="btn btn-icon btn-sm text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-100"
-                              aria-label="Open folder"
-                            >
-                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                              </svg>
-                            </button>
-                          </Tooltip.Trigger>
-                          <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">Open</Tooltip.Panel>
-                        </Tooltip>
-                      )}
-                      <Tooltip>
-                        <Tooltip.Trigger asChild>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleSelectProject(project, true); }}
-                            className={`btn btn-icon btn-sm ${selectedProject?.id === project.id ? 'text-selected hover:text-selected' : 'text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-100'}`}
-                            aria-label="View project"
-                          >
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" />
-                              <circle cx="12" cy="12" r="3" />
-                            </svg>
-                          </button>
-                        </Tooltip.Trigger>
-                        <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">View</Tooltip.Panel>
-                      </Tooltip>
-                    </div>
-                  </td>)}
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={visibleCount} className="px-4 py-4 text-center text-text-muted">
-                  <div className="flex flex-col items-center py-6">
-                    <svg className="w-12 h-12 text-border mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-base font-medium">No projects found</p>
-                    <p className="text-sm mt-1">Try changing your search or filter criteria</p>
-                    <button 
-                      onClick={resetFilters}
-                      className="mt-4 btn btn-primary"
-                    >
-                      Reset Filters
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      
+      {/* Table Header */}
+      <div className="flex-none border-b border-gray-200 dark:border-night-600 bg-gray-100 dark:bg-night-700">
+        <div className="flex items-center">
+          {visibleCols.name && (
+            <div 
+              className={`${COL_CLASSES.name} ${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
+              onClick={() => handleSort('name')}
+            >
+              Name {renderSortArrow('name')}
+            </div>
+          )}
+          {visibleCols.status && (
+            <div 
+              className={`${COL_CLASSES.status} ${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
+              onClick={() => handleSort('status')}
+            >
+              Status {renderSortArrow('status')}
+            </div>
+          )}
+          {visibleCols.user && (
+            <div 
+              className={`${COL_CLASSES.user} ${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
+              onClick={() => handleSort('user_name')}
+            >
+              User {renderSortArrow('user_name')}
+            </div>
+          )}
+          {visibleCols.group && (
+            <div 
+              className={`${COL_CLASSES.group} ${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
+              onClick={() => handleSort('group_name')}
+            >
+              Group {renderSortArrow('group_name')}
+            </div>
+          )}
+          {visibleCols.software && (
+            <div 
+              className={`${COL_CLASSES.software} ${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
+              onClick={() => handleSort('software')}
+            >
+              Software {renderSortArrow('software')}
+            </div>
+          )}
+          {visibleCols.time && (
+            <div 
+              className={`${COL_CLASSES.time} ${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
+              onClick={() => handleSort('time_spent_minutes')}
+            >
+              Time {renderSortArrow('time_spent_minutes')}
+            </div>
+          )}
+          {visibleCols.start && (
+            <div 
+              className={`${COL_CLASSES.start} ${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
+              onClick={() => handleSort('start_date')}
+            >
+              Start Date {renderSortArrow('start_date')}
+            </div>
+          )}
+          {visibleCols.updated && (
+            <div 
+              className={`${COL_CLASSES.updated} ${headerPad} text-left ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
+              onClick={() => handleSort('last_updated')}
+            >
+              Updated {renderSortArrow('last_updated')}
+            </div>
+          )}
+          {visibleCols.output && (
+            <div 
+              className={`${COL_CLASSES.output} ${headerPad} text-center ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-bioluminescent-200`}
+              onClick={() => handleSort('output_type')}
+              title="Output/Result Type"
+            >
+              Output {renderSortArrow('output_type')}
+            </div>
+          )}
+          {visibleCols.actions && (
+            <div className={`${COL_CLASSES.actions} ${headerPad} text-center ${textSm} font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider`}>
+              Actions
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Virtualized List */}
+      <div className="flex-1 min-h-0 relative">
+        {loading ? (
+          <div className="p-4 text-center text-text-muted">Loading projects...</div>
+        ) : filteredProjects.length > 0 ? (
+          <List
+            style={{ width: '100%', height: '100%' }}
+            rowCount={filteredProjects.length}
+            rowHeight={dense ? 40 : 56}
+            rowComponent={Row}
+            rowProps={{
+              projects: filteredProjects,
+              visibleCols: visibleCols || {},
+              selectedProject,
+              handleSelectProject,
+              dense,
+              getStatusClass,
+              mapStatusName,
+              formatTimeSpent,
+              formatDate,
+              renderOutputTypeIcon
+            }}
+          />
+        ) : (
+          <div className="flex flex-col items-center py-12 text-text-muted">
+            <svg className="w-12 h-12 text-border mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-base font-medium">No projects found</p>
+            <p className="text-sm mt-1">Try changing your search or filter criteria</p>
+            <button 
+              onClick={resetFilters}
+              className="mt-4 btn btn-primary"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

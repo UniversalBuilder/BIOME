@@ -6,6 +6,12 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [1.4.3] - 2025-11-25
+### Fixed
+- Project Table View rendering issues where the table appeared empty despite having data.
+- Resolved conflict between `react-window` v2.2.3 and `react-virtualized-auto-sizer` by removing the external sizer and relying on the library's internal `ResizeObserver`.
+- Updated `react-window` API usage to match the installed version (v2.2.3).
+
 ## [1.4.2] - 2025-11-24
 ### Changed
 - Rebuilt Windows MSI and synchronized version metadata across frontend, backend, and Tauri config.
@@ -129,3 +135,4 @@ Get-FileHash .\BIOME_1.4.0_x64_en-US.msi -Algorithm SHA256
 [1.4.0]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.4.0
 [1.4.1]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.4.1
 [1.4.2]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.4.2
+[1.4.3]: https://github.com/UniversalBuilder/BIOME/releases/tag/v1.4.3

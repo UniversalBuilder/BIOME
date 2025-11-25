@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
     "beforeBuildCommand": "npm run build",
-    "beforeDevCommand": "",
+    "beforeDevCommand": "npm run start-both",
     "frontendDist": "../build",
     "devUrl": "http://localhost:3000"
   },
@@ -40,7 +40,10 @@
       "signingIdentity": null
     },
     "resources": [
-      "resources/backend"
+      "resources/backend",
+      "../../production-server.js",
+      "../build",
+      "../../launch-web-mode.bat"
     ],
     "shortDescription": "Bioimage analysis project management",
     "linux": {
@@ -51,7 +54,7 @@
   },
   "productName": "BIOME",
   "mainBinaryName": "BIOME",
-  "version": "1.4.1",
+  "version": "1.4.3",
   "identifier": "com.biome.desktop",
   "plugins": {},
   "app": {

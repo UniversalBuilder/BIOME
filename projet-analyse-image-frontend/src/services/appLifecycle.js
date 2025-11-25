@@ -50,11 +50,15 @@ const initTauriLifecycle = () => {
       }
     });
     
-    // Also handle beforeunload for additional safety
+    // We do NOT handle beforeunload in Tauri because it triggers on F5 refresh
+    // and would kill the backend process, requiring a manual restart.
+    // We rely solely on tauri://close-requested for app shutdown.
+    /*
     window.addEventListener('beforeunload', async (event) => {
       console.log('Window beforeunload event in Tauri');
       await performCleanup();
     });
+    */
     
     console.log('Tauri lifecycle handlers set up successfully');
   } catch (error) {

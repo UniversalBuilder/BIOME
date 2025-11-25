@@ -28,8 +28,8 @@ class DatabaseManager {
         // For development, use app-specific folder in user's home directory for consistency
         if (process.env.NODE_ENV === 'production') {
             const appDataDir = process.platform === 'win32' 
-                ? path.join(os.homedir(), 'AppData', 'Local', 'biamanger')
-                : path.join(os.homedir(), '.biamanger');
+                ? path.join(os.homedir(), 'AppData', 'Local', 'com.biome.desktop', 'biamanger')
+                : path.join(os.homedir(), '.com.biome.desktop', 'biamanger');
             
             return path.join(appDataDir, 'database.sqlite');
         }

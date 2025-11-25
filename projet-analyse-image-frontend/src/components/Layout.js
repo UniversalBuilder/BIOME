@@ -47,8 +47,8 @@ function Layout({ children }) {
   }, []);
   
   return (
-    <div className="app-container bg-isabelline dark:bg-night-900 min-h-screen">
-      <header className="bg-white dark:bg-night-800 border-b border-gray-200 dark:border-night-600">
+    <div className="app-container bg-isabelline dark:bg-night-900 h-screen flex flex-col overflow-hidden">
+      <header className="bg-white dark:bg-night-800 border-b border-gray-200 dark:border-night-600 flex-none z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* App title with original cyan gradient colors */}
@@ -86,8 +86,8 @@ function Layout({ children }) {
         </div>
       </header>
 
-      <main className="content-container bg-isabelline dark:bg-night-900 min-h-screen">
-        <div className="animate-fade-in">
+      <main className="content-container bg-isabelline dark:bg-night-900 flex-1 min-h-0 relative overflow-hidden">
+        <div className="animate-fade-in h-full w-full">
           {children}
         </div>
       </main>
