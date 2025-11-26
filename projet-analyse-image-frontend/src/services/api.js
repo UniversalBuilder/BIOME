@@ -401,6 +401,41 @@ export const projectService = {
     }
 };
 
+export const resourceService = {
+    validate: async (projectId) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl.replace('/api', '')}/api/resources/validate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId })
+        });
+        await handleResponse(response, 'Failed to validate resources');
+        return response.json();
+    },
+
+    search: async (projectId, searchPath) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl.replace('/api', '')}/api/resources/search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId, searchPath })
+        });
+        await handleResponse(response, 'Failed to search resources');
+        return response.json();
+    },
+
+    relink: async (projectId, operations) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl.replace('/api', '')}/api/resources/relink`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectId, operations })
+        });
+        await handleResponse(response, 'Failed to relink resources');
+        return response.json();
+    }
+};
+
 export const appService = {
     getMeta: async () => {
         const apiUrl = getApiUrl();

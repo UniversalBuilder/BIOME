@@ -49,7 +49,7 @@ function Layout({ children }) {
   return (
     <div className="app-container bg-isabelline dark:bg-night-900 h-screen flex flex-col overflow-hidden">
       <header className="bg-white dark:bg-night-800 border-b border-gray-200 dark:border-night-600 flex-none z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* App title with original cyan gradient colors */}
             <div className="flex flex-col">

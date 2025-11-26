@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Tooltip } from './Tooltip';
 import GroupAnalytics from './GroupAnalytics';
 import QuickActions from './QuickActions';
+import ImportProjectButton from './ImportProjectButton';
 import { useTheme } from '../contexts/ThemeContext';
-import { appService } from '../services/api';
+import { appService, projectService } from '../services/api';
 
 const getActivityIcon = (activityType) => {
   switch (activityType) {
@@ -293,27 +294,41 @@ const ActivityFeed = ({ activities = [] }) => {
         </Tooltip>
         </div>
       <div className="flex-grow overflow-y-auto p-4">
-        <div className="space-y-4">
+        <div className="space-y-3">
           {formattedActivities.length > 0 ? formattedActivities.map(activity => (
-            <div key={activity.id} className="flex gap-3 border-b border-gray-200 dark:border-night-600 last:border-0 pb-4 last:pb-0">
+            <div key={activity.id} className="flex gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-night-700 transition-colors">
               {getActivityIcon(activity.activity_type)}
               <div className="flex-1 min-w-0 overflow-hidden">
-                <div className="text-xs font-medium text-bioluminescent-600 dark:text-bioluminescent-400 break-words overflow-wrap-anywhere">{activity.project_name}</div>
-                <p className="text-xs text-slate-700 dark:text-gray-300 mt-1 break-words overflow-wrap-anywhere whitespace-normal">{activity.details}</p>
-                {activity.changedFields.length > 0 && (
-                  <ul className="mt-1 text-xs text-slate-500 dark:text-gray-400 space-y-0.5">
-                    {activity.changedFields.map((change, idx) => (
-                      <li key={idx} className="font-mono text-xs break-words overflow-wrap-anywhere">{change}</li>
-                    ))}
-                  </ul>
-                )}
-                <div className="text-xs text-slate-400 dark:text-gray-500 mt-1 break-words">
-                  {activity.formattedDate}
+                <div className="flex justify-between items-start">
+                  <div className="text-xs font-medium text-bioluminescent-600 dark:text-bioluminescent-400 break-words overflow-wrap-anywhere">{activity.project_name}</div>
+                  <div className="text-[10px] text-slate-400 dark:text-gray-500 whitespace-nowrap ml-2">
+                    {activity.formattedDate}
+                  </div>
                 </div>
+                <p className="text-xs text-slate-700 dark:text-gray-300 mt-0.5 break-words overflow-wrap-anywhere whitespace-normal line-clamp-2">{activity.details}</p>
+                {activity.changedFields.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {activity.changedFields.slice(0, 2).map((change, idx) => (
+                      <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                        {change}
+                      </span>
+                    ))}
+                    {activity.changedFields.length > 2 && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-500">
+                        +{activity.changedFields.length - 2} more
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )) : (
-            <p className="text-slate-500 dark:text-gray-400 text-xs">No recent activity</p>
+            <div className="flex flex-col items-center justify-center h-full py-8 text-slate-500 dark:text-gray-400">
+              <svg className="w-8 h-8 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-xs">No recent activity</p>
+            </div>
           )}
         </div>
       </div>
@@ -422,6 +437,13 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
     }
   };
 
+  const handleProjectImported = (newProject) => {
+    // Refresh projects list if possible
+    if (onQuickAction) {
+      onQuickAction('select', { projectId: newProject.id });
+    }
+  };
+
   // Fetch app metadata (version/description/changelog)
   useEffect(() => {
     let mounted = true;
@@ -438,7 +460,7 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
 
   return (
     <div className="w-full">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 pb-6">
         {/* Grid-based layout with widget-like elements */}
         <div className="dashboard-grid">
           {/* Quick Start (top full-width row) */}
@@ -446,20 +468,45 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
             <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200">Quick Start</h3>
-                <button
-                  className="btn btn-sm hover-soft"
-                  onClick={() => onQuickAction && onQuickAction('create')}
-                  style={{
-                    background: 'linear-gradient(45deg, #00F7FF, #4DB4FF)',
-                    color: 'white',
-                    border: 'none'
-                  }}
-                >
-                  <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  New Project
-                </button>
+                <div className="flex gap-2">
+                  <Tooltip>
+                    <Tooltip.Trigger asChild>
+                      <ImportProjectButton 
+                        onProjectImported={handleProjectImported}
+                        className="btn btn-sm hover-soft mr-2"
+                        style={{
+                          background: 'linear-gradient(45deg, #6366f1, #8b5cf6)',
+                          color: 'white',
+                          border: 'none',
+                          boxShadow: '0 2px 4px rgba(99, 102, 241, 0.3)'
+                        }}
+                      >
+                        <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Import
+                      </ImportProjectButton>
+                    </Tooltip.Trigger>
+                    <Tooltip.Panel className="bg-gray-800/90 text-white text-xs px-2 py-1 rounded shadow-lg backdrop-filter backdrop-blur-sm">
+                      Import existing project folder
+                    </Tooltip.Panel>
+                  </Tooltip>
+                  
+                  <button
+                    className="btn btn-sm hover-soft"
+                    onClick={() => onQuickAction && onQuickAction('create')}
+                    style={{
+                      background: 'linear-gradient(45deg, #00F7FF, #4DB4FF)',
+                      color: 'white',
+                      border: 'none'
+                    }}
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    New Project
+                  </button>
+                </div>
               </div>
               {/* Recent projects list */}
               <div className="space-y-2">
@@ -470,7 +517,7 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                   .map(p => (
                     <div
                       key={p.id}
-                      className="w-full text-left px-3 py-2 rounded-md bg-white dark:bg-night-700 border border-gray-200 dark:border-night-600 hover-soft hover:bg-gray-50 dark:hover:bg-night-700 transition-colors flex items-center justify-between"
+                      className="w-full text-left px-3 py-2 rounded-md bg-white dark:bg-night-700 border border-gray-200 dark:border-night-600 hover-soft hover:bg-gray-50 dark:hover:bg-night-700 transition-colors flex items-center justify-between group"
                       role="button"
                       tabIndex={0}
                       onClick={() => onQuickAction && onQuickAction('select', { projectId: p.id })}
@@ -478,16 +525,26 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                       title={p.name}
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <span className="truncate text-sm text-slate-800 dark:text-gray-200">{p.name}</span>
+                        <div className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 group-hover:bg-bioluminescent-50 dark:group-hover:bg-bioluminescent-900/20 group-hover:text-bioluminescent-600 dark:group-hover:text-bioluminescent-400 transition-colors">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <span className="truncate text-sm text-slate-800 dark:text-gray-200 font-medium">{p.name}</span>
                       </div>
-                      <span className="text-xs text-slate-400 dark:text-gray-500 ml-2 shrink-0">{new Date(p.last_updated || p.creation_date).toLocaleString()}</span>
+                      <span className="text-xs text-slate-400 dark:text-gray-500 ml-2 shrink-0">{new Date(p.last_updated || p.creation_date).toLocaleDateString()}</span>
                     </div>
                   ))}
                 {projects.length === 0 && (
-                  <div className="text-xs text-slate-500 dark:text-gray-400">No projects yet. Create your first project.</div>
+                  <div className="text-xs text-slate-500 dark:text-gray-400 text-center py-4">No projects yet. Create your first project.</div>
+                )}
+                {projects.length > 3 && (
+                  <button 
+                    onClick={() => onQuickAction && onQuickAction('view_all')}
+                    className="w-full text-center text-xs text-bioluminescent-600 dark:text-bioluminescent-400 hover:text-bioluminescent-700 dark:hover:text-bioluminescent-300 font-medium py-1"
+                  >
+                    View all {projects.length} projects →
+                  </button>
                 )}
               </div>
             </div>
@@ -496,8 +553,20 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
           <div className="dashboard-card stats-card" style={{ gridArea: 'stats1' }}>
             <Tooltip>
               <Tooltip.Trigger asChild>
-                <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col">
-                  <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200 mb-1">Active Projects</h3>
+                <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <svg className="w-16 h-16 text-bioluminescent-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-lg bg-bioluminescent-50 dark:bg-bioluminescent-900/30 text-bioluminescent-600 dark:text-bioluminescent-400">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
+                    <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200">Active Projects</h3>
+                  </div>
                   <div className="text-2xl font-bold text-bioluminescent-600 dark:text-bioluminescent-400 mt-auto mb-1">{totalProjects}</div>
                   <p className="text-xs text-slate-600 dark:text-gray-400">Active projects (excl. finished and on hold)</p>
                 </div>
@@ -511,8 +580,20 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
           <div className="dashboard-card stats-card" style={{ gridArea: 'stats2' }}>
             <Tooltip>
               <Tooltip.Trigger asChild>
-                <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col">
-                  <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200 mb-1">Time Statistics</h3>
+                <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <svg className="w-16 h-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200">Time Statistics</h3>
+                  </div>
                   <div className="text-2xl font-bold text-green-600 dark:text-green-400 mt-auto mb-1">
                     {averageTimePerProject}h
                   </div>
@@ -528,8 +609,20 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
           <div className="dashboard-card stats-card" style={{ gridArea: 'stats3' }}>
             <Tooltip>
               <Tooltip.Trigger asChild>
-                <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col">
-                  <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200 mb-1">Completion Rate</h3>
+                <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <svg className="w-16 h-16 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200">Completion Rate</h3>
+                  </div>
                   <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-auto mb-1">
                     {completionRate}%
                   </div>
@@ -758,6 +851,7 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
               </div>
             </div>
           )}
+
         </div>
       </div>
     </div>

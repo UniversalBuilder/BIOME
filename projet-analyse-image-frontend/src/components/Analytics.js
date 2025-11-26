@@ -12,7 +12,7 @@ import {
   Title,
   Filler
 } from 'chart.js';
-import { Bar, Pie, Line } from 'react-chartjs-2';
+import { Bar, Pie, Line, Scatter } from 'react-chartjs-2';
 import { Tooltip } from './Tooltip';
 import { ThemeContext } from '../contexts/ThemeContext';
 
@@ -1207,6 +1207,109 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     },
   };
 
+  // Calculate projects completed per month (Velocity)
+  const completedByMonth = {};
+  
+  // Initialize all months with zeros
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(now);
+    date.setMonth(now.getMonth() - i);
+    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+    completedByMonth[monthKey] = 0;
+  }
+  
+  // Count completed projects per month
+  filteredProjects.forEach(project => {
+    if (project.status === 'Completed' || project.status === 'Finished') {
+      // Use completion_date if available, otherwise fallback to last_update_date
+      const dateStr = project.completion_date || project.last_update_date;
+      
+      if (dateStr) {
+        const completionDate = new Date(dateStr);
+        if (completionDate > monthsAgo12) {
+          const monthKey = `${completionDate.getFullYear()}-${(completionDate.getMonth() + 1).toString().padStart(2, '0')}`;
+          if (completedByMonth[monthKey] !== undefined) {
+            completedByMonth[monthKey]++;
+          }
+        }
+      }
+    }
+  });
+
+  const velocityData = {
+    labels: sortedMonths.map(formatMonthLabel),
+    datasets: [
+      {
+        label: 'Projects Completed',
+        data: sortedMonths.map(month => completedByMonth[month]),
+        borderColor: chartColors.pandoraBorders[3], // Turquoise
+        backgroundColor: chartColors.pandoraColors[3],
+        fill: true,
+        tension: 0.3,
+      },
+    ],
+  };
+
+  // Time vs Duration Scatter Plot
+  const timeVsDurationData = {
+    datasets: [
+      {
+        label: 'Projects',
+        data: filteredProjects
+          .filter(p => p.time_spent_minutes && p.creation_date)
+          .map(p => {
+            const creationDate = new Date(p.creation_date);
+            const endDate = p.completion_date ? new Date(p.completion_date) : new Date();
+            const durationDays = Math.max(1, Math.round((endDate - creationDate) / (1000 * 60 * 60 * 24)));
+            const hours = p.time_spent_minutes / 60;
+            return {
+              x: durationDays,
+              y: hours,
+              project: p // Store project data for tooltip
+            };
+          }),
+        backgroundColor: chartColors.pandoraColors[1], // Medium blue
+        borderColor: chartColors.pandoraBorders[1],
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }
+    ]
+  };
+
+  const scatterOptions = {
+    ...commonOptions,
+    plugins: {
+      ...commonOptions.plugins,
+      tooltip: {
+        ...commonOptions.plugins.tooltip,
+        callbacks: {
+          label: (context) => {
+            const point = context.raw;
+            return `${point.project.name}: ${point.y.toFixed(1)}h in ${point.x} days`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        ...commonOptions.scales.x,
+        type: 'linear',
+        position: 'bottom',
+        title: {
+          display: true,
+          text: 'Duration (Days)'
+        }
+      },
+      y: {
+        ...commonOptions.scales.y,
+        title: {
+          display: true,
+          text: 'Time Spent (Hours)'
+        }
+      }
+    }
+  };
+
   // Force chart re-rendering when filtered projects change
   const [chartKey, setChartKey] = useState(Date.now());
 
@@ -1642,6 +1745,52 @@ const Analytics = ({ projects = [], analytics = {} }) => {
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
                 Compare productivity and success rates across different research groups
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Project Velocity (Completed per Month) */}
+          <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm hover:shadow-lg transition-colors">
+            <div className="p-4 border-b border-gray-200 dark:border-night-600">
+              <Tooltip>
+                <Tooltip.Trigger asChild>
+                  <h3 className="font-medium text-gray-900 dark:text-night-100">Project Velocity</h3>
+                </Tooltip.Trigger>
+                <Tooltip.Panel className="bg-surface text-text text-sm px-2 py-1 rounded shadow-lg">
+                  Number of projects completed per month
+                </Tooltip.Panel>
+              </Tooltip>
+            </div>
+            <div className="p-4" style={{ height: '300px' }}>
+              <Line key={`velocity-${chartKey}`} data={velocityData} options={commonOptions} />
+            </div>
+            <div className="px-4 pb-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                Trend of project completions over the last 12 months
+              </p>
+            </div>
+          </div>
+
+          {/* Time vs Duration Scatter Plot */}
+          <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm hover:shadow-lg transition-colors">
+            <div className="p-4 border-b border-gray-200 dark:border-night-600">
+              <Tooltip>
+                <Tooltip.Trigger asChild>
+                  <h3 className="font-medium text-gray-900 dark:text-night-100">Time vs. Duration</h3>
+                </Tooltip.Trigger>
+                <Tooltip.Panel className="bg-surface text-text text-sm px-2 py-1 rounded shadow-lg">
+                  Correlation between project duration and actual time spent
+                </Tooltip.Panel>
+              </Tooltip>
+            </div>
+            <div className="p-4" style={{ height: '300px' }}>
+              <Scatter key={`scatter-${chartKey}`} data={timeVsDurationData} options={scatterOptions} />
+            </div>
+            <div className="px-4 pb-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                Analyze if longer projects actually require more work hours
               </p>
             </div>
           </div>

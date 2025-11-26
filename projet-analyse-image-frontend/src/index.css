@@ -157,17 +157,16 @@
   .dashboard-grid {
     gap: 1rem;
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: auto auto repeat(6, minmax(100px, auto));
+    /* Optimized columns: Analytics (wide), Activity (medium), Sidebar (narrow but usable) */
+    grid-template-columns: 3fr 2fr 1.2fr;
+    /* Remove fixed rows to allow content to dictate height and avoid wasted space */
+    grid-auto-rows: min-content;
     grid-template-areas:
-      "quickstart quickstart quickstart quickstart quickstart quickstart"
-      "stats1 stats1 stats2 stats2 stats3 stats3"
-      "analytics analytics analytics activity activity search"
-      "analytics analytics analytics activity activity filters"
-      "analytics analytics analytics activity activity filters"
-      "analytics analytics analytics activity activity filters"
-      "analytics analytics analytics activity activity filters"
-      "analytics analytics analytics activity activity about";
+      "quickstart quickstart quickstart"
+      "stats1 stats2 stats3"
+      "analytics activity search"
+      "analytics activity filters"
+      "analytics activity about";
     /* Inherit background from body */
     background: inherit;
   }
@@ -337,24 +336,35 @@
   }
 
   .btn-secondary {
-    background-color: #ffffff;
-    border: none;
+    background-color: transparent;
+    border: 1px solid #e5e7eb;
     color: #272a2e;
   }
 
   .btn-secondary:hover {
-    background-color: #f6f6f7;
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+  }
+
+  .btn-danger {
+    background-color: #EF4444;
+    color: #ffffff;
+  }
+
+  .btn-danger:hover {
+    background-color: #DC2626;
   }
 
   /* Dark mode button overrides */
   body.dark .btn-secondary {
-    background-color: #1A2540;
-    border: none;
+    background-color: transparent;
+    border: 1px solid #2A3655;
     color: #E1FFFF;
   }
 
   body.dark .btn-secondary:hover {
-    background-color: #2A3655;
+    background-color: #1A2540;
+    border-color: #4B5563;
   }
 
   /* Tables */

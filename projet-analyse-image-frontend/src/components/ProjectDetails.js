@@ -6,6 +6,7 @@ import { selectDirectory } from '../services/tauriApi';
 import { createProjectStructure, validateProjectStructure, scanProjectFolder, downloadReadmeTemplate, openFolderInExplorer } from '../services/filesystemApi';
 import Modal from './Modal';
 import WizardFormModal from './WizardFormModal';
+import RelinkResourcesModal from './RelinkResourcesModal';
 import Environment from '../utils/environmentDetection';
 
 const MAX_HOURS = 48;
@@ -250,6 +251,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   const [suggestedPaths] = useState([]); // setSuggestedPaths currently unused but may be needed for future features
   const [showWebFolderModal, setShowWebFolderModal] = useState(false);
   const [generatedStructureContent, setGeneratedStructureContent] = useState(null);
+  const [showRelinkModal, setShowRelinkModal] = useState(false);
 
   // Define common classes
   const inputBaseClasses = "w-full px-3 py-2 bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300";
@@ -1414,6 +1416,53 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         </Tooltip.Panel>
       </Tooltip>
       
+      <Tooltip>
+        <Tooltip.Trigger asChild>
+          <button
+            id="relink-resources-button"
+            className={`px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center whitespace-nowrap ${
+              isProjectSaved() && displayData.project_path ? 
+              '' : 
+              'opacity-50 cursor-not-allowed'
+            }`}
+            onClick={() => setShowRelinkModal(true)}
+            disabled={!isProjectSaved() || !displayData.project_path}
+            aria-label="Relink resources to this project"
+            style={{
+              background: (isProjectSaved() && displayData.project_path) ? 
+                'linear-gradient(45deg, #8B5CF6, #7C3AED)' : 
+                'rgba(156, 163, 175, 0.3)',
+              borderColor: (isProjectSaved() && displayData.project_path) ? 
+                'rgba(139, 92, 246, 0.3)' : 
+                'rgba(156, 163, 175, 0.3)',
+              color: (isProjectSaved() && displayData.project_path) ? 
+                'white' : 
+                'rgba(107, 114, 128, 0.7)',
+              backdropFilter: 'blur(10px)',
+              border: (isProjectSaved() && displayData.project_path) ? 
+                '1px solid rgba(139, 92, 246, 0.3)' : 
+                '1px solid rgba(156, 163, 175, 0.3)',
+              boxShadow: (isProjectSaved() && displayData.project_path) ? 
+                '0 2px 8px rgba(139, 92, 246, 0.2)' : 'none'
+            }}
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              Relink Resources
+            </span>
+          </button>
+        </Tooltip.Trigger>
+        <Tooltip.Panel className="bg-gray-800/90 text-white text-sm px-2 py-1 rounded shadow-lg backdrop-filter backdrop-blur-sm">
+          {!isProjectSaved() ? 
+            'Please save the project first' :
+            !displayData.project_path ? 
+            'Please select a project folder first' :
+            'Scan project folder for existing files and link them to this project'}
+        </Tooltip.Panel>
+      </Tooltip>
+
       <div className="ml-auto text-xs text-slate-500">
         {!displayData.project_path ? (
           <div>No project folder selected</div>
@@ -2843,6 +2892,18 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
           </div>
         </div>
       </WizardFormModal>
+
+      {/* Relink Resources Modal */}
+      <RelinkResourcesModal
+        isOpen={showRelinkModal}
+        onClose={() => setShowRelinkModal(false)}
+        projectPath={displayData.project_path}
+        projectId={project.id}
+        onResourcesLinked={() => {
+          loadResources();
+          onProjectUpdate();
+        }}
+      />
     </div>
   );
 }

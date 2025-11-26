@@ -2,18 +2,90 @@ import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import './StatusColors.css';
 import './ProjectList.css';
 import { Tooltip } from './Tooltip';
+import ImportProjectButton from './ImportProjectButton';
 
-function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewProject, showScroll = true }) {
+function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewProject, showScroll = true, loading = false }) {
   const [sortField, setSortField] = useState('last_updated');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [savedViews, setSavedViews] = useState([]);
+  const [density, setDensity] = useState('comfortable');
   const [scrollState, setScrollState] = useState({ canScrollUp: false, canScrollDown: false });
+
+  // Load saved views on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('biome_saved_views');
+    if (saved) {
+      try {
+        setSavedViews(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse saved views', e);
+      }
+    }
+  }, []);
+
+  const saveCurrentView = () => {
+    const name = window.prompt('Enter a name for this view:');
+    if (!name) return;
+    
+    const newView = {
+      id: Date.now(),
+      name,
+      config: {
+        sortField,
+        sortOrder,
+        searchQuery,
+        statusFilter
+      }
+    };
+    
+    const newViews = [...savedViews, newView];
+    setSavedViews(newViews);
+    localStorage.setItem('biome_saved_views', JSON.stringify(newViews));
+  };
+
+  const applyView = (view) => {
+    setSortField(view.config.sortField);
+    setSortOrder(view.config.sortOrder);
+    setSearchQuery(view.config.searchQuery);
+    setStatusFilter(view.config.statusFilter);
+  };
+
+  const deleteView = (id, e) => {
+    e.stopPropagation();
+    if (window.confirm('Delete this saved view?')) {
+      const newViews = savedViews.filter(v => v.id !== id);
+      setSavedViews(newViews);
+      localStorage.setItem('biome_saved_views', JSON.stringify(newViews));
+    }
+  };
   const scrollContainerRef = useRef(null);
   const resizeRafRef = useRef(null);
 
   // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {
-    // Copy to avoid mutating the incoming prop array during sort
-    return ([...(projects || [])]).sort((a, b) => {
+    // Start with a copy of the projects array
+    let result = [...(projects || [])];
+
+    // 1. Filter by Search Query
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      result = result.filter(p => 
+        (p.name || '').toLowerCase().includes(lowerQuery) ||
+        (p.description || '').toLowerCase().includes(lowerQuery) ||
+        (p.user_name || '').toLowerCase().includes(lowerQuery) ||
+        (p.group_name || '').toLowerCase().includes(lowerQuery)
+      );
+    }
+
+    // 2. Filter by Status
+    if (statusFilter !== 'All') {
+      result = result.filter(p => mapStatusName(p.status) === statusFilter);
+    }
+
+    // 3. Sort
+    return result.sort((a, b) => {
       // Handle null values
       const aValue = a[sortField] ?? '';
       const bValue = b[sortField] ?? '';
@@ -23,7 +95,7 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
         (aValue < bValue ? -1 : aValue > bValue ? 1 : 0)
         : (aValue > bValue ? -1 : aValue < bValue ? 1 : 0);
     });
-  }, [projects, sortField, sortOrder]);
+  }, [projects, sortField, sortOrder, searchQuery, statusFilter]);
 
   // Check scroll position to show/hide scroll indicators
   const checkScrollPosition = useCallback(() => {
@@ -224,34 +296,157 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
             </svg>
             Projects
           </h3>
-          <button
-            onClick={handleCreateProject}
-            className="btn-gradient-cyan transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
-            style={{
-              backdropFilter: 'blur(10px)'
-            }}
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            New Project
-          </button>
+          <div className="flex gap-2">
+            <Tooltip>
+              <Tooltip.Trigger asChild>
+                <ImportProjectButton 
+                  onProjectImported={(p) => {
+                    if (onProjectSelect) onProjectSelect(p);
+                  }}
+                  className="btn btn-secondary hover-soft flex items-center justify-center w-9 h-9 p-0 rounded-xl"
+                >
+                  <svg className="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </ImportProjectButton>
+              </Tooltip.Trigger>
+              <Tooltip.Panel className="bg-gray-800/90 text-white text-xs px-2 py-1 rounded shadow-lg backdrop-filter backdrop-blur-sm">
+                Import Project
+              </Tooltip.Panel>
+            </Tooltip>
+            <button
+              onClick={handleCreateProject}
+              className="btn-gradient-cyan transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
+              style={{
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              New Project
+            </button>
+          </div>
         </div>
 
-        {/* Sort Options */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
-            </svg>
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Sort by:</span>
+        {/* Search and Filters */}
+        <div className="space-y-3">
+          {/* Search Bar */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400 group-focus-within:text-bioluminescent-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl leading-5 bg-gray-50/50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-bioluminescent-400/50 focus:border-bioluminescent-400 transition-all sm:text-sm backdrop-blur-sm"
+              placeholder="Search projects..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
+
+          {/* Status Filter Pills */}
           <div className="flex flex-wrap gap-2">
-            {renderSortButton('name', 'Name')}
-            {renderSortButton('status', 'Status')}
-            {renderSortButton('user_name', 'User')}
-            {renderSortButton('group_name', 'Group')}
-            {renderSortButton('last_updated', 'Updated')}
+            {['All', 'Preparing', 'Active', 'Review', 'Completed'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`
+                  px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 border
+                  ${statusFilter === status
+                    ? 'bg-bioluminescent-50 dark:bg-bioluminescent-900/30 text-bioluminescent-700 dark:text-bioluminescent-300 border-bioluminescent-200 dark:border-bioluminescent-700/50 shadow-sm'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }
+                `}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+
+          {/* Saved Views */}
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700/50">
+             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Views:</span>
+             {savedViews.map(view => (
+               <div 
+                key={view.id} 
+                onClick={() => applyView(view)}
+                className="group flex items-center gap-1.5 px-2 py-1 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+               >
+                 <span className="text-gray-700 dark:text-gray-300">{view.name}</span>
+                 <button 
+                  onClick={(e) => deleteView(view.id, e)} 
+                  className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Delete view"
+                 >
+                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                   </svg>
+                 </button>
+               </div>
+             ))}
+             <button 
+              onClick={saveCurrentView} 
+              className="text-xs text-bioluminescent-600 dark:text-bioluminescent-400 hover:text-bioluminescent-700 dark:hover:text-bioluminescent-300 font-medium flex items-center gap-1 px-2 py-1 rounded hover:bg-bioluminescent-50 dark:hover:bg-bioluminescent-900/20 transition-colors"
+             >
+               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+               </svg>
+               Save View
+             </button>
+          </div>
+        </div>
+
+        {/* Sort Options and Density Toggle */}
+        <div className="flex justify-between items-end">
+          <div className="space-y-2 flex-grow">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+              </svg>
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Sort by:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {renderSortButton('name', 'Name')}
+              {renderSortButton('status', 'Status')}
+              {renderSortButton('user_name', 'User')}
+              {renderSortButton('group_name', 'Group')}
+              {renderSortButton('last_updated', 'Updated')}
+            </div>
+          </div>
+
+          {/* Density Toggle */}
+          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700 ml-4 flex-shrink-0">
+            <button
+              onClick={() => setDensity('comfortable')}
+              className={`p-1.5 rounded-md transition-all ${density === 'comfortable' ? 'bg-white dark:bg-gray-700 shadow-sm text-bioluminescent-600 dark:text-bioluminescent-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+              title="Comfortable view"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setDensity('compact')}
+              className={`p-1.5 rounded-md transition-all ${density === 'compact' ? 'bg-white dark:bg-gray-700 shadow-sm text-bioluminescent-600 dark:text-bioluminescent-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
+              title="Compact view"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
@@ -291,14 +486,38 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
           ref={scrollContainerRef}
           className={`h-full p-4 project-list-container ${showScroll ? 'scrollbar-hidden' : ''}`}
         >
-          <div className="space-y-3">
-            {filteredAndSortedProjects.length > 0 ? (
+          <div className={`space-y-${density === 'compact' ? '2' : '3'}`}>
+            {loading ? (
+              // Skeleton Loading State
+              Array.from({ length: 5 }).map((_, index) => (
+                <div 
+                  key={`skeleton-${index}`}
+                  className={`${density === 'compact' ? 'p-3' : 'p-5'} rounded-xl bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg shadow-sm animate-pulse border border-white/20`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex flex-col gap-2">
+                      {/* Title skeleton */}
+                      <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-md w-3/4"></div>
+                      {/* Status badge skeleton */}
+                      <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-full w-20"></div>
+                    </div>
+                    
+                    <div className="flex gap-4 pt-2">
+                      {/* User info skeleton */}
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                      {/* Group info skeleton */}
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : filteredAndSortedProjects.length > 0 ? (
               filteredAndSortedProjects.map((project, index) => (
                 <div
                   key={project.id || `temp_${index}`}
                   onClick={() => onProjectSelect(project)}
                   className={`
-                    p-5 rounded-xl transition-all duration-300 cursor-pointer backdrop-filter backdrop-blur-lg shadow-sm project-hover
+                    ${density === 'compact' ? 'p-3' : 'p-5'} rounded-xl transition-all duration-300 cursor-pointer backdrop-filter backdrop-blur-lg shadow-sm project-hover
                     ${selectedProject?.id === project.id 
                       ? 'project-selected bg-gradient-to-br from-bioluminescent-50/90 to-white/70 dark:from-bioluminescent-900/40 dark:to-gray-800/60 shadow-lg' 
                       : 'bg-white/70 dark:bg-gray-800/60'
@@ -310,7 +529,7 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
                 >
                   <div className="flex justify-between items-start">
                     <div className="space-y-2 flex-grow">
-                      <div className="flex flex-col gap-2">
+                      <div className={`flex ${density === 'compact' ? 'flex-row items-center justify-between gap-4' : 'flex-col gap-2'}`}>
                         <h4 
                           className={`text-sm font-medium text-gray-900 dark:text-gray-100`}
                           title={project.name || 'Untitled Project'}
@@ -320,13 +539,13 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
                           </span>
                         </h4>
                         <span 
-                          className={`${getStatusColor(project.status)} inline-flex w-fit`}
+                          className={`${getStatusColor(project.status)} inline-flex w-fit ${density === 'compact' ? 'scale-90 origin-right' : ''}`}
                         >
                           {mapStatusName(project.status)}
                         </span>
                       </div>
                       
-                      <div className="flex gap-4">
+                      <div className={`flex gap-4 ${density === 'compact' ? 'pt-1' : ''}`}>
                         <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
                           <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

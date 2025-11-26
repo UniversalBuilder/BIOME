@@ -308,7 +308,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
       case 'dashboard':
         return (
           <div className="w-full h-full overflow-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="mb-6">
                 <h2 className="text-3xl font-bold mb-2" style={{
                   background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
@@ -353,7 +353,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
         
         return (
           <div className="projects-container w-full h-full overflow-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="mb-6">
                 <h2 className="text-3xl font-bold mb-2" style={{
                   background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
@@ -373,6 +373,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
                     onProjectSelect={handleProjectSelect}
                     onCreateNewProject={handleCreateNewProject}
                     showScroll={true}
+                    loading={loading}
                   />
                 </div>
                 <div className="col-span-7 lg:col-span-8">
@@ -418,7 +419,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
       case 'table':
         return (
           <div className="w-full h-full flex flex-col overflow-hidden">
-            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col h-full">
+            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col h-full">
               <div className="mb-6 flex-none">
                 <h2 className="text-3xl font-bold mb-2" style={{
                   background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
@@ -446,7 +447,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
       case 'users':
         return (
           <div className="w-full h-full overflow-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="mb-6">
                 <h2 className="text-3xl font-bold mb-2" style={{
                   background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
@@ -467,7 +468,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
       case 'database':
         return (
           <div className="w-full h-full overflow-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="mb-6">
                 <h2 className="text-3xl font-bold mb-2" style={{
                   background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
@@ -494,18 +495,18 @@ function LandingPage({ activeTab, onNavigateToTab }) {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="w-full h-full bg-slate-50">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-slate-600">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="w-full h-full bg-slate-50">
+  //       <div className="flex items-center justify-center h-64">
+  //         <div className="text-center">
+  //           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+  //           <p className="mt-4 text-slate-600">Loading...</p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (error) {
     return (

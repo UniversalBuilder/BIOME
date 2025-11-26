@@ -6,6 +6,7 @@ import './StatusColors.css';
 import { Tooltip } from './Tooltip';
 import Environment from '../utils/environmentDetection';
 import { openFolderInExplorer } from '../services/filesystemApi';
+import ImportProjectButton from './ImportProjectButton';
 
 const COL_CLASSES = {
   name: 'flex-1 min-w-[200px]',
@@ -680,6 +681,18 @@ function ProjectTableView({
               disabled={!onRefresh}
               title={onRefresh ? 'Reload data & clear filters' : 'Refresh not available'}
             >Data: Refresh</button>
+            <ImportProjectButton 
+              onProjectImported={(p) => {
+                handleRefresh();
+                if (onProjectSelect) onProjectSelect(p);
+              }}
+              className="px-2 py-1 rounded-md text-xs font-medium border border-slate-500 text-slate-700 dark:text-slate-300 bg-transparent dark:bg-transparent hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-slate-400 flex items-center gap-1"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Import
+            </ImportProjectButton>
             <button
               onClick={() => {
                 const next = !dense; setDense(next);

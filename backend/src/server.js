@@ -91,6 +91,7 @@ dbManager.connect().then(() => {
     app.use('/api/users', userRoutes);
     app.use('/api/groups', groupRoutes);
     app.use('/api/filesystem', filesystemRoutes);
+    app.use('/api/resources', require('./routes/resources'));
     app.use('/api/system', systemRoutes);
 
     // Database management routes

@@ -7,13 +7,18 @@ const GroupAnalytics = ({ analytics = {} }) => {
     completionRateByGroup = []
   } = analytics;
 
+  // Sort and limit to top 5 for display
+  const topProjects = [...projectsByGroup].sort((a, b) => b.count - a.count).slice(0, 5);
+  const topTime = [...timeByGroup].sort((a, b) => b.hours - a.hours).slice(0, 5);
+  const topCompletion = [...completionRateByGroup].sort((a, b) => b.rate - a.rate).slice(0, 5);
+
   return (
     <div className="space-y-4">
       {/* Projects by Group */}
       <div>
-        <h4 className="font-medium text-xs text-slate-700 dark:text-gray-300 mb-2">Projects Distribution</h4>
+        <h4 className="font-medium text-xs text-slate-700 dark:text-gray-300 mb-2">Projects Distribution (Top 5)</h4>
         <div className="space-y-2">
-          {projectsByGroup.map(group => (
+          {topProjects.map(group => (
             <div key={group.name} className="flex items-center gap-2">
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
@@ -25,8 +30,8 @@ const GroupAnalytics = ({ analytics = {} }) => {
                     className="h-full rounded-full shadow-sm"
                     style={{ 
                       width: `${(group.count / Math.max(...projectsByGroup.map(g => g.count), 1)) * 100}%`,
-                      background: 'linear-gradient(45deg, #06B6D4, #0891B2)',
-                      boxShadow: '0 2px 6px rgba(6, 182, 212, 0.3)'
+                      background: 'linear-gradient(45deg, #00F7FF, #4DB4FF)',
+                      boxShadow: '0 0 8px rgba(0, 247, 255, 0.4)'
                     }}
                   />
                 </div>
@@ -43,9 +48,9 @@ const GroupAnalytics = ({ analytics = {} }) => {
 
       {/* Time by Group */}
       <div>
-        <h4 className="font-medium text-xs text-slate-700 dark:text-gray-300 mb-2">Time Distribution (hours)</h4>
+        <h4 className="font-medium text-xs text-slate-700 dark:text-gray-300 mb-2">Time Distribution (Top 5)</h4>
         <div className="space-y-2">
-          {timeByGroup.map(group => (
+          {topTime.map(group => (
             <div key={group.name} className="flex items-center gap-2">
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
@@ -58,7 +63,7 @@ const GroupAnalytics = ({ analytics = {} }) => {
                     style={{ 
                       width: `${(group.hours / Math.max(...timeByGroup.map(g => g.hours), 1)) * 100}%`,
                       background: 'linear-gradient(45deg, #fbbf24, #f97316)',
-                      boxShadow: '0 2px 6px rgba(251, 191, 36, 0.3)'
+                      boxShadow: '0 0 8px rgba(251, 191, 36, 0.4)'
                     }}
                   />
                 </div>
@@ -75,9 +80,9 @@ const GroupAnalytics = ({ analytics = {} }) => {
 
       {/* Completion Rate by Group */}
       <div>
-        <h4 className="font-medium text-xs text-slate-700 dark:text-gray-300 mb-2">Completion Rate (%)</h4>
+        <h4 className="font-medium text-xs text-slate-700 dark:text-gray-300 mb-2">Completion Rate (Top 5)</h4>
         <div className="space-y-2">
-          {completionRateByGroup.map(group => (
+          {topCompletion.map(group => (
             <div key={group.name} className="flex items-center gap-2">
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
@@ -89,8 +94,8 @@ const GroupAnalytics = ({ analytics = {} }) => {
                     className="h-full rounded-full shadow-sm"
                     style={{ 
                       width: `${group.rate}%`,
-                      background: 'linear-gradient(45deg, #22c55e, #84cc16)',
-                      boxShadow: '0 2px 6px rgba(34, 197, 94, 0.3)'
+                      background: 'linear-gradient(45deg, #9B6BF3, #5C77DE)',
+                      boxShadow: '0 0 8px rgba(155, 107, 243, 0.4)'
                     }}
                   />
                 </div>
