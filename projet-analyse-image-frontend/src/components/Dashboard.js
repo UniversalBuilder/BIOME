@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Tooltip } from './Tooltip';
+import ScrollableContainer from './ScrollableContainer';
 import GroupAnalytics from './GroupAnalytics';
 import QuickActions from './QuickActions';
 import ImportProjectButton from './ImportProjectButton';
 import { useTheme } from '../contexts/ThemeContext';
-import { appService, projectService } from '../services/api';
+import { appService } from '../services/api';
 
 const getActivityIcon = (activityType) => {
   switch (activityType) {
@@ -194,6 +195,8 @@ const generateXLSX = async (activities) => {
 };
 
 const ActivityFeed = ({ activities = [] }) => {
+  const [displayCount, setDisplayCount] = useState(5);
+
   useEffect(() => {
     console.log('Activity feed received activities:', activities.length);
     if (activities.length > 0) {
@@ -210,9 +213,16 @@ const ActivityFeed = ({ activities = [] }) => {
 
   const formattedActivities = useMemo(() => {
     return activities
-      .slice(0, 5) // Limit to 5 activities
+      .slice(0, displayCount)
       .map(activity => formatActivity(activity));
-  }, [activities]);
+  }, [activities, displayCount]);
+
+  const remainingCount = activities.length - displayCount;
+  const hasMore = remainingCount > 0;
+
+  const handleShowMore = () => {
+    setDisplayCount(prev => Math.min(prev + 10, activities.length));
+  };
 
   const handleExportActivities = async () => {
     try {
@@ -293,7 +303,7 @@ const ActivityFeed = ({ activities = [] }) => {
           </Tooltip.Panel>
         </Tooltip>
         </div>
-      <div className="flex-grow overflow-y-auto p-4">
+      <ScrollableContainer className="flex-grow p-4">
         <div className="space-y-3">
           {formattedActivities.length > 0 ? formattedActivities.map(activity => (
             <div key={activity.id} className="flex gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-night-700 transition-colors">
@@ -331,7 +341,24 @@ const ActivityFeed = ({ activities = [] }) => {
             </div>
           )}
         </div>
-      </div>
+      </ScrollableContainer>
+      {/* Show more / All shown indicator */}
+      {activities.length > 5 && (
+        <div className="px-4 pb-3 pt-1 border-t border-gray-100 dark:border-night-600">
+          {hasMore ? (
+            <button
+              onClick={handleShowMore}
+              className="w-full text-center text-xs text-bioluminescent-600 dark:text-bioluminescent-400 hover:text-bioluminescent-700 dark:hover:text-bioluminescent-300 font-medium py-1 hover:bg-bioluminescent-50 dark:hover:bg-bioluminescent-900/20 rounded transition-colors"
+            >
+              Show 10 more ({remainingCount} remaining) ↓
+            </button>
+          ) : (
+            <p className="w-full text-center text-xs text-gray-400 dark:text-gray-500 py-1">
+              All {activities.length} activities shown
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -565,14 +592,14 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                       </svg>
                     </div>
-                    <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200">Active Projects</h3>
+                    <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200">In Progress</h3>
                   </div>
                   <div className="text-2xl font-bold text-bioluminescent-600 dark:text-bioluminescent-400 mt-auto mb-1">{totalProjects}</div>
-                  <p className="text-xs text-slate-600 dark:text-gray-400">Active projects (excl. finished and on hold)</p>
+                  <p className="text-xs text-slate-600 dark:text-gray-400">Ongoing projects (excl. completed and on hold)</p>
                 </div>
               </Tooltip.Trigger>
               <Tooltip.Panel className="bg-gray-800/90 text-white text-xs px-2 py-1 rounded shadow-lg backdrop-filter backdrop-blur-sm">
-                Number of currently active projects
+                Number of projects currently in progress
               </Tooltip.Panel>
             </Tooltip>
           </div>
@@ -648,9 +675,9 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                   </Tooltip.Panel>
                 </Tooltip>
               </div>
-              <div className="p-3 overflow-y-auto" style={{height: "calc(100% - 49px)"}}>
+              <ScrollableContainer className="p-3" style={{height: "calc(100% - 49px)"}}>
                 <GroupAnalytics analytics={analytics} />
-              </div>
+              </ScrollableContainer>
             </div>
           </div>
 
@@ -721,53 +748,60 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                   Filter projects quickly by category
                 </Tooltip.Panel>
               </Tooltip>
-              <div className="overflow-y-auto flex-grow">
+              <ScrollableContainer className="flex-grow">
                 <QuickActions 
                   projects={projects}
                   currentUserId={currentUserId}
                   onQuickAction={handleQuickAction}
                   hideViewAll={true}
                 />
-              </div>
+              </ScrollableContainer>
             </div>
           </div>
 
           <div className="dashboard-card about-card">
-            <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col">
-              <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200 mb-2">About BIOME</h3>
-              <div className="text-xs text-slate-600 dark:text-gray-400 space-y-1 flex-grow">
-                <p>Bio Imaging Organization and Management Environment</p>
-                <div className="mt-3 space-y-1">
-                  <p>Version: {appMeta?.version || '—'}</p>
-                  <p>Released: {appMeta?.releaseDate || (appMeta?.version ? new Date().toISOString().slice(0,10) : '—')}</p>
-                  <p>Runtime: Tauri + React</p>
-                  {appMeta?.changelog?.summary?.length > 0 && (
-                    <div className="pt-1">
-                      <p className="font-medium text-slate-700 dark:text-gray-300">Latest changes:</p>
-                      <ul className="list-disc pl-4 space-y-0.5">
-                        {appMeta.changelog.summary.slice(0,3).map((item, idx) => (
-                          <li key={idx}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+            <div className="h-full bg-gradient-to-br from-night-800 via-night-800 to-bioluminescent-900/20 dark:from-night-800 dark:via-night-800 dark:to-bioluminescent-900/30 rounded-lg border border-bioluminescent-500/20 shadow-lg p-4 flex flex-col relative overflow-hidden">
+              {/* Decorative glow */}
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-bioluminescent-500/10 rounded-full blur-2xl" />
+              
+              {/* Header */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bioluminescent-400 to-bioluminescent-600 flex items-center justify-center shadow-lg shadow-bioluminescent-500/30">
+                  <span className="text-white font-bold text-sm">B</span>
                 </div>
-                <div className="mt-3">
-                  <p>© 2025 CIF UNIL</p>
+                <div>
+                  <h3 className="text-sm font-semibold text-white">BIOME</h3>
+                  <p className="text-[10px] text-bioluminescent-300/80">Bio Imaging Organization & Management</p>
                 </div>
               </div>
-              <div className="flex space-x-2 mt-2">
+              
+              {/* Version badge */}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-bioluminescent-500/20 text-bioluminescent-300 border border-bioluminescent-500/30">
+                  v{appMeta?.version || '2.0.0'}
+                </span>
+                <span className="text-[10px] text-gray-400">
+                  {appMeta?.releaseDate || new Date().toISOString().slice(0,10)}
+                </span>
+              </div>
+              
+              {/* Tech stack */}
+              <div className="flex gap-1.5 mb-3">
+                <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Tauri</span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/20">React</span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] bg-green-500/10 text-green-400 border border-green-500/20">SQLite</span>
+              </div>
+              
+              {/* Copyright */}
+              <p className="text-[10px] text-gray-500 mt-auto mb-2">© 2025 CIF UNIL</p>
+              
+              {/* Action buttons */}
+              <div className="flex gap-2">
                 <button
                   onClick={() => setIsAboutOpen(true)}
-                  className="btn btn-sm flex-1"
-                  style={{
-                    background: 'linear-gradient(45deg, #fbbf24, #f97316)',
-                    color: 'white',
-                    border: 'none',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-                  }}
+                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-bioluminescent-500/20 text-bioluminescent-300 hover:bg-bioluminescent-500/30 border border-bioluminescent-500/30 transition-all"
                 >
-                  <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Details
@@ -776,18 +810,9 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                   href="https://cif.unil.ch"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn-sm flex-1"
-                  style={{
-                    background: 'linear-gradient(45deg, #fbbf24, #f97316)',
-                    color: 'white',
-                    border: 'none',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
+                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-gray-500/20 text-gray-300 hover:bg-gray-500/30 border border-gray-500/30 transition-all"
                 >
-                  <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.657 0-3-4.03-3-9s1.343-9 3-9m0 18c1.657 0 3-4.03 3-9s-1.343-9-3-9m-9 9a9 9 0 019-9" />
                   </svg>
                   Website

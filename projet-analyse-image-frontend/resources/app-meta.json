@@ -1,15 +1,18 @@
 {
-  "version": "1.4.3",
+  "version": "2.0.0",
   "description": "BIOME Frontend - Bio Imaging Organization and Management Environment",
-  "releaseDate": "2025-11-25",
+  "releaseDate": "2025-11-27",
   "source": "frontend",
   "changelog": {
-    "version": "1.4.3",
-    "date": "2025-11-25",
+    "version": "2.0.0",
+    "date": "2025-11-27",
     "summary": [
-      "Project Table View rendering issues where the table appeared empty despite having data.",
-      "Resolved conflict between `react-window` v2.2.3 and `react-virtualized-auto-sizer` by removing the external sizer and relying on the library's internal `ResizeObserver`.",
-      "Updated `react-window` API usage to match the installed version (v2.2.3)."
+      "**Major UI/UX Overhaul**: Consolidated scrollbars across the application for a cleaner, more professional interface.",
+      "**Dashboard Improvements**:",
+      "Activity Feed now uses \"Show more\" pagination instead of a fixed-height scrollable container.",
+      "Renamed \"Active Projects\" stat card to \"In Progress\" to distinguish from \"Active\" status filter.",
+      "Modernized About card with gradient background, version badge, and tech stack tags (Tauri, React, SQLite).",
+      "**Database Manager**: Rewrote Database Information section to explain the hybrid storage model (SQLite metadata + project folders)."
     ]
   }
 }

@@ -100,52 +100,6 @@
   h2 { font-size: 1.125rem; font-weight: 500; margin-bottom: 0.75rem; }
   h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
 
-  /* Custom Scrollbar Styling */
-  /* WebKit browsers */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: rgba(156, 163, 175, 0.5);
-    border-radius: 10px;
-    transition: background-color 0.3s ease;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(156, 163, 175, 0.7);
-  }
-
-  /* Dark mode scrollbar */
-  body.dark ::-webkit-scrollbar-track {
-    background: rgba(5, 213, 159, 0.1);
-  }
-
-  body.dark ::-webkit-scrollbar-thumb {
-    background: rgba(5, 213, 159, 0.3);
-    border: 1px solid rgba(5, 213, 159, 0.2);
-  }
-
-  body.dark ::-webkit-scrollbar-thumb:hover {
-    background: rgba(5, 213, 159, 0.5);
-  }
-
-  /* Firefox scrollbar */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(156, 163, 175, 0.5) rgba(255, 255, 255, 0.1);
-  }
-
-  body.dark * {
-    scrollbar-color: rgba(5, 213, 159, 0.3) rgba(5, 213, 159, 0.1);
-  }
-
   /* Custom Isabelline background color */
   .bg-isabelline {
     background-color: #FAF4F0 !important;
@@ -181,6 +135,23 @@
   .filters-card { grid-area: filters; }
   .about-card { grid-area: about; }
   .quickstart-card { grid-area: quickstart; }
+
+  /* Mobile responsive dashboard - single column stacked layout */
+  @media (max-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        "quickstart"
+        "stats1"
+        "stats2"
+        "stats3"
+        "analytics"
+        "activity"
+        "search"
+        "filters"
+        "about";
+    }
+  }
 
   /* Cards and surfaces - remove animations for dashboard cards */
   .card, .section-card {
@@ -1137,53 +1108,6 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
-
-  /* Custom scrollbar styling for Avatar theme */
-  /* Webkit browsers (Chrome, Safari, Edge) */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: rgba(5, 213, 159, 0.3);
-    border-radius: 4px;
-    transition: background 0.2s ease;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(5, 213, 159, 0.5);
-  }
-
-  /* Dark mode scrollbar */
-  body.dark ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-  }
-
-  body.dark ::-webkit-scrollbar-thumb {
-    background: rgba(5, 213, 159, 0.4);
-    border: 1px solid rgba(5, 213, 159, 0.1);
-  }
-
-  body.dark ::-webkit-scrollbar-thumb:hover {
-    background: rgba(5, 213, 159, 0.6);
-    border: 1px solid rgba(5, 213, 159, 0.2);
-  }
-
-  /* Firefox scrollbar */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(5, 213, 159, 0.3) rgba(255, 255, 255, 0.1);
-  }
-
-  body.dark * {
-    scrollbar-color: rgba(5, 213, 159, 0.4) rgba(0, 0, 0, 0.2);
-  }
 }
 
 /* Status color classes with bioluminescent Pandora theme - v2.1.0 - Cache Buster: 20250727-2130 */
@@ -1757,53 +1681,51 @@ body:not(.dark) .groups-card:hover:not(.btn):not(.status-badge) {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* SCROLLBAR STYLING - CYAN/BLUE THEME */
-/* Fix green scrollbar issue */
+/* SCROLLBAR STYLING - UNIFIED THIN CYAN/BLUE THEME */
+/* Single source of truth for all scrollbars - 6px thin, consistent across modes */
 
 /* Webkit browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(229, 231, 235, 0.3); /* Light gray */
-  border-radius: 4px;
+  background: transparent;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 191, 255, 0.6); /* Cyan-blue like tab titles */
-  border-radius: 4px;
+  background: rgba(0, 191, 255, 0.4); /* Subtle cyan-blue */
+  border-radius: 3px;
   transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 191, 255, 0.8); /* Brighter cyan-blue on hover */
+  background: rgba(0, 191, 255, 0.7); /* Brighter on hover */
 }
 
-/* Dark mode scrollbar */
+/* Dark mode scrollbar - same cyan-blue theme */
 body.dark ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
+  background: transparent;
 }
 
 body.dark ::-webkit-scrollbar-thumb {
-  background: rgba(0, 191, 255, 0.5); /* Cyan-blue theme */
-  border-radius: 4px;
+  background: rgba(0, 191, 255, 0.35);
 }
 
 body.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 191, 255, 0.7);
+  background: rgba(0, 191, 255, 0.6);
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 191, 255, 0.6) rgba(229, 231, 235, 0.3);
+  scrollbar-color: rgba(0, 191, 255, 0.4) transparent;
 }
 
 body.dark * {
-  scrollbar-color: rgba(0, 191, 255, 0.5) rgba(0, 0, 0, 0.3);
+  scrollbar-color: rgba(0, 191, 255, 0.35) transparent;
 }
 
 /* CONSISTENT COMPONENT STYLING ACROSS ALL TABS */

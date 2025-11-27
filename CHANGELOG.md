@@ -6,6 +6,27 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-11-27
+### Changed
+- **Major UI/UX Overhaul**: Consolidated scrollbars across the application for a cleaner, more professional interface.
+- **Dashboard Improvements**:
+  - Activity Feed now uses "Show more" pagination instead of a fixed-height scrollable container.
+  - Renamed "Active Projects" stat card to "In Progress" to distinguish from "Active" status filter.
+  - Modernized About card with gradient background, version badge, and tech stack tags (Tauri, React, SQLite).
+- **Database Manager**: Rewrote Database Information section to explain the hybrid storage model (SQLite metadata + project folders).
+- **Settings Page**: Removed non-functional Application Mode and Development Tools cards; added Data Management card with project folder picker and auto-backup options.
+- **Table View**: Replaced react-window virtualization with regular mapped rows for page-level scrolling consistency.
+- **Analytics Page**: Fixed scrolling behavior to use page-level scrollbar.
+
+### Fixed
+- Multiple scrollbar issues across Dashboard, Table View, Analytics, and UserGroupManager.
+- "View all activities" link now correctly navigates to the Activity tab.
+- Table View no longer has its own inner scrollbar; rows extend naturally with page scroll.
+
+### Technical
+- Updated version to 2.0.0 across frontend, backend, and Tauri configuration.
+- Removed max-height constraints from dashboard cards that caused layout issues.
+
 ## [1.4.3] - 2025-11-25
 ### Fixed
 - Project Table View rendering issues where the table appeared empty despite having data.

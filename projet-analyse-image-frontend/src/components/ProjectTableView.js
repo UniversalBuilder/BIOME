@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
 import './StatusColors.css';
 import { Tooltip } from './Tooltip';
 import Environment from '../utils/environmentDetection';
@@ -21,7 +19,7 @@ const COL_CLASSES = {
   actions: 'w-24 flex-none flex justify-center'
 };
 
-const Row = ({ index, style, projects, visibleCols, selectedProject, handleSelectProject, dense, getStatusClass, mapStatusName, formatTimeSpent, formatDate, renderOutputTypeIcon }) => {
+const Row = ({ index, projects, visibleCols, selectedProject, handleSelectProject, dense, getStatusClass, mapStatusName, formatTimeSpent, formatDate, renderOutputTypeIcon }) => {
   const project = projects && projects[index];
   const cellPad = dense ? 'px-3 py-2' : 'px-4 py-3';
   
@@ -31,8 +29,7 @@ const Row = ({ index, style, projects, visibleCols, selectedProject, handleSelec
 
   return (
     <div 
-      style={style} 
-      className={`flex items-center border-b border-border dark:border-border-dark hover:bg-gray-50 dark:hover:bg-night-700 transition-colors ${
+      className={`flex items-center border-b border-border dark:border-border-dark hover:bg-gray-50 dark:hover:bg-night-700 transition-colors cursor-pointer ${
         selectedProject?.id === project.id ? 'bg-sky-50 dark:bg-night-700/50' : ''
       }`}
       onClick={() => handleSelectProject(project)}
@@ -256,7 +253,6 @@ function ProjectTableView({
   ];
 
   const headerPad = dense ? 'px-3 py-2' : 'px-4 py-3';
-  const cellPad = dense ? 'px-3 py-2' : 'px-4 py-3';
   const textSm = dense ? 'text-xs' : 'text-sm';
 
   // Monochrome pictogram per Output/Result Type
@@ -606,8 +602,8 @@ function ProjectTableView({
   const visibleCount = useMemo(() => Object.values(visibleCols || {}).filter(Boolean).length, [visibleCols]);
 
   return (
-    <div className="h-full bg-white dark:bg-night-800 rounded-lg shadow-sm transition-all duration-300 hover:shadow-lg flex flex-col">
-      <div className="p-4 flex flex-col gap-3 flex-none">
+    <div className="bg-white dark:bg-night-800 rounded-lg shadow-sm transition-all duration-300 hover:shadow-lg">
+      <div className="p-4 flex flex-col gap-3">
         <div className="flex justify-between items-center">
           <h3 className="text-base font-medium text-text dark:text-text-dark flex items-center gap-2">
           <svg className="w-5 h-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -862,29 +858,30 @@ function ProjectTableView({
         </div>
       </div>
 
-      {/* Virtualized List */}
-      <div className="flex-1 min-h-0 relative">
+      {/* Table Rows */}
+      <div>
         {loading ? (
           <div className="p-4 text-center text-text-muted">Loading projects...</div>
         ) : filteredProjects.length > 0 ? (
-          <List
-            style={{ width: '100%', height: '100%' }}
-            rowCount={filteredProjects.length}
-            rowHeight={dense ? 40 : 56}
-            rowComponent={Row}
-            rowProps={{
-              projects: filteredProjects,
-              visibleCols: visibleCols || {},
-              selectedProject,
-              handleSelectProject,
-              dense,
-              getStatusClass,
-              mapStatusName,
-              formatTimeSpent,
-              formatDate,
-              renderOutputTypeIcon
-            }}
-          />
+          <div>
+            {filteredProjects.map((project, index) => (
+              <Row
+                key={project.id || index}
+                index={index}
+                style={{}}
+                projects={filteredProjects}
+                visibleCols={visibleCols || {}}
+                selectedProject={selectedProject}
+                handleSelectProject={handleSelectProject}
+                dense={dense}
+                getStatusClass={getStatusClass}
+                mapStatusName={mapStatusName}
+                formatTimeSpent={formatTimeSpent}
+                formatDate={formatDate}
+                renderOutputTypeIcon={renderOutputTypeIcon}
+              />
+            ))}
+          </div>
         ) : (
           <div className="flex flex-col items-center py-12 text-text-muted">
             <svg className="w-12 h-12 text-border mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

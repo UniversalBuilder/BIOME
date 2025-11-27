@@ -6,7 +6,7 @@ function DatabaseManager({ onDatabaseChange }) {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
-    const [showInfo, setShowInfo] = useState(false);
+    const [showInfo, setShowInfo] = useState(true);
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
@@ -252,25 +252,29 @@ function DatabaseManager({ onDatabaseChange }) {
                         <div className="px-6 pb-6 pt-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Database Structure</h4>
-                                    <pre className="p-3 bg-gray-50 dark:bg-night-700 rounded-md overflow-auto text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-night-600">
-{`Tables:
-- projects (stores project information)
-- users (user accounts)
-- groups (organizational groups)
-- journal_entries (project journal entries)
-- activities (project activity logs)
-`}
-                                    </pre>
+                                    <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Hybrid Storage Model</h4>
+                                    <div className="p-3 bg-gray-50 dark:bg-night-700 rounded-md text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-night-600 space-y-3">
+                                        <div>
+                                            <span className="font-medium text-bioluminescent-600 dark:text-bioluminescent-400">SQLite Database</span>
+                                            <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">Stores project metadata, users, groups, journal entries, and activity logs.</p>
+                                        </div>
+                                        <div>
+                                            <span className="font-medium text-bioluminescent-600 dark:text-bioluminescent-400">Project Folders</span>
+                                            <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">Each project has its own folder containing reference images, resources, and output files.</p>
+                                        </div>
+                                        <div className="pt-2 border-t border-gray-200 dark:border-night-600">
+                                            <p className="text-xs text-gray-500 dark:text-gray-500">Export/Import operations back up the database only. Project folders are managed separately via the filesystem.</p>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
                                     <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Usage Tips</h4>
-                                    <ul className="list-disc list-inside space-y-1 text-gray-800 dark:text-gray-200 text-sm">
-                                        <li>Export your database regularly for backup</li>
-                                        <li>Import your database to restore from a backup</li>
-                                        <li>Reset the database only when necessary</li>
-                                        <li>Remember that resetting will delete all data</li>
-                                        <li>The database file is stored locally on your device</li>
+                                    <ul className="list-disc list-inside space-y-1.5 text-gray-800 dark:text-gray-200 text-sm">
+                                        <li>Export regularly to back up project metadata</li>
+                                        <li>Project files are stored in your configured project folder</li>
+                                        <li>Import restores metadata — project folders must exist</li>
+                                        <li>Reset clears all metadata but doesn't delete project folders</li>
+                                        <li>For full backup, copy both the database export and project folders</li>
                                     </ul>
                                 </div>
                             </div>

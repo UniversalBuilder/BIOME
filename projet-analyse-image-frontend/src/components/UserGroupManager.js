@@ -385,7 +385,7 @@ function UserGroupManager({ onUserGroupChange }) {
                                 </div>
 
                                 {!groupsCollapsed && (
-                                    <div className="overflow-y-auto" style={{maxHeight: "calc(100vh - 300px)"}}>
+                                    <div className="flex-1 min-h-0 overflow-y-auto max-h-[32rem]">
                                         <table className="w-full">
                                             <thead className="sticky top-0 z-10 bg-white/90 dark:bg-night-700 backdrop-filter backdrop-blur-sm">
                                                 <tr>
@@ -490,7 +490,7 @@ function UserGroupManager({ onUserGroupChange }) {
                                 </div>
 
                                 {!usersCollapsed && (
-                                    <div className="overflow-y-auto" style={{maxHeight: "calc(100vh - 300px)"}}>
+                                    <div className="flex-1 min-h-0 overflow-y-auto max-h-[32rem]">
                                         <table className="w-full">
                                             <thead className="sticky top-0 z-10 bg-white/90 backdrop-filter backdrop-blur-md dark:bg-night-700 border-b border-gray-200 dark:border-night-600">
                                                 <tr>

@@ -5,7 +5,9 @@ import Environment from '../utils/environmentDetection';
 function Settings() {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isTauri, setIsTauri] = useState(false);
-  const [webDesktopMode, setWebDesktopMode] = useState('auto'); // 'web', 'desktop', 'auto'
+  const [projectFolder, setProjectFolder] = useState('');
+  const [autoBackup, setAutoBackup] = useState(false);
+  const [backupFrequency, setBackupFrequency] = useState('weekly');
 
   useEffect(() => {
     const checkTauriEnvironment = async () => {
@@ -14,9 +16,20 @@ function Settings() {
     };
     checkTauriEnvironment();
 
-    const savedWebDesktopMode = localStorage.getItem('biome_web_desktop_mode');
-    if (savedWebDesktopMode !== null) {
-      setWebDesktopMode(savedWebDesktopMode);
+    // Load saved settings
+    const savedProjectFolder = localStorage.getItem('biome_project_folder');
+    if (savedProjectFolder) {
+      setProjectFolder(savedProjectFolder);
+    }
+    
+    const savedAutoBackup = localStorage.getItem('biome_auto_backup');
+    if (savedAutoBackup !== null) {
+      setAutoBackup(savedAutoBackup === 'true');
+    }
+    
+    const savedBackupFrequency = localStorage.getItem('biome_backup_frequency');
+    if (savedBackupFrequency) {
+      setBackupFrequency(savedBackupFrequency);
     }
   }, []);
 
@@ -24,37 +37,48 @@ function Settings() {
     toggleDarkMode();
   };
 
-  const handleWebDesktopModeChange = (value) => {
-    setWebDesktopMode(value);
-    localStorage.setItem('biome_web_desktop_mode', value);
-    // TODO: Implement mode switching logic
-  };
-
-  const clearApplicationCache = () => {
+  const handleSelectProjectFolder = async () => {
+    if (!isTauri) return;
+    
     try {
-      // Clear localStorage
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith('biome_') || key.startsWith('app_')) {
-          localStorage.removeItem(key);
-        }
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const selected = await open({
+        directory: true,
+        multiple: false,
+        title: 'Select Default Project Folder'
       });
       
-      // Clear sessionStorage
-      sessionStorage.clear();
-      
-      // Force reload to clear any in-memory cache
-      window.location.reload();
-      
+      if (selected) {
+        setProjectFolder(selected);
+        localStorage.setItem('biome_project_folder', selected);
+      }
     } catch (error) {
-      console.error('Failed to clear cache:', error);
-      try { window.toast?.('Failed to clear cache. Please refresh the page manually.', { type: 'error' }); } catch {}
+      console.error('Failed to select folder:', error);
     }
   };
 
-  const openDebugConsole = () => {
-    // Dispatch custom event to open debug console
-    window.dispatchEvent(new CustomEvent('openDebugConsole'));
+  const handleAutoBackupChange = (enabled) => {
+    setAutoBackup(enabled);
+    localStorage.setItem('biome_auto_backup', enabled.toString());
+  };
+
+  const handleBackupFrequencyChange = (frequency) => {
+    setBackupFrequency(frequency);
+    localStorage.setItem('biome_backup_frequency', frequency);
+  };
+
+  const openDataFolder = async () => {
+    if (!isTauri) return;
+    
+    try {
+      const { appDataDir } = await import('@tauri-apps/api/path');
+      const { invoke } = await import('@tauri-apps/api/core');
+      const dataDir = await appDataDir();
+      // Use existing Tauri command to open folder in explorer
+      await invoke('open_in_explorer', { path: dataDir });
+    } catch (error) {
+      console.error('Failed to open data folder:', error);
+    }
   };
 
   return (
@@ -68,7 +92,7 @@ function Settings() {
         }}>
           Application Settings
         </h2>
-        <p className="text-gray-600 dark:text-gray-300">Configure your BIOME application preferences and tools</p>
+        <p className="text-gray-600 dark:text-gray-300">Configure your BIOME application preferences</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -95,92 +119,6 @@ function Settings() {
                 ? 'Running as a desktop application with full filesystem access and native integrations.' 
                 : 'Running in web browser with limited filesystem access. Consider using the desktop version for full functionality.'
               }
-            </div>
-          </div>
-        </div>
-
-        {/* Application Mode */}
-        <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Application Mode</h3>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="font-medium text-gray-700 dark:text-gray-200">Preferred Mode</label>
-              <div className="space-y-2">
-                <label className="flex items-center text-gray-700 dark:text-gray-200">
-                  <input
-                    type="radio"
-                    name="webDesktopMode"
-                    value="auto"
-                    checked={webDesktopMode === 'auto'}
-                    onChange={(e) => handleWebDesktopModeChange(e.target.value)}
-                    className="mr-2"
-                  />
-                  <span>Automatic (Detect environment)</span>
-                </label>
-                <label className="flex items-center text-gray-700 dark:text-gray-200">
-                  <input
-                    type="radio"
-                    name="webDesktopMode"
-                    value="web"
-                    checked={webDesktopMode === 'web'}
-                    onChange={(e) => handleWebDesktopModeChange(e.target.value)}
-                    className="mr-2"
-                  />
-                  <span>Force Web Mode</span>
-                </label>
-                <label className="flex items-center text-gray-700 dark:text-gray-200">
-                  <input
-                    type="radio"
-                    name="webDesktopMode"
-                    value="desktop"
-                    checked={webDesktopMode === 'desktop'}
-                    onChange={(e) => handleWebDesktopModeChange(e.target.value)}
-                    className="mr-2"
-                  />
-                  <span>Force Desktop Mode</span>
-                </label>
-              </div>
-            </div>
-            
-            <div className="text-sm text-gray-600 dark:text-gray-300 p-3 bg-gray-50 dark:bg-night-700 rounded-lg">
-              Mode switching functionality is in development. Currently displays detected environment.
-            </div>
-          </div>
-        </div>
-
-        {/* Development Tools */}
-        <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Development Tools</h3>
-          
-          <div className="space-y-4">
-            <button
-              onClick={openDebugConsole}
-              className="w-full flex items-center justify-between p-3 bg-blue-50 dark:bg-night-700 border-2 border-blue-200 dark:border-bioluminescent-500 rounded-lg hover:bg-blue-100 dark:hover:bg-night-600 transition-colors"
-            >
-              <span className="text-gray-900 dark:text-gray-100">Open Debug Console</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">Ctrl+Shift+D</span>
-            </button>
-
-            {isTauri && (
-              <button
-                onClick={clearApplicationCache}
-                className="w-full flex items-center justify-between p-3 bg-orange-50 dark:bg-night-700 border-2 border-orange-200 dark:border-orange-500 rounded-lg hover:bg-orange-100 dark:hover:bg-night-600 transition-colors"
-              >
-                <span className="text-gray-900 dark:text-gray-100">Clear Application Cache</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">Fixes styling issues</span>
-              </button>
-            )}
-            
-            <div className="text-sm text-gray-600 dark:text-gray-300 p-3 bg-gray-50 dark:bg-night-700 rounded-lg">
-              The debug console provides detailed information about backend connectivity, 
-              environment status, and troubleshooting tools.
-              {isTauri && (
-                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-night-600">
-                  <strong>Cache Clearing:</strong> If status pill colors or styling appear incorrect after an update, 
-                  use the cache clearing button to force reload fresh styles.
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -219,6 +157,91 @@ function Settings() {
             </div>
           </div>
         </div>
+
+        {/* Data Management - Desktop Only */}
+        {isTauri && (
+          <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Data Management</h3>
+            
+            <div className="space-y-4">
+              {/* Default Project Folder */}
+              <div>
+                <label className="font-medium text-gray-700 dark:text-gray-200 block mb-2">Default Project Folder</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={projectFolder}
+                    readOnly
+                    placeholder="Not configured"
+                    className="flex-1 px-3 py-2 text-sm bg-gray-50 dark:bg-night-700 border border-gray-200 dark:border-night-600 rounded-lg text-gray-700 dark:text-gray-300 truncate"
+                  />
+                  <button
+                    onClick={handleSelectProjectFolder}
+                    className="px-3 py-2 text-sm font-medium rounded-lg bg-bioluminescent-500/20 text-bioluminescent-600 dark:text-bioluminescent-400 hover:bg-bioluminescent-500/30 border border-bioluminescent-500/30 transition-colors"
+                  >
+                    Browse
+                  </button>
+                </div>
+              </div>
+
+              {/* Auto Backup Toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="font-medium text-gray-700 dark:text-gray-200">Auto Backup</label>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Automatically back up database</p>
+                </div>
+                <button
+                  onClick={() => handleAutoBackupChange(!autoBackup)}
+                  className={`relative inline-flex h-6 w-11 rounded-full transition-colors duration-200 ease-in-out ${
+                    autoBackup ? '' : 'bg-gray-200'
+                  }`}
+                  style={autoBackup ? {
+                    background: 'linear-gradient(45deg, #22c55e, #84cc16)',
+                    boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)'
+                  } : {}}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition duration-200 ease-in-out ${
+                      autoBackup ? 'translate-x-6' : 'translate-x-1'
+                    } mt-1`}
+                  />
+                </button>
+              </div>
+
+              {/* Backup Frequency */}
+              {autoBackup && (
+                <div>
+                  <label className="font-medium text-gray-700 dark:text-gray-200 block mb-2">Backup Frequency</label>
+                  <select
+                    value={backupFrequency}
+                    onChange={(e) => handleBackupFrequencyChange(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-night-700 border border-gray-200 dark:border-night-600 rounded-lg text-gray-700 dark:text-gray-300"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Open Data Folder */}
+              <button
+                onClick={openDataFolder}
+                className="w-full flex items-center justify-center gap-2 p-3 bg-gray-50 dark:bg-night-700 border border-gray-200 dark:border-night-600 rounded-lg hover:bg-gray-100 dark:hover:bg-night-600 transition-colors text-gray-700 dark:text-gray-300"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                </svg>
+                Open Data Folder
+              </button>
+              
+              <div className="text-sm text-gray-600 dark:text-gray-300 p-3 bg-gray-50 dark:bg-night-700 rounded-lg">
+                <p className="mb-2">📁 <strong>Backup Location:</strong> Backups are saved to the <code className="px-1 py-0.5 bg-gray-200 dark:bg-night-600 rounded text-xs">backups/</code> folder inside your app data directory.</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">To restore from backup, go to Database Management and import the backup file. Make sure to also restore any project folders if doing a full recovery.</p>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

@@ -3,11 +3,12 @@ import './StatusColors.css';
 import { Tooltip } from './Tooltip';
 import { projectService, groupService } from '../services/api';
 import { selectDirectory } from '../services/tauriApi';
-import { createProjectStructure, validateProjectStructure, scanProjectFolder, downloadReadmeTemplate, openFolderInExplorer } from '../services/filesystemApi';
+import { createProjectStructure, validateProjectStructure, scanProjectFolder, openFolderInExplorer } from '../services/filesystemApi';
 import Modal from './Modal';
 import WizardFormModal from './WizardFormModal';
 import RelinkResourcesModal from './RelinkResourcesModal';
 import Environment from '../utils/environmentDetection';
+import ScrollableContainer from './ScrollableContainer';
 
 const MAX_HOURS = 48;
 
@@ -1849,7 +1850,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     }
   };
 
-  return (
+    return (
     <div className="bg-white dark:bg-night-800 rounded-xl shadow-lg backdrop-filter backdrop-blur-xl h-full flex flex-col">
       {/* Web folder structure modal */}
       <WebFolderModal 
@@ -1894,877 +1895,814 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
           </div>
         </div>
       )}
-      <div className={`flex-1 ${showScroll ? 'overflow-y-auto' : ''}`}>
-        {/* Header with edit/save controls */}
-        <div className="p-6 pb-2 flex justify-between items-start">
-          <div className="flex flex-col gap-1">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            {isEditing ? 'Edit Project' : (displayData?.name || 'Untitled Project')}
-            </h3>
-            {/* Meta line: last updated • created */}
-            {!isEditing && (
-              <div className="text-xs text-gray-500 dark:text-gray-400 ml-7">
-                {(() => {
-                  const updatedRaw = project?.last_updated || project?.updatedAt;
-                  const createdRaw = project?.creation_date || project?.createdAt;
-                  const safeFormat = (ts) => {
-                    if (!ts) return null;
-                    try {
-                      const d = new Date(ts);
-                      if (isNaN(d.getTime())) return null;
-                      return d.toLocaleString();
-                    } catch {
-                      return null;
-                    }
-                  };
-                  const updated = safeFormat(updatedRaw);
-                  const created = safeFormat(createdRaw);
-                  if (!updated && !created) return null;
-                  if (updated && created) return `Last updated ${updated} • Created ${created}`;
-                  if (updated) return `Last updated ${updated}`;
-                  return `Created ${created}`;
-                })()}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
-                  style={{
-                    background: 'linear-gradient(45deg, #00BFFF, #0080FF)',
-                    borderColor: 'rgba(0, 191, 255, 0.3)',
-                    color: 'white',
-                    backdropFilter: 'blur(10px)',
-                    border: 'none',
-                    boxShadow: '0 2px 8px rgba(0, 191, 255, 0.2)'
-                  }}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Save
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
-                  style={{
-                    background: 'linear-gradient(45deg, #8B5CF6, #6366F1)',
-                    borderColor: 'rgba(139, 92, 246, 0.3)',
-                    color: 'white',
-                    backdropFilter: 'blur(10px)',
-                    border: 'none',
-                    boxShadow: '0 2px 8px rgba(139, 92, 246, 0.2)'
-                  }}
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={handleStartEditing}
-                  className="transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
-                  style={{
-                    background: 'linear-gradient(45deg, #00BFFF, #0080FF)',
-                    borderColor: 'rgba(0, 191, 255, 0.3)',
-                    color: 'white',
-                    backdropFilter: 'blur(10px)',
-                    border: 'none',
-                    boxShadow: '0 2px 8px rgba(0, 191, 255, 0.2)'
-                  }}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  Edit Project
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="btn btn-icon btn-sm text-red-600 hover:text-red-800 transition-colors hover:scale-[1.02]"
-                  aria-label="Delete project"
-                  title="Delete project"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </>
-            )}
-          </div>
-  </div>
-
-        {/* Removed legacy Project Setup Status indicator - handled by the creation wizard now */}
-
-        <div className={`flex-1 p-6 space-y-6 ${showScroll ? 'overflow-y-auto' : ''}`}>
-          {/* Section 1: Project Information */}
-          <div className="mb-6">
-            <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Project Information
-            </h4>
-            <div className="bg-white/70 dark:bg-gray-800/60 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-visible"
-                 style={{ isolation: 'auto' }}>
-              <table className="w-full">
-                <tbody className="divide-y divide-border dark:divide-border-dark">
-                  {/* Project Name - Only in edit mode */}
-                  {isEditing && (
-                    <tr>
-                      <td className="px-4 py-3 w-1/4">
-                        <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Project Name</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          value={localEditingData.name || ''}
-                          onChange={(e) => handleInputChange('name', e.target.value)}
-                          className={inputBaseClasses}
-                          placeholder="Project name"
-                        />
-                      </td>
-                    </tr>
-                  )}
-
-                  {/* Status */}
-                  <tr>
-                    <td className="px-4 py-3 w-1/4">
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Status</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <select
-                          id="status"
-                          value={localEditingData?.status || "Preparing"}
-                          onChange={(e) => handleInputChange("status", e.target.value)}
-                          className={inputBaseClasses}
-                        >
-                          {statusOptions.map(status => (
-                            <option key={status} value={status}>{status}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span 
-                          className={getStatusColor(project.status)}
-                        >
-                          {mapStatusName(project.status)}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                  
-                  {/* Group */}
-                  <tr>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Group</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <select
-                          id="group-select"
-                          name="group-select"
-                          className={inputBaseClasses}
-                          value={displayData.group_id || ''}
-                          onChange={(e) => handleGroupChange(e.target.value)}
-                        >
-                          <option value="">Select a group</option>
-                          {groups.map(group => (
-                            <option key={group.id} value={group.id}>
-                              {group.name}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">{project.group_name || 'No group assigned'}</div>
-                      )}
-                    </td>
-                  </tr>
-                  
-                  {/* User */}
-                  <tr>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">User</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <select
-                          id="user-select"
-                          name="user-select"
-                          className={inputBaseClasses}
-                          value={displayData.user_id || ''}
-                          onChange={(e) => handleInputChange('user_id', e.target.value)}
-                          disabled={!displayData.group_id}
-                        >
-                          <option value="">Select a user</option>
-                          {users.map(user => (
-                            <option key={user.id} value={user.id}>
-                              {user.name}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">{project.user_name || 'No user assigned'}</div>
-                      )}
-                    </td>
-                  </tr>
-                  
-                  {/* Software */}
-                  <tr>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Software</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <select
-                          id="software-select"
-                          name="software-select"
-                          className={inputBaseClasses}
-                          value={displayData.software || ''}
-                          onChange={(e) => handleInputChange('software', e.target.value)}
-                        >
-                          <option value="">Select software</option>
-                          {[
-                            'CellProfiler',
-                            'Fiji',
-                            'Imaris',
-                            'LAS X',
-                            'MetaMorph',
-                            'Nikon NIS Elements',
-                            'Python',
-                            'QuPath',
-                            'Zen',
-                            'Other'
-                          ].map(software => (
-                            <option key={software} value={software}>
-                              {software}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">{project.software || 'No software selected'}</div>
-                      )}
-                    </td>
-                  </tr>
-
-                  {/* Output / Result Type */}
-                  <tr>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Output / Result Type</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <select
-                          id="output-type-select"
-                          name="output-type-select"
-                          className={inputBaseClasses}
-                          value={displayData.output_type || ''}
-                          onChange={(e) => handleInputChange('output_type', e.target.value)}
-                        >
-                          <option value="">Select output type</option>
-                          {PREDEFINED_OUTPUT_TYPES.map(t => (
-                            <option key={t} value={t}>{t}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <div className="inline-flex items-center gap-2 text-sm">
-                          <span className="px-3 py-1 inline-flex items-center rounded-full text-xs font-medium bg-blue-50 dark:bg-bioluminescent-900/30 text-blue-700 dark:text-bioluminescent-300 border border-blue-200 dark:border-bioluminescent-800">
-                            {project.output_type || '—'}
-                          </span>
-                          {project.output_type && (
-                            <Tooltip>
-                              <Tooltip.Trigger asChild>
-                                <span
-                                  className="inline-flex items-center justify-center h-6 px-2 rounded-md bg-gray-50 dark:bg-night-700/40 text-gray-700 dark:text-night-200 ring-1 ring-gray-200/70 dark:ring-night-600/70"
-                                  role="img"
-                                  aria-label={`Output type: ${project.output_type}`}
-                                  title={project.output_type}
-                                >
-                                  {renderOutputTypeIcon(project.output_type)}
-                                </span>
-                              </Tooltip.Trigger>
-                              <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">
-                                {project.output_type}
-                              </Tooltip.Panel>
-                            </Tooltip>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                  
-                  {/* Image Types */}
-                  <tr>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Imaging Techniques</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <MultiSelectField
-                          options={PREDEFINED_OPTIONS.imagingTechniques}
-                          value={displayData.image_types || ''}
-                          onChange={(value) => handleInputChange('image_types', value)}
-                          placeholder="Select imaging techniques..."
-                          fieldName="image_types"
-                        />
-                      ) : (
-                        <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">
-                          {project.image_types ? (() => {
-                            try {
-                              const selections = Array.isArray(project.image_types) 
-                                ? project.image_types 
-                                : JSON.parse(project.image_types);
-                              return selections.join(', ');
-                            } catch {
-                              return project.image_types;
-                            }
-                          })() : 'Not specified'}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                  
-                  {/* Sample Type */}
-                  <tr>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Sample Type</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <MultiSelectField
-                          options={PREDEFINED_OPTIONS.sampleTypes}
-                          value={displayData.sample_type || ''}
-                          onChange={(value) => handleInputChange('sample_type', value)}
-                          placeholder="Select sample types..."
-                          fieldName="sample_type"
-                        />
-                      ) : (
-                        <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">
-                          {project.sample_type ? (() => {
-                            try {
-                              const selections = Array.isArray(project.sample_type) 
-                                ? project.sample_type 
-                                : JSON.parse(project.sample_type);
-                              return selections.join(', ');
-                            } catch {
-                              return project.sample_type;
-                            }
-                          })() : 'Not specified'}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                  
-                  {/* Objective Magnification */}
-                  <tr>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Objective Magnification</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={displayData.objective_magnification || ''}
-                          onChange={(e) => handleInputChange('objective_magnification', e.target.value)}
-                          className={inputBaseClasses}
-                          placeholder="e.g. 63x oil immersion, 40x water immersion, 20x air"
-                        />
-                      ) : (
-                        <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">{project.objective_magnification || 'Not specified'}</div>
-                      )}
-                    </td>
-                  </tr>
-                  
-                  {/* Analysis Goal */}
-                  <tr>
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Analysis Goal</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <MultiSelectField
-                          options={PREDEFINED_OPTIONS.analysisGoals}
-                          value={displayData.analysis_goal || ''}
-                          onChange={(value) => handleInputChange('analysis_goal', value)}
-                          placeholder="Select analysis goals..."
-                          fieldName="analysis_goal"
-                        />
-                      ) : (
-                        <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">
-                          {project.analysis_goal ? (() => {
-                            try {
-                              const selections = Array.isArray(project.analysis_goal) 
-                                ? project.analysis_goal 
-                                : JSON.parse(project.analysis_goal);
-                              return selections.join(', ');
-                            } catch {
-                              return project.analysis_goal;
-                            }
-                          })() : 'Not specified'}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Section 2: Project Folder Management */}
-          <div className="mb-6">
-            <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-              </svg>
-              Project Folder & Structure
-              {!hasAdequateProjectInfo() && (
-                <span className="text-xs text-amber-600 dark:text-amber-400 font-normal bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded">
-                  Complete project info required
-                </span>
-              )}
-            </h4>
-            <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl mb-3 shadow-sm hover:shadow-lg transition-all duration-300">
-              {isEditing ? (
-                <div className="p-4 flex gap-2">
-                  <input
-                    type="text"
-                    id="project-path"
-                    value={localEditingData.project_path || ''}
-                    onChange={(e) => handleInputChange('project_path', e.target.value)}
-                    className={inputBaseClasses}
-                    placeholder="Select project folder..."
-                    readOnly
-                  />
-                  <button
-                    onClick={handleBrowsePath}
-                    disabled={isNewProject && !isProjectSaved()}
-                    className={`px-4 py-2 rounded-md transition-all duration-200 text-sm font-medium flex items-center gap-2 ${
-                      isNewProject && !isProjectSaved() 
-                        ? 'opacity-50 cursor-not-allowed text-gray-400'
-                        : 'text-white hover:opacity-80'
-                    }`}
-                    style={{
-                      background: isNewProject && !isProjectSaved() 
-                        ? 'rgba(156, 163, 175, 0.3)'
-                        : 'linear-gradient(45deg, #00BFFF, #0080FF)'
-                    }}
-                    title={isNewProject && !isProjectSaved() 
-                      ? 'Please save the project first before selecting parent folder'
-                      : 'Select parent folder where your project folder will be created\n\nYour project folder will be automatically named:\n' + (hasAdequateProjectInfo() ? generateSuggestedPath().split(/[\\//]/).pop() : 'YYYY-MM-DD_Group_User_Software')}
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
-                    Select Parent Folder
-                  </button>
-                </div>
-              ) : project.project_path ? (
-                <div className="p-4">
-                  <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm font-mono text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm break-all">
-                    {project.project_path}
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4">
-                  <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-500 dark:text-gray-400 italic backdrop-filter backdrop-blur-sm">No project location set</div>
-                </div>
-              )}
-            </div>
-            {renderProjectFolderActions()}
-          </div>
-
-          {/* Section 3: Project Status & Time Tracking */}
-          <div className="mb-6">
-            <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Project Status & Time Tracking
-            </h4>
-            <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Time Spent:</span>
-                <span className={`text-sm ${getTimeSpentColor(isEditing ? (localEditingData.time_spent_minutes || 0) : project.time_spent_minutes)} dark:text-gray-300`}>
-                  {formatTimeSpent(isEditing ? (localEditingData.time_spent_minutes || 0) : project.time_spent_minutes)} / {MAX_HOURS}h
-                </span>
-              </div>
-              
-              {isEditing ? (
-                <>
-                  {/* Time slider */}
-                  <div className="mt-4">
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max={MAX_HOURS * 60} 
-                      value={localEditingData.time_spent_minutes || 0}
-                      onChange={(e) => handleInputChange('time_spent_minutes', parseInt(e.target.value))}
-                      className="w-full h-2 bg-white/30 dark:bg-gray-700/50 rounded-lg appearance-none cursor-pointer accent-bioluminescent-500 backdrop-filter backdrop-blur-sm"
-                      step="15"
-                    />
-                    <div className="flex justify-between text-xs text-text-muted mt-1">
-                      <span>0h</span>
-                      <span>{Math.floor(MAX_HOURS/4)}h</span>
-                      <span>{Math.floor(MAX_HOURS/2)}h</span>
-                      <span>{Math.floor(MAX_HOURS*3/4)}h</span>
-                      <span>{MAX_HOURS}h</span>
-                    </div>
-                  </div>
-                  
-                  {/* Fine-tune buttons */}
-                  <div className="flex justify-end gap-2 mt-3">
-                    <button 
-                      onClick={() => {
-                        const newValue = Math.max(0, (localEditingData.time_spent_minutes || 0) - 15);
-                        handleInputChange('time_spent_minutes', newValue);
-                      }}
-                      className="btn btn-sm btn-secondary px-2 py-1"
-                      title="Decrease by 15 minutes"
-                    >
-                      -15m
-                    </button>
-                    <button 
-                      onClick={() => {
-                        const newValue = Math.max(0, (localEditingData.time_spent_minutes || 0) - 60);
-                        handleInputChange('time_spent_minutes', newValue);
-                      }}
-                      className="btn btn-sm btn-secondary px-2 py-1"
-                      title="Decrease by 1 hour"
-                    >
-                      -1h
-                    </button>
-                    <button 
-                      onClick={() => {
-                        const newValue = Math.min(MAX_HOURS * 60, (localEditingData.time_spent_minutes || 0) + 60);
-                        handleInputChange('time_spent_minutes', newValue);
-                      }}
-                      className="btn btn-sm btn-secondary px-2 py-1"
-                      title="Increase by 1 hour"
-                    >
-                      +1h
-                    </button>
-                    <button 
-                      onClick={() => {
-                        const newValue = Math.min(MAX_HOURS * 60, (localEditingData.time_spent_minutes || 0) + 15);
-                        handleInputChange('time_spent_minutes', newValue);
-                      }}
-                      className="btn btn-sm btn-secondary px-2 py-1"
-                      title="Increase by 15 minutes"
-                    >
-                      +15m
-                    </button>
-                  </div>
-                </>
-              ) : null}
-              
-              {/* Progress bar - same in both modes */}
-              <div className="mt-4">
-                <div className="h-2 bg-white/30 dark:bg-gray-700/50 rounded-full overflow-hidden backdrop-filter backdrop-blur-sm">
-                  <div
-                    className={`h-full transition-all duration-300 ${getTimeSpentBarColor(isEditing ? (localEditingData.time_spent_minutes || 0) : (project.time_spent_minutes || 0))}`}
-                    style={{
-                      width: `${Math.min((((isEditing ? (localEditingData.time_spent_minutes || 0) : (project.time_spent_minutes || 0)) / 60 / MAX_HOURS) * 100), 100)}%`
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 4: Project Description */}
-          <div className="mb-6">
-            <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Description
-            </h4>
-            <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
-              {isEditing ? (
-                <div className="p-4">
-                  <textarea
-                    id="description"
-                    value={localEditingData.description || ''}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    className={`${inputBaseClasses} min-h-[120px] resize-vertical`}
-                    placeholder="Project description"
-                  />
-                </div>
-              ) : (
-                <div className="px-4 py-3">
-                  <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-                    {project.description || 'No description provided.'}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Section 4.5: Project Resources */}
+      
+      {/* Header with edit/save controls - Fixed at top */}
+      <div className="p-6 pb-2 flex justify-between items-start flex-none z-10">
+        <div className="flex flex-col gap-1">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          {isEditing ? 'Edit Project' : (displayData?.name || 'Untitled Project')}
+          </h3>
+          {/* Meta line: last updated • created */}
           {!isEditing && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M4 12l8-8 8 8M12 4v12" />
-                  </svg>
-                  Resources
-                </h4>
-                <div className="flex items-center gap-2">
-                  <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer" style={{ background: 'linear-gradient(45deg, #00BFFF, #0080FF)'}}>
-                    Upload Images
-                    <input type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={handleUploadImages} disabled={uploading} />
-                  </label>
-                  <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer" style={{ background: 'linear-gradient(45deg, #6366F1, #8B5CF6)'}}>
-                    Upload Docs
-                    <input type="file" accept="application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple className="hidden" onChange={handleUploadDocs} disabled={uploading} />
-                  </label>
-                  {/* Unified README update replaces the separate resources updater */}
-                </div>
-              </div>
-
-              {/* Images grid */}
-              <div className="mb-4">
-                <h5 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Reference Images</h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {resources.filter(r => r.kind === 'image').map((r) => (
-                    <div key={r.id} className="bg-white/70 dark:bg-gray-800/60 rounded-lg p-2 shadow-sm hover:shadow-md transition-all">
-                      <div className="relative w-full pb-[75%] bg-gray-100 dark:bg-gray-700 rounded overflow-hidden">
-                        <img
-                          src={`${getApiBase()}/projects/${project.id}/references/${r.id}/file`}
-                          alt={r.original_name}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="mt-2 text-xs text-gray-700 dark:text-gray-200 break-all">{r.original_name}</div>
-                      <div className="mt-1 flex items-center gap-2">
-                        <div className="relative flex-1">
-                          <input
-                            type="text"
-                            defaultValue={r.caption || ''}
-                            className="w-full px-2 py-1 pr-6 text-xs rounded bg-white/70 dark:bg-gray-800/60 truncate"
-                            placeholder="Add caption..."
-                            title={r.caption || ''}
-                            onMouseEnter={(e) => { e.currentTarget.title = e.currentTarget.value; }}
-                            onBlur={(e) => {
-                              const val = e.target.value.trim();
-                              if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
-                            }}
-                          />
-                          {/* inline status icon */}
-                          {savingCaptionId === r.id && (
-                            <span className="absolute right-1 top-1.5 text-slate-400" title="Saving…">
-                              <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                              </svg>
-                            </span>
-                          )}
-                          {lastSavedCaptionId === r.id && (
-                            <span className="absolute right-1 top-1.5 text-emerald-500" title="Saved">
-                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M5 13l4 4L19 7" />
-                              </svg>
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center mt-2 text-[11px] text-gray-500">
-                        <span>{(r.size || 0) > 0 ? `${Math.round(r.size/1024)} KB` : ''}</span>
-                        <button className="text-red-600 hover:text-red-800" onClick={() => handleDeleteResource(r.id)}>
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {resources.filter(r => r.kind === 'image').length === 0 && (
-                    <div className="text-sm text-gray-500">No images yet.</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Documents list */}
-              <div className="mb-2">
-                <h5 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Reference Documents</h5>
-                <div className="bg-white/70 dark:bg-gray-800/60 rounded-xl shadow-sm">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs uppercase text-gray-500">
-                        <th className="px-3 py-2">File</th>
-                        <th className="px-3 py-2 w-1/3">Caption</th>
-                        <th className="px-3 py-2 w-24 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {resources.filter(r => r.kind !== 'image').map(r => (
-                        <tr key={r.id}>
-                          <td className="px-3 py-2">
-                            <a className="text-blue-600 hover:underline break-all" href={`${getApiBase()}/projects/${project.id}/references/${r.id}/file`} target="_blank" rel="noreferrer">
-                              {r.original_name}
-                            </a>
-                          </td>
-                          <td className="px-3 py-2">
-                            <div className="relative">
-                              <input
-                                type="text"
-                                defaultValue={r.caption || ''}
-                                className="w-full px-2 py-1 pr-7 text-sm rounded bg-white/70 dark:bg-gray-800/60 truncate"
-                                placeholder="Add caption..."
-                                title={r.caption || ''}
-                                onMouseEnter={(e) => { e.currentTarget.title = e.currentTarget.value; }}
-                                onBlur={(e) => {
-                                  const val = e.target.value.trim();
-                                  if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
-                                }}
-                              />
-                              {savingCaptionId === r.id && (
-                                <span className="absolute right-1 top-1.5 text-slate-400" title="Saving…">
-                                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                                  </svg>
-                                </span>
-                              )}
-                              {lastSavedCaptionId === r.id && (
-                                <span className="absolute right-1 top-1.5 text-emerald-500" title="Saved">
-                                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M5 13l4 4L19 7" />
-                                  </svg>
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            <button className="text-red-600 hover:text-red-800 text-sm" onClick={() => handleDeleteResource(r.id)}>Delete</button>
-                          </td>
-                        </tr>
-                      ))}
-                      {resources.filter(r => r.kind !== 'image').length === 0 && (
-                        <tr>
-                          <td className="px-3 py-3 text-gray-500" colSpan="3">No documents yet.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 ml-7">
+              {(() => {
+                const updatedRaw = project?.last_updated || project?.updatedAt;
+                const createdRaw = project?.creation_date || project?.createdAt;
+                const safeFormat = (ts) => {
+                  if (!ts) return null;
+                  try {
+                    const d = new Date(ts);
+                    if (isNaN(d.getTime())) return null;
+                    return d.toLocaleString();
+                  } catch {
+                    return null;
+                  }
+                };
+                const updated = safeFormat(updatedRaw);
+                const created = safeFormat(createdRaw);
+                if (!updated && !created) return null;
+                if (updated && created) return `Last updated ${updated} • Created ${created}`;
+                if (updated) return `Last updated ${updated}`;
+                return `Created ${created}`;
+              })()}
             </div>
           )}
+        </div>
+        <div className="flex items-center gap-2">
+          {isEditing ? (
+            <>
+              <button
+                onClick={handleSave}
+                className="transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
+                style={{
+                  background: 'linear-gradient(45deg, #00BFFF, #0080FF)',
+                  borderColor: 'rgba(0, 191, 255, 0.3)',
+                  color: 'white',
+                  backdropFilter: 'blur(10px)',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.2)'
+                }}
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Save
+              </button>
+              <button
+                onClick={handleCancel}
+                className="transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
+                style={{
+                  background: 'linear-gradient(45deg, #8B5CF6, #6366F1)',
+                  borderColor: 'rgba(139, 92, 246, 0.3)',
+                  color: 'white',
+                  backdropFilter: 'blur(10px)',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(139, 92, 246, 0.2)'
+                }}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleStartEditing}
+                className="transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
+                style={{
+                  background: 'linear-gradient(45deg, #00BFFF, #0080FF)',
+                  borderColor: 'rgba(0, 191, 255, 0.3)',
+                  color: 'white',
+                  backdropFilter: 'blur(10px)',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.2)'
+                }}
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Project
+              </button>
+              <button
+                onClick={handleDelete}
+                className="btn btn-icon btn-sm text-red-600 hover:text-red-800 transition-colors hover:scale-[1.02]"
+                aria-label="Delete project"
+                title="Delete project"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </>
+          )}
+        </div>
+      </div>
 
-          {/* Section 5: Journal Entries - only shown in view mode */}
-          {!isEditing && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  Journal Entries
-                </h4>
+      {/* Removed legacy Project Setup Status indicator - handled by the creation wizard now */}
+
+      {/* Scrollable Content Area */}
+      <ScrollableContainer className="p-6 pt-0 space-y-6">
+        {/* Section 1: Project Information */}
+        <div className="mb-6">
+          <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Project Information
+          </h4>
+          <div className="bg-white/70 dark:bg-gray-800/60 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-visible"
+               style={{ isolation: 'auto' }}>
+            <table className="w-full">
+              <tbody className="divide-y divide-border dark:divide-border-dark">
+                {/* Project Name - Only in edit mode */}
+                {isEditing && (
+                  <tr>
+                    <td className="px-4 py-3 w-1/4">
+                      <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Project Name</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <input
+                        type="text"
+                        value={localEditingData.name || ''}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        className={inputBaseClasses}
+                        placeholder="Project name"
+                      />
+                    </td>
+                  </tr>
+                )}
+
+                {/* Status */}
+                <tr>
+                  <td className="px-4 py-3 w-1/4">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Status</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <select
+                        id="status"
+                        value={localEditingData?.status || "Preparing"}
+                        onChange={(e) => handleInputChange("status", e.target.value)}
+                        className={inputBaseClasses}
+                      >
+                        {statusOptions.map(status => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span 
+                        className={getStatusColor(project.status)}
+                      >
+                        {mapStatusName(project.status)}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+                
+                {/* Group */}
+                <tr>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Group</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {renderGroupField()}
+                  </td>
+                </tr>
+                
+                {/* User */}
+                <tr>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">User</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {renderUserField()}
+                  </td>
+                </tr>
+                
+                {/* Software */}
+                <tr>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Software</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {renderSoftwareField()}
+                  </td>
+                </tr>
+
+                {/* Output / Result Type */}
+                <tr>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Output / Result Type</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <select
+                        id="output-type-select"
+                        name="output-type-select"
+                        className={inputBaseClasses}
+                        value={displayData.output_type || ''}
+                        onChange={(e) => handleInputChange('output_type', e.target.value)}
+                      >
+                        <option value="">Select output type</option>
+                        {PREDEFINED_OUTPUT_TYPES.map(t => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="inline-flex items-center gap-2 text-sm">
+                        <span className="px-3 py-1 inline-flex items-center rounded-full text-xs font-medium bg-blue-50 dark:bg-bioluminescent-900/30 text-blue-700 dark:text-bioluminescent-300 border border-blue-200 dark:border-bioluminescent-800">
+                          {project.output_type || '—'}
+                        </span>
+                        {project.output_type && (
+                          <Tooltip>
+                            <Tooltip.Trigger asChild>
+                              <span
+                                className="inline-flex items-center justify-center h-6 px-2 rounded-md bg-gray-50 dark:bg-night-700/40 text-gray-700 dark:text-night-200 ring-1 ring-gray-200/70 dark:ring-night-600/70"
+                                role="img"
+                                aria-label={`Output type: ${project.output_type}`}
+                                title={project.output_type}
+                              >
+                                {renderOutputTypeIcon(project.output_type)}
+                              </span>
+                            </Tooltip.Trigger>
+                            <Tooltip.Panel className="bg-surface text-text text-xs px-2 py-1 rounded shadow-lg">
+                              {project.output_type}
+                            </Tooltip.Panel>
+                          </Tooltip>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+                
+                {/* Image Types */}
+                <tr>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Imaging Techniques</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <MultiSelectField
+                        options={PREDEFINED_OPTIONS.imagingTechniques}
+                        value={displayData.image_types || ''}
+                        onChange={(value) => handleInputChange('image_types', value)}
+                        placeholder="Select imaging techniques..."
+                        fieldName="image_types"
+                      />
+                    ) : (
+                      <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">
+                        {project.image_types ? (() => {
+                          try {
+                            const selections = Array.isArray(project.image_types) 
+                              ? project.image_types 
+                              : JSON.parse(project.image_types);
+                            return selections.join(', ');
+                          } catch {
+                            return project.image_types;
+                          }
+                        })() : 'Not specified'}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+                
+                {/* Sample Type */}
+                <tr>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Sample Type</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <MultiSelectField
+                        options={PREDEFINED_OPTIONS.sampleTypes}
+                        value={displayData.sample_type || ''}
+                        onChange={(value) => handleInputChange('sample_type', value)}
+                        placeholder="Select sample types..."
+                        fieldName="sample_type"
+                      />
+                    ) : (
+                      <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">
+                        {project.sample_type ? (() => {
+                          try {
+                            const selections = Array.isArray(project.sample_type) 
+                              ? project.sample_type 
+                              : JSON.parse(project.sample_type);
+                            return selections.join(', ');
+                          } catch {
+                            return project.sample_type;
+                          }
+                        })() : 'Not specified'}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+                
+                {/* Objective Magnification */}
+                <tr>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Objective Magnification</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={displayData.objective_magnification || ''}
+                        onChange={(e) => handleInputChange('objective_magnification', e.target.value)}
+                        className={inputBaseClasses}
+                        placeholder="e.g. 63x oil immersion, 40x water immersion, 20x air"
+                      />
+                    ) : (
+                      <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">{project.objective_magnification || 'Not specified'}</div>
+                    )}
+                  </td>
+                </tr>
+                
+                {/* Analysis Goal */}
+                <tr>
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Analysis Goal</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {isEditing ? (
+                      <MultiSelectField
+                        options={PREDEFINED_OPTIONS.analysisGoals}
+                        value={displayData.analysis_goal || ''}
+                        onChange={(value) => handleInputChange('analysis_goal', value)}
+                        placeholder="Select analysis goals..."
+                        fieldName="analysis_goal"
+                      />
+                    ) : (
+                      <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">
+                        {project.analysis_goal ? (() => {
+                          try {
+                            const selections = Array.isArray(project.analysis_goal) 
+                              ? project.analysis_goal 
+                              : JSON.parse(project.analysis_goal);
+                            return selections.join(', ');
+                          } catch {
+                            return project.analysis_goal;
+                          }
+                        })() : 'Not specified'}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Section 2: Project Folder Management */}
+        <div className="mb-6">
+          <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+            Project Folder & Structure
+            {!hasAdequateProjectInfo() && (
+              <span className="text-xs text-amber-600 dark:text-amber-400 font-normal bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded">
+                Complete project info required
+              </span>
+            )}
+          </h4>
+          <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl mb-3 shadow-sm hover:shadow-lg transition-all duration-300">
+            {isEditing ? (
+              <div className="p-4 flex gap-2">
+                <input
+                  type="text"
+                  id="project-path"
+                  value={localEditingData.project_path || ''}
+                  onChange={(e) => handleInputChange('project_path', e.target.value)}
+                  className={inputBaseClasses}
+                  placeholder="Select project folder..."
+                  readOnly
+                />
                 <button
-                  onClick={handleAddJournalEntry}
-                  className="px-4 py-2 rounded-md text-white hover:opacity-80 transition-all duration-200 text-sm font-medium flex items-center gap-2"
-                  disabled={!journalEntry.trim()}
+                  onClick={handleBrowsePath}
+                  disabled={isNewProject && !isProjectSaved()}
+                  className={`px-4 py-2 rounded-md transition-all duration-200 text-sm font-medium flex items-center gap-2 ${
+                    isNewProject && !isProjectSaved() 
+                      ? 'opacity-50 cursor-not-allowed text-gray-400'
+                      : 'text-white hover:opacity-80'
+                  }`}
                   style={{
-                    background: journalEntry.trim() ? 'linear-gradient(45deg, #00BFFF, #0080FF)' : 'rgba(156, 163, 175, 0.5)',
-                    opacity: journalEntry.trim() ? 1 : 0.6
+                    background: isNewProject && !isProjectSaved() 
+                      ? 'rgba(156, 163, 175, 0.3)'
+                      : 'linear-gradient(45deg, #00BFFF, #0080FF)'
                   }}
+                  title={isNewProject && !isProjectSaved() 
+                    ? 'Please save the project first before selecting parent folder'
+                    : 'Select parent folder where your project folder will be created\n\nYour project folder will be automatically named:\n' + (hasAdequateProjectInfo() ? generateSuggestedPath().split(/[\\//]/).pop() : 'YYYY-MM-DD_Group_User_Software')}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                   </svg>
-                  Add Entry
+                  Select Parent Folder
                 </button>
               </div>
-              
-              <div className="mb-4">
-                <textarea
-                  value={journalEntry}
-                  onChange={(e) => setJournalEntry(e.target.value)}
-                  className="w-full px-3 py-2 bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors mb-3 text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300"
-                  placeholder="Add a journal entry..."
-                  rows={3}
+            ) : project.project_path ? (
+              <div className="p-4">
+                <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm font-mono text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm break-all">
+                  {project.project_path}
+                </div>
+              </div>
+            ) : (
+              <div className="p-4">
+                <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-500 dark:text-gray-400 italic backdrop-filter backdrop-blur-sm">No project location set</div>
+              </div>
+            )}
+          </div>
+          {renderProjectFolderActions()}
+        </div>
+
+        {/* Section 3: Project Status & Time Tracking */}
+        <div className="mb-6">
+          <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Project Status & Time Tracking
+          </h4>
+          <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Time Spent:</span>
+              <span className={`text-sm ${getTimeSpentColor(isEditing ? (localEditingData.time_spent_minutes || 0) : project.time_spent_minutes)} dark:text-gray-300`}>
+                {formatTimeSpent(isEditing ? (localEditingData.time_spent_minutes || 0) : project.time_spent_minutes)} / {MAX_HOURS}h
+              </span>
+            </div>
+            
+            {isEditing ? (
+              <>
+                {/* Time slider */}
+                <div className="mt-4">
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max={MAX_HOURS * 60} 
+                    value={localEditingData.time_spent_minutes || 0}
+                    onChange={(e) => handleInputChange('time_spent_minutes', parseInt(e.target.value))}
+                    className="w-full h-2 bg-white/30 dark:bg-gray-700/50 rounded-lg appearance-none cursor-pointer accent-bioluminescent-500 backdrop-filter backdrop-blur-sm"
+                    step="15"
+                  />
+                  <div className="flex justify-between text-xs text-text-muted mt-1">
+                    <span>0h</span>
+                    <span>{Math.floor(MAX_HOURS/4)}h</span>
+                    <span>{Math.floor(MAX_HOURS/2)}h</span>
+                    <span>{Math.floor(MAX_HOURS*3/4)}h</span>
+                    <span>{MAX_HOURS}h</span>
+                  </div>
+                </div>
+                
+                {/* Fine-tune buttons */}
+                <div className="flex justify-end gap-2 mt-3">
+                  <button 
+                    onClick={() => {
+                      const newValue = Math.max(0, (localEditingData.time_spent_minutes || 0) - 15);
+                      handleInputChange('time_spent_minutes', newValue);
+                    }}
+                    className="btn btn-sm btn-secondary px-2 py-1"
+                    title="Decrease by 15 minutes"
+                  >
+                    -15m
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const newValue = Math.max(0, (localEditingData.time_spent_minutes || 0) - 60);
+                      handleInputChange('time_spent_minutes', newValue);
+                    }}
+                    className="btn btn-sm btn-secondary px-2 py-1"
+                    title="Decrease by 1 hour"
+                  >
+                    -1h
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const newValue = Math.min(MAX_HOURS * 60, (localEditingData.time_spent_minutes || 0) + 60);
+                      handleInputChange('time_spent_minutes', newValue);
+                    }}
+                    className="btn btn-sm btn-secondary px-2 py-1"
+                    title="Increase by 1 hour"
+                  >
+                    +1h
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const newValue = Math.min(MAX_HOURS * 60, (localEditingData.time_spent_minutes || 0) + 15);
+                      handleInputChange('time_spent_minutes', newValue);
+                    }}
+                    className="btn btn-sm btn-secondary px-2 py-1"
+                    title="Increase by 15 minutes"
+                  >
+                    +15m
+                  </button>
+                </div>
+              </>
+            ) : null}
+            
+            {/* Progress bar - same in both modes */}
+            <div className="mt-4">
+              <div className="h-2 bg-white/30 dark:bg-gray-700/50 rounded-full overflow-hidden backdrop-filter backdrop-blur-sm">
+                <div
+                  className={`h-full transition-all duration-300 ${getTimeSpentBarColor(isEditing ? (localEditingData.time_spent_minutes || 0) : (project.time_spent_minutes || 0))}`}
+                  style={{
+                    width: `${Math.min((((isEditing ? (localEditingData.time_spent_minutes || 0) : (project.time_spent_minutes || 0)) / 60 / MAX_HOURS) * 100), 100)}%`
+                  }}
                 />
               </div>
-              
-              {/* Journal entries list */}
-              <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
-                <table className="w-full">
-                  <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-night-700">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider">Entry</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider w-1/4">Date</th>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4: Project Description */}
+        <div className="mb-6">
+          <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Description
+          </h4>
+          <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
+            {isEditing ? (
+              <div className="p-4">
+                <textarea
+                  id="description"
+                  value={localEditingData.description || ''}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  className={`${inputBaseClasses} min-h-[120px] resize-vertical`}
+                  placeholder="Project description"
+                />
+              </div>
+            ) : (
+              <div className="px-4 py-3">
+                <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                  {project.description || 'No description provided.'}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Section 4.5: Project Resources */}
+        {!isEditing && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M4 12l8-8 8 8M12 4v12" />
+                </svg>
+                Resources
+              </h4>
+              <div className="flex items-center gap-2">
+                <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer" style={{ background: 'linear-gradient(45deg, #00BFFF, #0080FF)'}}>
+                  Upload Images
+                  <input type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={handleUploadImages} disabled={uploading} />
+                </label>
+                <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer" style={{ background: 'linear-gradient(45deg, #6366F1, #8B5CF6)'}}>
+                  Upload Docs
+                  <input type="file" accept="application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple className="hidden" onChange={handleUploadDocs} disabled={uploading} />
+                </label>
+                {/* Unified README update replaces the separate resources updater */}
+              </div>
+            </div>
+
+            {/* Images grid */}
+            <div className="mb-4">
+              <h5 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Reference Images</h5>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {resources.filter(r => r.kind === 'image').map((r) => (
+                  <div key={r.id} className="bg-white/70 dark:bg-gray-800/60 rounded-lg p-2 shadow-sm hover:shadow-md transition-all">
+                    <div className="relative w-full pb-[75%] bg-gray-100 dark:bg-gray-700 rounded overflow-hidden">
+                      <img
+                        src={`${getApiBase()}/projects/${project.id}/references/${r.id}/file`}
+                        alt={r.original_name}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="mt-2 text-xs text-gray-700 dark:text-gray-200 break-all">{r.original_name}</div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          defaultValue={r.caption || ''}
+                          className="w-full px-2 py-1 pr-6 text-xs rounded bg-white/70 dark:bg-gray-800/60 truncate"
+                          placeholder="Add caption..."
+                          title={r.caption || ''}
+                          onMouseEnter={(e) => { e.currentTarget.title = e.currentTarget.value; }}
+                          onBlur={(e) => {
+                            const val = e.target.value.trim();
+                            if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
+                          }}
+                        />
+                        {/* inline status icon */}
+                        {savingCaptionId === r.id && (
+                          <span className="absolute right-1 top-1.5 text-slate-400" title="Saving…">
+                            <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                            </svg>
+                          </span>
+                        )}
+                        {lastSavedCaptionId === r.id && (
+                          <span className="absolute right-1 top-1.5 text-emerald-500" title="Saved">
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M5 13l4 4L19 7" />
+                            </svg>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mt-2 text-[11px] text-gray-500">
+                      <span>{(r.size || 0) > 0 ? `${Math.round(r.size/1024)} KB` : ''}</span>
+                      <button className="text-red-600 hover:text-red-800" onClick={() => handleDeleteResource(r.id)}>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {resources.filter(r => r.kind === 'image').length === 0 && (
+                  <div className="text-sm text-gray-500">No images yet.</div>
+                )}
+              </div>
+            </div>
+
+            {/* Documents list */}
+            <div className="mb-2">
+              <h5 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Reference Documents</h5>
+              <div className="bg-white/70 dark:bg-gray-800/60 rounded-xl shadow-sm">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-xs uppercase text-gray-500">
+                      <th className="px-3 py-2">File</th>
+                      <th className="px-3 py-2 w-1/3">Caption</th>
+                      <th className="px-3 py-2 w-24 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border dark:divide-border-dark">
-                    {localJournalEntries.length > 0 ? (
-                      localJournalEntries.map((entry, index) => (
-                        <tr 
-                          key={entry.id || index}
-                          className="animate-fade-in hover:bg-gray-50 dark:hover:bg-night-700 transition-colors"
-                          style={{ animationDelay: `${index * 50}ms` }}
-                        >
-                          <td className="px-4 py-3">
-                            <div className="flex items-start justify-between gap-3">
-                              <p className="text-sm text-text dark:text-text-dark whitespace-pre-wrap flex-1">{entry.entry_text}</p>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  className="btn btn-icon btn-xs text-blue-600 hover:text-blue-800"
-                                  title="Edit entry"
-                                  aria-label="Edit journal entry"
-                                  onClick={() => openEditJournal(entry)}
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                  </svg>
-                                </button>
-                                <button
-                                  className="btn btn-icon btn-xs text-red-600 hover:text-red-800"
-                                  title="Delete entry"
-                                  aria-label="Delete journal entry"
-                                  onClick={() => openDeleteJournal(entry)}
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="text-xs text-text-muted">{new Date(entry.entry_date).toLocaleString()}</div>
-                            {entry.edited_at && (
-                              <div className="text-[11px] text-blue-600 dark:text-bioluminescent-400">edited 
-                                {(() => {
-                                  try {
-                                    const d = new Date(entry.edited_at);
-                                    if (!isNaN(d.getTime())) return ` · ${d.toLocaleString()}`;
-                                  } catch {}
-                                  return '';
-                                })()}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="2" className="px-4 py-4 text-center text-text-muted">
-                          No journal entries yet.
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {resources.filter(r => r.kind !== 'image').map(r => (
+                      <tr key={r.id}>
+                        <td className="px-3 py-2">
+                          <a className="text-blue-600 hover:underline break-all" href={`${getApiBase()}/projects/${project.id}/references/${r.id}/file`} target="_blank" rel="noreferrer">
+                            {r.original_name}
+                          </a>
                         </td>
+                        <td className="px-3 py-2">
+                          <div className="relative">
+                            <input
+                              type="text"
+                              defaultValue={r.caption || ''}
+                              className="w-full px-2 py-1 pr-7 text-sm rounded bg-white/70 dark:bg-gray-800/60 truncate"
+                              placeholder="Add caption..."
+                              title={r.caption || ''}
+                              onMouseEnter={(e) => { e.currentTarget.title = e.currentTarget.value; }}
+                              onBlur={(e) => {
+                                const val = e.target.value.trim();
+                                if (val !== (r.caption || '')) handleSaveCaption(r.id, val);
+                              }}
+                            />
+                            {savingCaptionId === r.id && (
+                              <span className="absolute right-1 top-1.5 text-slate-400" title="Saving…">
+                                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                                </svg>
+                              </span>
+                            )}
+                            {lastSavedCaptionId === r.id && (
+                              <span className="absolute right-1 top-1.5 text-emerald-500" title="Saved">
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M5 13l4 4L19 7" />
+                                </svg>
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <button className="text-red-600 hover:text-red-800 text-sm" onClick={() => handleDeleteResource(r.id)}>Delete</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {resources.filter(r => r.kind !== 'image').length === 0 && (
+                      <tr>
+                        <td className="px-3 py-3 text-gray-500" colSpan="3">No documents yet.</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
+
+        {/* Section 5: Journal Entries - only shown in view mode */}
+        {!isEditing && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                Journal Entries
+              </h4>
+              <button
+                onClick={handleAddJournalEntry}
+                className="px-4 py-2 rounded-md text-white hover:opacity-80 transition-all duration-200 text-sm font-medium flex items-center gap-2"
+                disabled={!journalEntry.trim()}
+                style={{
+                  background: journalEntry.trim() ? 'linear-gradient(45deg, #00BFFF, #0080FF)' : 'rgba(156, 163, 175, 0.5)',
+                  opacity: journalEntry.trim() ? 1 : 0.6
+                }}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Entry
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <textarea
+                value={journalEntry}
+                onChange={(e) => setJournalEntry(e.target.value)}
+                className="w-full px-3 py-2 bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors mb-3 text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300"
+                placeholder="Add a journal entry..."
+                rows={3}
+              />
+            </div>
+            
+            {/* Journal entries list */}
+            <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
+              <table className="w-full">
+                <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-night-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider">Entry</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider w-1/4">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border dark:divide-border-dark">
+                  {localJournalEntries.length > 0 ? (
+                    localJournalEntries.map((entry, index) => (
+                      <tr 
+                        key={entry.id || index}
+                        className="animate-fade-in hover:bg-gray-50 dark:hover:bg-night-700 transition-colors"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="text-sm text-text dark:text-text-dark whitespace-pre-wrap flex-1">{entry.entry_text}</p>
+                            <div className="flex items-center gap-2">
+                              <button
+                                className="btn btn-icon btn-xs text-blue-600 hover:text-blue-800"
+                                title="Edit entry"
+                                aria-label="Edit journal entry"
+                                onClick={() => openEditJournal(entry)}
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                className="btn btn-icon btn-xs text-red-600 hover:text-red-800"
+                                title="Delete entry"
+                                aria-label="Delete journal entry"
+                                onClick={() => openDeleteJournal(entry)}
+                              >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="text-xs text-text-muted">{new Date(entry.entry_date).toLocaleString()}</div>
+                          {entry.edited_at && (
+                            <div className="text-[11px] text-blue-600 dark:text-bioluminescent-400">edited 
+                              {(() => {
+                                try {
+                                  const d = new Date(entry.edited_at);
+                                  if (!isNaN(d.getTime())) return ` · ${d.toLocaleString()}`;
+                                } catch {}
+                                return '';
+                              })()}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="2" className="px-4 py-4 text-center text-text-muted">
+                        No journal entries yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </ScrollableContainer>
 
       {/* Delete Confirmation - unified wizard style */}
       <WizardFormModal
