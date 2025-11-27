@@ -22,11 +22,12 @@ BIOME is a specialized project management application designed for **bioimage an
 
 ### ✨ Key Features
 
+- 🗄️ **Hybrid Storage (New in 2.0)**: SQLite for metadata + project folders for files—portable, lightweight, and organized
 - 🏢 **Multi-Facility Support**: Organize projects across imaging cores (Confocal, Widefield, Digital Pathology)
 - 👥 **Team Management**: Track projects by facility staff and research groups  
 - 📊 **Project Tracking**: Monitor analysis progress, time investment, and project status
 - 📓 **Digital Lab Journal**: Document methodology, results, and analysis notes
-- 📎 **Project Resources (New in 1.4.0)**: Attach images/documents to projects; auto-inject a Resources section into the project README
+- 📎 **Project Resources**: Attach images/documents to projects; auto-inject a Resources section into the project README
 - 🔬 **Analysis Integration**: Designed for common bioimage analysis software workflows
 - 📈 **Progress Analytics**: Visualize project timelines, workload distribution, and productivity
 - 💻 **Dual Mode**: Available as both web application and native desktop app
@@ -625,14 +626,24 @@ projet-analyse-image-frontend/src-tauri/target/release/bundle/
 
 ## ✨ What's New in 2.0.0
 
+### 🗄️ Hybrid Storage Architecture
+BIOME 2.0 introduces a new **hybrid storage model** that combines the best of both worlds:
+- **SQLite Database**: Stores project metadata, users, groups, journal entries, and activity logs for fast querying and reliable data integrity
+- **Project Folders**: Each project maintains its own folder containing reference images, resources, output files, and README documentation
+- **Benefits**: 
+  - Portable project folders that can be shared or archived independently
+  - Lightweight database backups (metadata only)
+  - Direct filesystem access to project assets
+  - Clear separation between structured data and file assets
+
 ### Major UI/UX Overhaul
 - **Scrollbar Consolidation**: Cleaner, more professional interface with unified scrollbars across the application
 - **Dashboard Improvements**: 
   - Activity Feed now uses "Show more" pagination instead of fixed-height scroll
   - Renamed "Active Projects" to "In Progress" for clarity
   - Modernized About card with gradient background, version badge, and tech stack tags (Tauri, React, SQLite)
-- **Database Manager**: Rewrote info section to explain hybrid storage model (SQLite metadata + project folders)
-- **Settings Page**: Streamlined controls, added Data Management card for desktop users
+- **Database Manager**: Rewrote info section to explain the hybrid storage model
+- **Settings Page**: Streamlined controls, added Data Management card for desktop users (project folder picker, auto-backup options)
 - **Table View**: Page-level scrolling for better integration with the app layout
 - **Analytics Page**: Fixed scrolling behavior
 
