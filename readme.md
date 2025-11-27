@@ -5,7 +5,7 @@
 **A comprehensive bioimage analysis project management tool for research facilities and laboratories**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Version](https://img.shields.io/badge/version-1.4.3-blue.svg)](#download)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](#download)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#installation)
 
 [🚀 Quick Start](#quick-start) • [📦 Download](#download) • [📚 Documentation](#documentation) • [🤝 Contributing](#contributing)
@@ -44,7 +44,7 @@ BIOME is a specialized project management application designed for **bioimage an
 
 ### Option 1: Desktop Application (Recommended)
 
-1. **Download** the latest MSI installer from Releases: [BIOME_1.4.3_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v1.4.3/BIOME_1.4.3_x64_en-US.msi)
+1. **Download** the latest MSI installer from Releases: [BIOME_2.0.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.0.0/BIOME_2.0.0_x64_en-US.msi)
    - Or visit the [GitHub Releases Page](https://github.com/UniversalBuilder/BIOME/releases/latest) to pick another version
 2. **Install** by double-clicking the MSI file
 3. **Launch** BIOME from your Start Menu
@@ -79,14 +79,14 @@ You can obtain BIOME in two ways:
 | Source Code | `git clone https://github.com/UniversalBuilder/BIOME.git` | Contains full source (clean, lightweight history) |
 
 Release assets include:
-- `BIOME_1.4.3_x64_en-US.msi` – Windows 10/11 desktop installer
+- `BIOME_2.0.0_x64_en-US.msi` – Windows 10/11 desktop installer
 - Auto-generated source archives (ZIP/TAR.GZ)
 
 Integrity / Verification (optional):
 - After download, right‑click the MSI → Properties → ensure file size ~46–53 MB
 - You may generate a checksum locally:
    ```powershell
-   Get-FileHash .\BIOME_1.4.3_x64_en-US.msi -Algorithm SHA256
+   Get-FileHash .\BIOME_2.0.0_x64_en-US.msi -Algorithm SHA256
    ```
 
 If SmartScreen warns, select “More info” → “Run anyway” (unsigned development build).
@@ -106,7 +106,7 @@ If SmartScreen warns, select “More info” → “Run anyway” (unsigned deve
 #### Installation Steps
 
 1. **Download the MSI Installer**
-   - Download [BIOME_1.4.3_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v1.4.3/BIOME_1.4.3_x64_en-US.msi)
+   - Download [BIOME_2.0.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.0.0/BIOME_2.0.0_x64_en-US.msi)
    - Verify the file downloaded completely
 
 2. **Run the Installer**
@@ -619,11 +619,24 @@ npm run simple-exe
 Built installers are available locally after a build in:
 ```
 projet-analyse-image-frontend/src-tauri/target/release/bundle/
-├── msi/BIOME_1.4.3_x64_en-US.msi
-└── nsis/BIOME_1.4.3_x64-setup.exe
+├── msi/BIOME_2.0.0_x64_en-US.msi
+└── nsis/BIOME_2.0.0_x64-setup.exe
 ```
 
-## ✨ What’s New in 1.4.3
+## ✨ What's New in 2.0.0
+
+### Major UI/UX Overhaul
+- **Scrollbar Consolidation**: Cleaner, more professional interface with unified scrollbars across the application
+- **Dashboard Improvements**: 
+  - Activity Feed now uses "Show more" pagination instead of fixed-height scroll
+  - Renamed "Active Projects" to "In Progress" for clarity
+  - Modernized About card with gradient background, version badge, and tech stack tags (Tauri, React, SQLite)
+- **Database Manager**: Rewrote info section to explain hybrid storage model (SQLite metadata + project folders)
+- **Settings Page**: Streamlined controls, added Data Management card for desktop users
+- **Table View**: Page-level scrolling for better integration with the app layout
+- **Analytics Page**: Fixed scrolling behavior
+
+## ✨ What's New in 1.4.3
 
 - Fixed Project Table View rendering issues (empty table).
 - Resolved conflict between react-window and AutoSizer.
@@ -785,7 +798,7 @@ BIOME follows a consistent design language inspired by James Cameron's Avatar:
 
 ## 🏷️ Version Information
 
-- **Current Version**: 1.4.3
+- **Current Version**: 2.0.0
 - **Tauri Version**: 2.0.0
 - **Node.js Requirement**: 16.0.0+
 - **Target Platform**: Windows (with console debugging support)
