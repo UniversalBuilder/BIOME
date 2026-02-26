@@ -6,6 +6,23 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-02-26
+### Added
+- **Auto-backup system**: New backup scheduler (`backupService.js`) reads auto-backup settings from the Settings page and creates a timestamped SQLite snapshot on app start when the configured interval (daily/weekly) has elapsed.
+- **Database Manager — backup UI**: "Automatic Backups" section with Create Backup Now button, backup list table (filename, date, size), and Restore button with confirmation modal.
+- **Inline backup feedback**: Success/error message appears directly in the backup section after clicking Create Backup Now, without requiring scroll-to-top.
+
+### Changed
+- **ProjectDetails — Zone separation**: Project Metadata (Zone A) and Project Workspace (Zone B) are now visually separated by distinct background fills (neutral gray vs. bioluminescent tint) instead of border lines.
+- **ProjectDetails — Read-only greying**: Project Information, Time Tracking, and Description sections are dimmed (`opacity-60`) in view mode to communicate that they require Edit Project to modify. Folder & Structure action buttons remain at full opacity at all times.
+- **ProjectDetails — removed border**: Outer border lines on Zone A and Zone B replaced by fill-based visual separation, consistent with the rest of the app's card style.
+
+### Fixed
+- `projectService.create()` now correctly sends `image_types`, `analysis_goal`, `sample_type`, and `objective_magnification` — previously these fields were silently dropped when creating a new project via the wizard.
+- Default project status on creation changed from `'Intake'` to `'Preparing'` to match the UI status filter.
+- All `window.confirm()` dialogs replaced with `WizardFormModal` (compatible with Tauri desktop where native dialogs are blocked).
+- Backup directory path now derived from the database file location (`getDatabasePath()`) instead of `process.cwd()`, fixing backups failing when the backend was launched from a different working directory.
+
 ## [2.0.0] - 2025-11-27
 ### Changed
 - **Major UI/UX Overhaul**: Consolidated scrollbars across the application for a cleaner, more professional interface.

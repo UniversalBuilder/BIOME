@@ -1,6 +1,6 @@
 {
   "name": "biome-production",
-  "version": "1.4.3",
+  "version": "2.1.0",
   "description": "BIOME - Bio Imaging Organization and Management Environment (Production Build)",
   "main": "production-server.js",
   "author": "Yannick Krempp",
