@@ -28,7 +28,7 @@ function copyDirectorySync(src, dest) {
 }
 
 async function setupDemoDatabase() {
-    console.log('🗄️ Setting up fresh demo database for MSI distribution...');
+    console.log('🗄️ Setting up fresh empty database for MSI distribution...');
     
     // Ensure data directories exist
     const backendDataDir = path.join(__dirname, 'backend', 'data');
@@ -64,7 +64,7 @@ async function setupDemoDatabase() {
     });
     
     try {
-        console.log('🚀 Starting backend server to initialize demo database...');
+        console.log('🚀 Starting backend server to initialize database schema...');
         
         // Start backend server to initialize database
         const server = spawn('node', ['src/server.js'], {
@@ -99,8 +99,9 @@ async function setupDemoDatabase() {
         console.log('✅ Complete backend copied to Tauri resources (including node_modules)');
         
         if (fs.existsSync(backendDb) && fs.existsSync(path.join(tauriBackendDir, 'data', 'database.sqlite'))) {
-            console.log('🎉 Demo database setup completed successfully!');
-            console.log('📊 Fresh demo data is now ready for MSI build');
+            console.log('🎉 Database setup completed successfully!');
+            console.log('📊 MSI ships with an empty database — users start fresh.');
+            console.log('   Use the "Load Demo Data" button in the Database page to populate with sample data.');
         } else {
             throw new Error('Backend database was not created or copied properly');
         }
@@ -113,7 +114,7 @@ async function setupDemoDatabase() {
 
 // Run the setup
 setupDemoDatabase().then(() => {
-    console.log('✨ Ready for MSI build with fresh demo data!');
+    console.log('✨ Ready for MSI build with a clean, empty database!');
     process.exit(0);
 }).catch(error => {
     console.error('❌ Setup failed:', error);

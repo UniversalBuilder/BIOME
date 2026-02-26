@@ -140,6 +140,16 @@ export const databaseService = {
         });
         await handleResponse(response, 'Failed to restore backup');
         return response.json();
+    },
+
+    loadDemoData: async () => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/database/load-demo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        await handleResponse(response, 'Failed to load demo data');
+        return response.json();
     }
 };
 

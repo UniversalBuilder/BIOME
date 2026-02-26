@@ -119,7 +119,8 @@ class ApiAdapter {
           tables: ["users", "projects", "groups"] 
         }),
         exportDatabase: () => Promise.reject("Not implemented in SQLite mode"),
-        importDatabase: () => Promise.reject("Not implemented in SQLite mode")
+        importDatabase: () => Promise.reject("Not implemented in SQLite mode"),
+        loadDemoData:   () => Promise.reject("Not implemented in SQLite mode")
       };
     }
   }

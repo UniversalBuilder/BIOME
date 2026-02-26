@@ -38,35 +38,31 @@ async function setupDemoDatabase() {
     });
     
     try {
-        // Initialize demo database in backend
-        console.log('🚀 Initializing demo database in backend...');
+        // Initialize empty database schema in backend
+        console.log('🚀 Initializing empty database schema in backend...');
         const backendDbManager = DatabaseManager;
         // Set the database path manually
         backendDbManager.dbPath = backendDb;
         await backendDbManager.connect();
-        await backendDbManager.resetDatabase();
-        console.log('✅ Backend demo database initialized successfully');
+        console.log('✅ Backend database (empty schema) initialized successfully');
         
         // Copy the initialized database to Tauri resources
         console.log('📁 Copying database to Tauri resources...');
         fs.copyFileSync(backendDb, tauriDb);
         console.log('✅ Database copied to Tauri resources');
         
-        console.log('🎉 Demo database setup completed successfully!');
-        console.log('📊 Database includes:');
-        console.log('   • 3 imaging facility cores');
-        console.log('   • 6 demo users');  
-        console.log('   • 9 bioimage analysis projects');
-        console.log('   • Journal entries and project activities');
+        console.log('🎉 Database setup completed successfully!');
+        console.log('📊 MSI ships with an empty database — users start fresh.');
+        console.log('   Use the "Load Demo Data" button in the Database page to populate with sample data.');
         
     } catch (error) {
-        console.error('❌ Error setting up demo database:', error);
+        console.error('❌ Error setting up database:', error);
         process.exit(1);
     }
 }
 
 // Run the setup
 setupDemoDatabase().then(() => {
-    console.log('✨ Ready for MSI build with fresh demo data!');
+    console.log('✨ Ready for MSI build with a clean, empty database!');
     process.exit(0);
 });

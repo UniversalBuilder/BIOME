@@ -59,9 +59,8 @@ class DatabaseManager {
                     await this.run('PRAGMA foreign_keys = ON');
 
                     if (shouldInitialize) {
-                        console.log('New database detected, initializing with demo data...');
+                        console.log('New database detected, initializing schema...');
                         await this.initDatabase();
-                        await initializeDemoDatabase(this);
                     }
                     // Ensure schema migrations for existing databases
                     await this.applyMigrationsSafe();

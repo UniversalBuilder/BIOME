@@ -254,6 +254,63 @@ dbManager.connect().then(() => {
         }
     });
 
+    // Load demo data — auto-backup if data exists, then seed fresh demo data
+    app.post('/api/database/load-demo', async (req, res) => {
+        try {
+            // Detect if existing data would be overwritten
+            const userCount    = await dbManager.get('SELECT COUNT(*) as c FROM users');
+            const projectCount = await dbManager.get('SELECT COUNT(*) as c FROM projects');
+            const hasData = (userCount?.c || 0) + (projectCount?.c || 0) > 0;
+
+            let backupFilename = null;
+            if (hasData) {
+                // Auto-create a safety backup before wiping existing data
+                ensureBackupsDir();
+                const dbPath = dbManager.getDatabasePath();
+                if (fs.existsSync(dbPath)) {
+                    const now = new Date();
+                    const ts = now.toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19);
+                    backupFilename = `database-${ts}.sqlite`;
+                    fs.copyFileSync(dbPath, path.join(BACKUPS_DIR, backupFilename));
+                    logger.info(`Pre-demo safety backup created: ${backupFilename}`);
+
+                    // Prune old backups, keep MAX_BACKUPS most recent
+                    const backupFiles = fs.readdirSync(BACKUPS_DIR)
+                        .filter(f => f.endsWith('.sqlite'))
+                        .map(f => ({ name: f, mtime: fs.statSync(path.join(BACKUPS_DIR, f)).mtime }))
+                        .sort((a, b) => b.mtime - a.mtime);
+                    backupFiles.slice(MAX_BACKUPS).forEach(f => {
+                        fs.unlinkSync(path.join(BACKUPS_DIR, f.name));
+                    });
+                }
+            }
+
+            // Seed demo data (wipes all tables, inserts fresh demo dataset)
+            await dbManager.initializeSampleData();
+
+            // Gather counts for UI feedback
+            const groups   = await dbManager.get('SELECT COUNT(*) as c FROM groups');
+            const users    = await dbManager.get('SELECT COUNT(*) as c FROM users');
+            const projects = await dbManager.get('SELECT COUNT(*) as c FROM projects');
+            const journal  = await dbManager.get('SELECT COUNT(*) as c FROM journal_entries');
+
+            logger.info('Demo data loaded successfully');
+            res.json({
+                success: true,
+                backup_created: backupFilename,
+                counts: {
+                    groups:          groups?.c  || 0,
+                    users:           users?.c   || 0,
+                    projects:        projects?.c || 0,
+                    journal_entries: journal?.c  || 0
+                }
+            });
+        } catch (error) {
+            logger.error('Error loading demo data:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
     // Add a health check endpoint
     app.get('/api/health', (req, res) => {
         res.json({ status: 'ok', timestamp: new Date().toISOString() });

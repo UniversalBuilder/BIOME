@@ -19,6 +19,9 @@ function DatabaseManager({ onDatabaseChange }) {
     const [restoringFilename, setRestoringFilename] = useState(null);
     const [lastBackupDate, setLastBackupDate] = useState(null);
     const [backupMessage, setBackupMessage] = useState(null); // { type: 'success'|'error', text }
+    // Demo data loader
+    const [showDemoConfirm, setShowDemoConfirm] = useState(false);
+    const [demoLoading, setDemoLoading] = useState(false);
 
     const loadBackups = useCallback(async () => {
         setBackupsLoading(true);
@@ -155,13 +158,33 @@ function DatabaseManager({ onDatabaseChange }) {
 
         try {
             await databaseService.resetDatabase();
-            setSuccess('Database reset successfully. Sample data has been initialized.');
+            setSuccess('Database has been reset to an empty state.');
             if (onDatabaseChange) onDatabaseChange();
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
             setShowResetConfirm(false);
+        }
+    };
+
+    const handleLoadDemo = async () => {
+        setDemoLoading(true);
+        setError(null);
+        setSuccess(null);
+        try {
+            const result = await databaseService.loadDemoData();
+            const { counts, backup_created } = result;
+            let msg = `Demo data loaded: ${counts.projects} projects, ${counts.users} users, ${counts.groups} groups, ${counts.journal_entries} journal entries.`;
+            if (backup_created) msg += ` Your previous data was saved as: ${backup_created}`;
+            setSuccess(msg);
+            await loadBackups();
+            if (onDatabaseChange) onDatabaseChange();
+        } catch (err) {
+            setError('Failed to load demo data: ' + err.message);
+        } finally {
+            setDemoLoading(false);
+            setShowDemoConfirm(false);
         }
     };
 
@@ -181,7 +204,7 @@ function DatabaseManager({ onDatabaseChange }) {
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-full">
                     {/* Export Database */}
                     <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
                         <div className="flex flex-col items-center text-center flex-1">
@@ -265,9 +288,9 @@ function DatabaseManager({ onDatabaseChange }) {
                                     <div className="p-3 bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 text-orange-700 dark:text-orange-300 text-sm rounded">
                                         <p className="font-medium mb-2">⚠️ Warning: This action cannot be undone!</p>
                                         <ul className="list-disc list-inside text-sm space-y-1">
-                                            <li>All project data will be deleted</li>
-                                            <li>All user and group data will be reset</li>
-                                            <li>Sample data will be reinitialized</li>
+                                            <li>All project data will be permanently deleted</li>
+                                            <li>All users, groups, and journal entries will be removed</li>
+                                            <li>The database will be left completely empty</li>
                                         </ul>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -288,6 +311,29 @@ function DatabaseManager({ onDatabaseChange }) {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
+
+                    {/* Load Demo Data */}
+                    <div className="bg-white dark:bg-night-800 rounded-lg border border-violet-200 dark:border-violet-800/40 p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
+                        <div className="flex flex-col items-center text-center flex-1">
+                            <div className="w-12 h-12 rounded-full bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center mb-4">
+                                <svg className="w-6 h-6 text-violet-500 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Load Demo Data</h3>
+                            <p className="text-gray-600 dark:text-gray-300 mb-auto">Populate with sample bioimage projects and users</p>
+                            <button
+                                onClick={() => setShowDemoConfirm(true)}
+                                disabled={loading || demoLoading}
+                                className="w-full mt-4 py-3 px-4 text-sm font-medium rounded-xl backdrop-filter backdrop-blur-md bg-gradient-to-r from-violet-400 to-purple-500 hover:from-violet-500 hover:to-purple-600 text-white shadow-lg hover:shadow-xl border border-white/20 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                </svg>
+                                {demoLoading ? 'Loading…' : 'Load Demo Data'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -464,6 +510,34 @@ function DatabaseManager({ onDatabaseChange }) {
           <p className="font-medium">This action will replace the current database with the selected backup.</p>
           <p>Backup: <span className="font-mono text-xs">{restoringFilename}</span></p>
           <p className="text-xs text-amber-600 dark:text-amber-400">Any changes made after this backup was created will be lost.</p>
+        </div>
+      </WizardFormModal>
+
+      {/* Demo data confirmation modal */}
+      <WizardFormModal
+        isOpen={showDemoConfirm}
+        title="Load Demo Data"
+        inlineError={null}
+        onClose={() => setShowDemoConfirm(false)}
+        onSubmit={(e) => { e.preventDefault(); handleLoadDemo(); }}
+        submitLabel={demoLoading ? 'Loading…' : 'Load Demo Data'}
+        loading={demoLoading}
+      >
+        <div className="text-sm text-gray-700 dark:text-gray-200 space-y-3">
+          <p className="font-medium">This will replace all current data with a set of demo bioimage projects, users, and groups.</p>
+          <div className="p-3 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-700/50 rounded-lg text-xs space-y-1">
+            <p className="font-semibold text-violet-700 dark:text-violet-300">What will be loaded:</p>
+            <ul className="list-disc list-inside text-violet-600 dark:text-violet-400 space-y-0.5">
+              <li>3 imaging core groups</li>
+              <li>6 researchers</li>
+              <li>10 bioimage analysis projects</li>
+              <li>~20 journal entries</li>
+            </ul>
+          </div>
+          <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 rounded text-xs text-amber-700 dark:text-amber-300">
+            <p className="font-semibold mb-0.5">💾 Automatic backup</p>
+            <p>If your database already contains data, a safety backup will be created automatically before loading demo data.</p>
+          </div>
         </div>
       </WizardFormModal>
         </div>
