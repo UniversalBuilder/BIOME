@@ -114,7 +114,7 @@ class ApiAdapter {
       return {
         resetDatabase: () => Promise.reject("Not implemented in SQLite mode"),
         getDatabaseInfo: () => Promise.resolve({ 
-          version: "1.2.0",
+          version: "2.2.0",
           mode: "SQLite embedded",
           tables: ["users", "projects", "groups"] 
         }),

@@ -6,6 +6,21 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-02-26
+### Added
+- **Demo Data mode**: New "Load Demo Data" button in the Database page. Populates the database with 10 realistic bioimage analysis projects, 6 researchers across 3 imaging core groups, and ~20 journal entries. A safety backup is created automatically before loading if the database already contains data.
+- **Empty database on first launch**: BIOME now starts completely empty on first run and after Reset. Demo content is opt-in via the explicit "Load Demo Data" button — real user data is never silently overwritten by application updates or resets.
+
+### Fixed
+- **Backup date display**: All backups in the list were showing the same "Created" timestamp (the filesystem `mtime`). Dates are now parsed directly from the filename (`database-YYYY-MM-DD_HH-MM-SS.sqlite`), showing the correct individual creation time for each backup.
+- **Delete Project modal positioning**: The confirmation dialog now uses a React Portal and renders at true viewport center, regardless of scroll position or parent transform context.
+- **WizardFormModal**: All modals now use a React Portal (`z-[9999]`) ensuring correct stacking and centering in all scroll contexts. Added `variant="danger"` prop for destructive-action modals (red button + warning icon in title).
+
+### Changed
+- **Project creation wizard**: Background changed from a heavy blue gradient to a neutral `bg-gray-50 dark:bg-night-900`. Main card now uses the standard app card style (`night-800` border, `shadow-sm`) instead of a blurred glass effect.
+- **+ New Group / + New User buttons**: Unified to bioluminescent accent color to match the app design system. "+" New User button is visibly disabled (greyed, `opacity-60`) when no group is selected, with a CSS tooltip "Select a group first".
+- **Reset Database**: No longer re-seeds demo data after reset — leaves database completely empty, consistent with the new first-launch behavior.
+
 ## [2.1.0] - 2026-02-26
 ### Added
 - **Auto-backup system**: New backup scheduler (`backupService.js`) reads auto-backup settings from the Settings page and creates a timestamped SQLite snapshot on app start when the configured interval (daily/weekly) has elapsed.
