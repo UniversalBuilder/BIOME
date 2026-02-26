@@ -210,7 +210,11 @@ dbManager.connect().then(() => {
                 .filter(f => f.endsWith('.sqlite'))
                 .map(f => {
                     const stat = fs.statSync(path.join(BACKUPS_DIR, f));
-                    return { filename: f, size: stat.size, created_at: stat.mtime.toISOString() };
+                    const tsMatch = f.match(/^database-(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})\.sqlite$/);
+                    const created_at = tsMatch
+                        ? new Date(`${tsMatch[1]}T${tsMatch[2]}:${tsMatch[3]}:${tsMatch[4]}`).toISOString()
+                        : stat.mtime.toISOString();
+                    return { filename: f, size: stat.size, created_at };
                 })
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             res.json(files);
