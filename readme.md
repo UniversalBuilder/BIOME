@@ -143,8 +143,6 @@ Once installed, you should see:
 - Installation folder at `C:\Program Files\BIOME\`
 - An empty, ready-to-use database (use Load Demo Data to explore sample projects)
 
-![Dashboard (dark)](./screenshots/biome_dashboard_dark.png)
-
 | Light mode | Dark mode |
 |---|---|
 | ![Dashboard (light)](./screenshots/biome_dashboard_light.png) | ![Dashboard (dark)](./screenshots/biome_dashboard_dark.png) |
@@ -192,8 +190,6 @@ npm install
 npm start  # Runs on http://localhost:3000
 ```
 
-![Projects (dark)](./screenshots/biome_projects_1_dark.png)
-
 ---
 
 ## 🚀 Getting Started Guide
@@ -220,6 +216,8 @@ Click on any project to see detailed information:
 - **File Management**: Project folder structure and README files
 - **Lab Journal**: Research notes and methodology documentation
 
+![Projects — detail view (dark)](./screenshots/biome_projects_2_dark.png)
+
 ![Projects — table view (dark)](./screenshots/biome_table_view_dark.png)
 
 #### 3. **Navigation Basics**
@@ -242,26 +240,20 @@ Click on any project to see detailed information:
    - **Research Group**: Select your facility or core
    - **Primary Software**: Main analysis tool (Imaris, FIJI, QuPath, etc.)
 
-![Database (dark)](./screenshots/biome_database_dark.png)
+![New Project wizard — step 1 (dark)](./screenshots/biome_new_project_1_dark.png)
 
-#### Step 2: Configure Project Details
+#### Step 2: Select Project Location
 
-Fill in specialized bioimage analysis fields:
-- **Imaging Techniques**: Select from dropdown (confocal, widefield, slide scanning, etc.)
-- **Sample Types**: Specify biological samples (cells, tissues, organoids, etc.)
-- **Objective Magnification**: Record imaging parameters (e.g., "63x oil immersion")
-- **Analysis Goals**: Define project objectives (counting, measurement, classification, etc.)
+Choose where the project folder will be created:
+- **Browse** to select or confirm the target directory
+- BIOME suggests a structured folder name based on date, group, user, and software
+- The path is validated before you can proceed
 
-![Analytics (dark)](./screenshots/biome_analytics_1_dark.png)
+![New Project wizard — step 2 (dark)](./screenshots/biome_new_project_2_dark.png)
 
-#### Step 3: Set Up Project Structure
+#### Step 3: Create Project Structure
 
-1. **Choose Project Directory**: Select where analysis files will be stored
-2. **Create Folder Structure**: BIOME can automatically create organized directories
-3. **Initialize README**: Generate documentation template for your project
-4. **Verify Setup**: Review project configuration before saving
-
-![Projects (dark)](./screenshots/biome_projects_1_dark.png)
+BIOME creates a standardized directory layout for the project and generates a README template. Once confirmed, the project is saved and immediately appears in the project list.
 
 #### Step 4: Begin Documentation
 
@@ -271,7 +263,7 @@ Use the integrated lab journal to document:
 - **Observations**: Results, issues, and discoveries
 - **Progress Updates**: Timeline and milestone tracking
 
-![Table view (dark)](./screenshots/biome_table_view_dark.png)
+![Projects list (dark)](./screenshots/biome_projects_1_dark.png)
 
 ### Working with Projects
 
@@ -284,8 +276,6 @@ BIOME uses six main project statuses:
 - **Completed**: Finished and documented
 - **On Hold**: Temporarily paused
 - **Cancelled**: Discontinued projects
-
-![Dashboard (dark)](./screenshots/biome_dashboard_dark.png)
 
 #### Time Tracking
 
@@ -301,8 +291,6 @@ Track time through:
 3. Automatic activity logging
 4. Bulk time updates for similar projects
 
-![Analytics (dark)](./screenshots/biome_analytics_1_dark.png)
-
 #### File Management Integration
 
 BIOME helps organize your analysis files:
@@ -310,8 +298,6 @@ BIOME helps organize your analysis files:
 - **README Generation**: Standardized documentation templates  
 - **File Validation**: Check folder structure compliance
 - **Path Management**: Track and update project locations
-
-![Database (dark)](./screenshots/biome_database_dark.png)
 
 ### Understanding Analytics
 
@@ -342,8 +328,6 @@ Monitor facility usage patterns:
 - **Widefield Fluorescence**: High-throughput screening
 - **Super-resolution**: Advanced imaging techniques
 - **Slide Scanning**: Digital pathology applications
-
-![Projects (dark)](./screenshots/biome_projects_2_dark.png)
 
 ---
 
@@ -460,8 +444,6 @@ Associate BIOME projects with analysis software:
 3. Verify Node.js is properly installed and running
 4. Check Windows Firewall isn't blocking the application
 
-![Dashboard (dark)](./screenshots/biome_dashboard_dark.png)
-
 #### Issue: Slow Application Performance
 
 **Symptoms:** Long loading times, UI lag, slow project switching
@@ -484,8 +466,6 @@ Associate BIOME projects with analysis software:
 **Workaround:** 
 1. Switch to light mode: Settings → Appearance → Light Theme
 2. This will be resolved in a future update
-
-![Users & Groups (dark)](./screenshots/biome_users_and_groups_dark.png)
 
 ### File Management Issues
 
@@ -541,8 +521,6 @@ Debug information is stored in:
 - **Documentation**: [Technical Documentation](./docs/BIOME_Technical_Document.md)
 - **Issue Reporting**: Open GitHub issues with detailed reproduction steps
 - **Community**: Join bioimage analysis forums for user discussions
-
-![Dashboard (dark)](./screenshots/biome_dashboard_dark.png)
 
 ---
 
