@@ -513,7 +513,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
   const errorClasses = "ring-2 ring-red-300 dark:ring-red-600";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-100 dark:from-gray-900 dark:via-blue-900 dark:to-cyan-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-night-900">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
@@ -580,7 +580,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
         </div>
 
         {/* Main Content Card */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-filter backdrop-blur-lg rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-night-800 rounded-2xl border border-gray-200 dark:border-night-600 shadow-sm p-8">
           
           {/* Step 1: Project Information */}
           {currentStep === 1 && (
@@ -739,7 +739,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                     <button
                       type="button"
                       onClick={() => { setInlineError(''); setShowGroupModal(true); }}
-                      className="px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200 rounded-xl border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors text-sm whitespace-nowrap hover-soft"
+                      className="px-3 py-2 bg-bioluminescent-50 dark:bg-bioluminescent-900/20 text-bioluminescent-700 dark:text-bioluminescent-300 rounded-xl border border-bioluminescent-200 dark:border-bioluminescent-700/50 hover:bg-bioluminescent-100 dark:hover:bg-bioluminescent-900/40 transition-colors text-sm font-medium whitespace-nowrap"
                     >
                       + New Group
                     </button>
@@ -765,18 +765,28 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                         <option key={user.id} value={user.id}>{user.name}</option>
                       ))}
                     </select>
-                    <button
-                      type="button"
-                      onClick={() => { if (!projectData.group_id) return; setInlineError(''); setShowUserModal(true); }}
-                      disabled={!projectData.group_id}
-                      className={`px-3 py-2 rounded-xl border transition-colors text-sm whitespace-nowrap ${
-                        projectData.group_id
-                          ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-200 border-green-200 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/50'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-400 border-gray-200 dark:border-gray-600 cursor-not-allowed'
-                      } hover-soft`}
-                    >
-                      + New User
-                    </button>
+                    <div className="relative group/newuser">
+                      <button
+                        type="button"
+                        onClick={() => { if (!projectData.group_id) return; setInlineError(''); setShowUserModal(true); }}
+                        disabled={!projectData.group_id}
+                        className={`px-3 py-2 rounded-xl border transition-colors text-sm font-medium whitespace-nowrap ${
+                          projectData.group_id
+                            ? 'bg-bioluminescent-50 dark:bg-bioluminescent-900/20 text-bioluminescent-700 dark:text-bioluminescent-300 border-bioluminescent-200 dark:border-bioluminescent-700/50 hover:bg-bioluminescent-100 dark:hover:bg-bioluminescent-900/40'
+                            : 'bg-gray-100 dark:bg-night-800 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-night-700 cursor-not-allowed opacity-60'
+                        }`}
+                      >
+                        + New User
+                      </button>
+                      {!projectData.group_id && (
+                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/newuser:block z-10">
+                          <div className="bg-gray-900 dark:bg-night-600 text-white text-xs rounded-lg px-3 py-1.5 whitespace-nowrap shadow-lg">
+                            Select a group first
+                          </div>
+                          <div className="w-2 h-2 bg-gray-900 dark:bg-night-600 rotate-45 mx-auto -mt-1"></div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   {errors.user_id && (
                     <p className="text-red-600 text-xs mt-1">{errors.user_id}</p>
