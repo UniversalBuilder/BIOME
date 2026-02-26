@@ -2803,11 +2803,15 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         onClose={() => setShowDeleteConfirm(false)}
         onSubmit={(e) => { e.preventDefault(); confirmDelete(); }}
         submitLabel="Delete Project"
+        variant="danger"
         loading={false}
       >
-        <div className="text-sm text-gray-700 dark:text-gray-200">
-          <p className="font-medium mb-2">This action cannot be undone.</p>
-          <p>Are you sure you want to delete project "{project?.name}"?</p>
+        <div className="text-sm text-gray-700 dark:text-gray-300 space-y-3">
+          <p>Are you sure you want to permanently delete <span className="font-semibold text-gray-900 dark:text-white">"{project?.name}"</span>?</p>
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded text-xs text-red-700 dark:text-red-300 space-y-1">
+            <p className="font-semibold">This action cannot be undone.</p>
+            <p>All project metadata, journal entries, and activity logs will be permanently removed.</p>
+          </div>
         </div>
       </WizardFormModal>
 
