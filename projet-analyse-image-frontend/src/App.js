@@ -13,6 +13,7 @@ import { initAppLifecycle } from './services/appLifecycle';
 import Environment from './utils/environmentDetection';
 import EnvironmentInfo from './components/EnvironmentInfo';
 import diagnostics from './utils/diagnostics';
+import { checkAndRunAutoBackup } from './services/backupService';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
@@ -34,8 +35,12 @@ function App() {
     
     // Initialize app lifecycle handlers
     initAppLifecycle();
-    
-    // Log application startup with diagnostics
+
+    // Run auto-backup check on startup
+    checkAndRunAutoBackup((filename) => {
+      try { window.toast?.(`Auto-backup created: ${filename}`, { type: 'success', duration: 3000 }); } catch {}
+    });
+
     diagnostics.info('App', 'BIOME application initialized');
     
     // Check if we're running in Tauri environment with improved detection

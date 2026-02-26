@@ -113,6 +113,33 @@ export const databaseService = {
         });
         await handleResponse(response, 'Failed to import database');
         return response.json();
+    },
+
+    createBackup: async () => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/database/backup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        await handleResponse(response, 'Failed to create backup');
+        return response.json();
+    },
+
+    listBackups: async () => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/database/backups`);
+        await handleResponse(response, 'Failed to list backups');
+        return response.json();
+    },
+
+    restoreBackup: async (filename) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/database/restore/${encodeURIComponent(filename)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        await handleResponse(response, 'Failed to restore backup');
+        return response.json();
     }
 };
 
@@ -230,7 +257,7 @@ export const projectService = {
         const cleanData = {
             name: projectData.name || 'New Project',
             description: projectData.description || '',
-            status: projectData.status || 'Intake',
+            status: projectData.status || 'Preparing',
             software: projectData.software || null,
             output_type: projectData.output_type || null,
             time_spent_minutes: parseInt(projectData.time_spent_minutes) || 0,
@@ -238,7 +265,12 @@ export const projectService = {
             folder_created: projectData.folder_created || false,
             readme_last_updated: projectData.readme_last_updated || null,
             start_date: projectData.start_date || new Date().toISOString().split('T')[0],
-            user_id: projectData.user_id || null
+            user_id: projectData.user_id || null,
+            // Microscopy-specific multi-select fields
+            image_types: projectData.image_types || null,
+            analysis_goal: projectData.analysis_goal || null,
+            sample_type: projectData.sample_type || null,
+            objective_magnification: projectData.objective_magnification || null
         };
 
         console.log('Creating project with data:', JSON.stringify(cleanData, null, 2));

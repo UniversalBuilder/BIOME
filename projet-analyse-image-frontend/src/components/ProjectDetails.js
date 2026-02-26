@@ -253,6 +253,13 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   const [showWebFolderModal, setShowWebFolderModal] = useState(false);
   const [generatedStructureContent, setGeneratedStructureContent] = useState(null);
   const [showRelinkModal, setShowRelinkModal] = useState(false);
+  // Resource delete confirmation
+  const [showDeleteResourceModal, setShowDeleteResourceModal] = useState(false);
+  const [deletingResourceId, setDeletingResourceId] = useState(null);
+  // Folder structure overwrite confirmation
+  const [showFolderWarningModal, setShowFolderWarningModal] = useState(false);
+  const [folderWarningMessage, setFolderWarningMessage] = useState('');
+  const folderWarningCallbackRef = React.useRef(null);
 
   // Define common classes
   const inputBaseClasses = "w-full px-3 py-2 bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300";
@@ -770,14 +777,22 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     }
   };
 
-  const handleDeleteResource = async (resId) => {
-    if (!window.confirm('Delete this resource?')) return;
+  const handleDeleteResource = (resId) => {
+    setDeletingResourceId(resId);
+    setShowDeleteResourceModal(true);
+  };
+
+  const handleConfirmDeleteResource = async () => {
+    setShowDeleteResourceModal(false);
+    if (!deletingResourceId) return;
     try {
-      await projectService.deleteResource(project.id, resId);
+      await projectService.deleteResource(project.id, deletingResourceId);
       await loadResources();
     } catch (err) {
       console.error('Failed to delete resource', err);
       try { window.toast?.('Failed to delete resource', { type: 'error' }); } catch {}
+    } finally {
+      setDeletingResourceId(null);
     }
   };
 
@@ -969,7 +984,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     }
   };
 
-  const handleCreateFolderStructure = async () => {
+  const handleCreateFolderStructure = async (skipStep4 = false, skipStep5 = false) => {
     // Step 1: Check if project is saved first
     if (!isProjectSaved()) {
       try { window.toast?.('Save the project before creating the folder structure.', { type: 'warning' }); } catch {}
@@ -989,21 +1004,19 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     }
 
     // Step 4: Check if there's already a valid project structure
-    if (folderStatus.isValid && !displayData.folder_created) {
-      if (!window.confirm('⚠️ This location already contains a valid BIOME project structure.\n\n' +
-                         'Creating a new structure may overwrite existing files.\n\n' +
-                         'Do you want to continue?')) {
-        return;
-      }
+    if (!skipStep4 && folderStatus.isValid && !displayData.folder_created) {
+      folderWarningCallbackRef.current = () => handleCreateFolderStructure(true, skipStep5);
+      setFolderWarningMessage('This location already contains a valid BIOME project structure. Creating a new structure may overwrite existing files. Do you want to continue?');
+      setShowFolderWarningModal(true);
+      return;
     }
 
     // Step 5: In production, warn about non-empty folders (but allow with confirmation)
-    if (!folderStatus.isEmpty && process.env.NODE_ENV !== 'development' && isTauri) {
-      if (!window.confirm('⚠️ The selected folder is not empty.\n\n' +
-                         'Creating the project structure may affect existing files.\n\n' +
-                         'Do you want to continue?')) {
-        return;
-      }
+    if (!skipStep5 && !folderStatus.isEmpty && process.env.NODE_ENV !== 'development' && isTauri) {
+      folderWarningCallbackRef.current = () => handleCreateFolderStructure(true, true);
+      setFolderWarningMessage('The selected folder is not empty. Creating the project structure may affect existing files. Do you want to continue?');
+      setShowFolderWarningModal(true);
+      return;
     }
     
     try {
@@ -2004,6 +2017,24 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
 
       {/* Scrollable Content Area */}
       <ScrollableContainer className="p-6 pt-0 space-y-6">
+
+        {/* ══ Zone A: Project Metadata ══════════════════════════════════ */}
+        <div className="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800/40">
+          {/* Zone A header bar */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-100/90 dark:bg-gray-700/50 border-b border-gray-200/50 dark:border-gray-600/30">
+            <svg className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Project Metadata</span>
+            {!isEditing && (
+              <span className="ml-auto text-xs text-gray-400 dark:text-gray-500 italic">Use <strong className="font-medium not-italic">Edit Project</strong> to modify these fields</span>
+            )}
+            {isEditing && (
+              <span className="ml-auto text-xs text-bioluminescent-500 italic font-medium">Editing mode active</span>
+            )}
+          </div>
+          <div className="p-4 space-y-6">
+
         {/* Section 1: Project Information */}
         <div className="mb-6">
           <h4 className="text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -2012,7 +2043,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             </svg>
             Project Information
           </h4>
-          <div className="bg-white/70 dark:bg-gray-800/60 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-visible"
+          <div className={`bg-white/70 dark:bg-gray-800/60 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-visible${!isEditing ? ' opacity-60' : ''}`}
                style={{ isolation: 'auto' }}>
             <table className="w-full">
               <tbody className="divide-y divide-border dark:divide-border-dark">
@@ -2325,7 +2356,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             </svg>
             Project Status & Time Tracking
           </h4>
-          <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300">
+          <div className={`bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-300${!isEditing ? ' opacity-60' : ''}`}>
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Time Spent:</span>
               <span className={`text-sm ${getTimeSpentColor(isEditing ? (localEditingData.time_spent_minutes || 0) : project.time_spent_minutes)} dark:text-gray-300`}>
@@ -2423,7 +2454,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             </svg>
             Description
           </h4>
-          <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
+          <div className={`bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl shadow-sm hover:shadow-lg transition-all duration-300${!isEditing ? ' opacity-60' : ''}`}>
             {isEditing ? (
               <div className="p-4">
                 <textarea
@@ -2443,6 +2474,23 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             )}
           </div>
         </div>
+
+          </div>
+        </div>
+
+        {/* ── Zone B: Project Workspace ─────────────────────────────────── */}
+        {!isEditing && (
+          <div className="rounded-xl overflow-hidden mt-2 bg-bioluminescent-50/50 dark:bg-bioluminescent-900/20">
+            {/* Zone B header bar */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-bioluminescent-100/70 dark:bg-bioluminescent-900/40 border-b border-bioluminescent-200/50 dark:border-bioluminescent-700/30">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bioluminescent-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-bioluminescent-500"></span>
+              </span>
+              <span className="text-xs font-semibold text-bioluminescent-600 dark:text-bioluminescent-400 uppercase tracking-wider">Project Workspace</span>
+              <span className="ml-auto text-xs text-bioluminescent-500 dark:text-bioluminescent-500 italic">Add entries, files and documents — no edit mode required</span>
+            </div>
+            <div className="p-4 space-y-6">
 
         {/* Section 4.5: Project Resources */}
         {!isEditing && (
@@ -2702,7 +2750,50 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             </div>
           </div>
         )}
+
+            </div>
+          </div>
+        )}
+
       </ScrollableContainer>
+
+      {/* Delete Resource Confirmation */}
+      <WizardFormModal
+        isOpen={showDeleteResourceModal}
+        title="Delete Resource"
+        inlineError={null}
+        onClose={() => { setShowDeleteResourceModal(false); setDeletingResourceId(null); }}
+        onSubmit={(e) => { e.preventDefault(); handleConfirmDeleteResource(); }}
+        submitLabel="Delete"
+        loading={false}
+      >
+        <div className="text-sm text-gray-700 dark:text-gray-200">
+          <p className="font-medium mb-2">This action cannot be undone.</p>
+          <p>Are you sure you want to delete this resource?</p>
+        </div>
+      </WizardFormModal>
+
+      {/* Folder Structure Overwrite Warning */}
+      <WizardFormModal
+        isOpen={showFolderWarningModal}
+        title="⚠️ Confirm Folder Action"
+        inlineError={null}
+        onClose={() => { setShowFolderWarningModal(false); folderWarningCallbackRef.current = null; }}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setShowFolderWarningModal(false);
+          if (folderWarningCallbackRef.current) {
+            folderWarningCallbackRef.current();
+            folderWarningCallbackRef.current = null;
+          }
+        }}
+        submitLabel="Continue"
+        loading={false}
+      >
+        <div className="text-sm text-gray-700 dark:text-gray-200">
+          <p>{folderWarningMessage}</p>
+        </div>
+      </WizardFormModal>
 
       {/* Delete Confirmation - unified wizard style */}
       <WizardFormModal

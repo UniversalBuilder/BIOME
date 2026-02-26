@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { databaseService } from '../services/api';
+import { runManualBackup, getLastBackupDate } from '../services/backupService';
+import WizardFormModal from './WizardFormModal';
 
 function DatabaseManager({ onDatabaseChange }) {
     const [loading, setLoading] = useState(false);
@@ -7,33 +9,58 @@ function DatabaseManager({ onDatabaseChange }) {
     const [success, setSuccess] = useState(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [showInfo, setShowInfo] = useState(true);
+    // Import confirmation modal
+    const [showImportConfirm, setShowImportConfirm] = useState(false);
+    const [pendingImportFile, setPendingImportFile] = useState(null);
+    // Backups
+    const [backups, setBackups] = useState([]);
+    const [backupsLoading, setBackupsLoading] = useState(false);
+    const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+    const [restoringFilename, setRestoringFilename] = useState(null);
+    const [lastBackupDate, setLastBackupDate] = useState(null);
+    const [backupMessage, setBackupMessage] = useState(null); // { type: 'success'|'error', text }
 
-    const handleFileUpload = async (event) => {
+    const loadBackups = useCallback(async () => {
+        setBackupsLoading(true);
+        try {
+            const list = await databaseService.listBackups();
+            setBackups(list);
+        } catch (err) {
+            console.error('Failed to load backups:', err);
+        } finally {
+            setBackupsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadBackups();
+        setLastBackupDate(getLastBackupDate());
+    }, [loadBackups]);
+
+    const handleFileUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
+        setPendingImportFile(file);
+        setShowImportConfirm(true);
+        // Reset the input so the same file can be re-selected
+        event.target.value = '';
+    };
 
-        // Show confirmation dialog for import
-        if (!window.confirm(
-            'Importing a database will overwrite your current database. ' +
-            'Make sure you have backed up any important data. Continue?'
-        )) {
-            event.target.value = '';
-            return;
-        }
-
+    const handleConfirmImport = async () => {
+        setShowImportConfirm(false);
+        if (!pendingImportFile) return;
         setLoading(true);
         setError(null);
         setSuccess(null);
-
         try {
-            await databaseService.importDatabase(file);
+            await databaseService.importDatabase(pendingImportFile);
             setSuccess('Database imported successfully');
             if (onDatabaseChange) onDatabaseChange();
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
-            event.target.value = '';
+            setPendingImportFile(null);
         }
     };
 
@@ -82,9 +109,48 @@ function DatabaseManager({ onDatabaseChange }) {
         }
     };
 
-    const handleReset = async () => {
+    const handleCreateBackup = async () => {
+        setLoading(true);
+        setBackupMessage(null);
+        setError(null);
+        setSuccess(null);
+        try {
+            const result = await runManualBackup();
+            setBackupMessage({ type: 'success', text: `Backup created: ${result.filename}` });
+            setLastBackupDate(new Date().toISOString());
+            await loadBackups();
+        } catch (err) {
+            setBackupMessage({ type: 'error', text: 'Failed to create backup: ' + err.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRestoreClick = (filename) => {
+        setRestoringFilename(filename);
+        setShowRestoreConfirm(true);
+    };
+
+    const handleConfirmRestore = async () => {
+        setShowRestoreConfirm(false);
+        if (!restoringFilename) return;
         setLoading(true);
         setError(null);
+        setSuccess(null);
+        try {
+            await databaseService.restoreBackup(restoringFilename);
+            setSuccess(`Database restored from ${restoringFilename}. Please reload the app to see changes.`);
+            if (onDatabaseChange) onDatabaseChange();
+        } catch (err) {
+            setError('Failed to restore: ' + err.message);
+        } finally {
+            setLoading(false);
+            setRestoringFilename(null);
+        }
+    };
+
+    const handleReset = async () => {
+        setLoading(true);
         setSuccess(null);
 
         try {
@@ -282,6 +348,124 @@ function DatabaseManager({ onDatabaseChange }) {
                     )}
                 </div>
             </div>
+
+                {/* Automatic Backups Section */}
+                <div className="mt-6 bg-white dark:bg-night-800 rounded-lg border border-bioluminescent-200 dark:border-bioluminescent-800/50 shadow-sm">
+                    <div className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                                <span className="relative flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bioluminescent-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-bioluminescent-500"></span>
+                                </span>
+                                Automatic Backups
+                            </h3>
+                            <button
+                                onClick={handleCreateBackup}
+                                disabled={loading}
+                                className="px-4 py-2 text-sm font-medium rounded-xl text-white shadow-sm transition-all duration-200 disabled:opacity-50"
+                                style={{ background: 'linear-gradient(45deg, #00BFFF, #0080FF)' }}
+                            >
+                                {loading ? 'Creating…' : '+ Create Backup Now'}
+                            </button>
+                        </div>
+
+                        {backupMessage && (
+                            <div className={`mb-3 px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-2 ${
+                                backupMessage.type === 'success'
+                                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/50'
+                                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800/50'
+                            }`}>
+                                <span>{backupMessage.type === 'success' ? '✓' : '✗'}</span>
+                                <span>{backupMessage.text}</span>
+                                <button onClick={() => setBackupMessage(null)} className="ml-auto text-current opacity-60 hover:opacity-100">✕</button>
+                            </div>
+                        )}
+                        {lastBackupDate && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                                Last backup: {new Date(lastBackupDate).toLocaleString()}
+                            </p>
+                        )}
+
+                        {backupsLoading ? (
+                            <p className="text-sm text-gray-500">Loading backups…</p>
+                        ) : backups.length === 0 ? (
+                            <div className="p-4 bg-gray-50 dark:bg-night-700 rounded-lg text-sm text-gray-500 dark:text-gray-400 text-center">
+                                No backups yet. Click <strong>Create Backup Now</strong> or enable Auto-Backup in Settings.
+                            </div>
+                        ) : (
+                            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-night-600">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-gray-50 dark:bg-night-700">
+                                        <tr>
+                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Filename</th>
+                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                                            <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Size</th>
+                                            <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200 dark:divide-night-600">
+                                        {backups.map((b) => (
+                                            <tr key={b.filename} className="hover:bg-gray-50 dark:hover:bg-night-700 transition-colors">
+                                                <td className="px-4 py-2 font-mono text-xs text-gray-700 dark:text-gray-300">{b.filename}</td>
+                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400">{new Date(b.created_at).toLocaleString()}</td>
+                                                <td className="px-4 py-2 text-right text-gray-500">{Math.round(b.size / 1024)} KB</td>
+                                                <td className="px-4 py-2 text-right">
+                                                    <button
+                                                        onClick={() => handleRestoreClick(b.filename)}
+                                                        disabled={loading}
+                                                        className="px-3 py-1 text-xs font-medium rounded-lg text-white transition-all duration-200 disabled:opacity-50"
+                                                        style={{ background: 'linear-gradient(45deg, #8B5CF6, #6366F1)' }}
+                                                    >
+                                                        Restore
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
+                            Up to 5 backups are kept. Older backups are pruned automatically.
+                        </p>
+                    </div>
+                </div>
+
+      {/* Import confirmation modal */}
+      <WizardFormModal
+        isOpen={showImportConfirm}
+        title="Import Database"
+        inlineError={null}
+        onClose={() => { setShowImportConfirm(false); setPendingImportFile(null); }}
+        onSubmit={(e) => { e.preventDefault(); handleConfirmImport(); }}
+        submitLabel="Import"
+        loading={false}
+      >
+        <div className="text-sm text-gray-700 dark:text-gray-200 space-y-2">
+          <p className="font-medium">Importing will overwrite your current database.</p>
+          <p>File: <span className="font-mono">{pendingImportFile?.name}</span></p>
+          <p className="text-xs text-gray-500">Make sure you have created a backup before continuing.</p>
+        </div>
+      </WizardFormModal>
+
+      {/* Restore confirmation modal */}
+      <WizardFormModal
+        isOpen={showRestoreConfirm}
+        title="Restore from Backup"
+        inlineError={null}
+        onClose={() => { setShowRestoreConfirm(false); setRestoringFilename(null); }}
+        onSubmit={(e) => { e.preventDefault(); handleConfirmRestore(); }}
+        submitLabel="Restore"
+        loading={false}
+      >
+        <div className="text-sm text-gray-700 dark:text-gray-200 space-y-2">
+          <p className="font-medium">This action will replace the current database with the selected backup.</p>
+          <p>Backup: <span className="font-mono text-xs">{restoringFilename}</span></p>
+          <p className="text-xs text-amber-600 dark:text-amber-400">Any changes made after this backup was created will be lost.</p>
+        </div>
+      </WizardFormModal>
         </div>
     );
 }

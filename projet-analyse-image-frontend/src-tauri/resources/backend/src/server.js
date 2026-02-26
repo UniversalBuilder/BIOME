@@ -159,6 +159,95 @@ dbManager.connect().then(() => {
             });
     });
 
+    // --- Backup routes ---
+    // Always place backups next to the database file regardless of process.cwd()
+    const BACKUPS_DIR = path.join(path.dirname(dbManager.getDatabasePath()), 'backups');
+    const MAX_BACKUPS = 5;
+
+    const ensureBackupsDir = () => {
+        if (!fs.existsSync(BACKUPS_DIR)) fs.mkdirSync(BACKUPS_DIR, { recursive: true });
+    };
+
+    // Create a new backup
+    app.post('/api/database/backup', (req, res) => {
+        try {
+            ensureBackupsDir();
+            const dbPath = dbManager.getDatabasePath();
+            if (!fs.existsSync(dbPath)) {
+                return res.status(404).json({ error: 'Database file not found' });
+            }
+            const now = new Date();
+            const ts = now.toISOString().replace(/[:.]/g, '-').replace('T', '_').slice(0, 19);
+            const destName = `database-${ts}.sqlite`;
+            const destPath = path.join(BACKUPS_DIR, destName);
+
+            fs.copyFileSync(dbPath, destPath);
+            logger.info(`Backup created: ${destName}`);
+
+            // Purge old backups — keep only the MAX_BACKUPS most recent
+            const backupFiles = fs.readdirSync(BACKUPS_DIR)
+                .filter(f => f.endsWith('.sqlite'))
+                .map(f => ({ name: f, mtime: fs.statSync(path.join(BACKUPS_DIR, f)).mtime }))
+                .sort((a, b) => b.mtime - a.mtime);
+
+            backupFiles.slice(MAX_BACKUPS).forEach(f => {
+                fs.unlinkSync(path.join(BACKUPS_DIR, f.name));
+                logger.info(`Old backup purged: ${f.name}`);
+            });
+
+            res.json({ success: true, filename: destName, created_at: now.toISOString() });
+        } catch (error) {
+            logger.error('Error creating backup:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    // List available backups
+    app.get('/api/database/backups', (req, res) => {
+        try {
+            ensureBackupsDir();
+            const files = fs.readdirSync(BACKUPS_DIR)
+                .filter(f => f.endsWith('.sqlite'))
+                .map(f => {
+                    const stat = fs.statSync(path.join(BACKUPS_DIR, f));
+                    return { filename: f, size: stat.size, created_at: stat.mtime.toISOString() };
+                })
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            res.json(files);
+        } catch (error) {
+            logger.error('Error listing backups:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    // Restore a specific backup
+    app.post('/api/database/restore/:filename', async (req, res) => {
+        try {
+            const { filename } = req.params;
+            if (!/^database-[\d\-_]+\.sqlite$/.test(filename)) {
+                return res.status(400).json({ error: 'Invalid backup filename' });
+            }
+            const srcPath = path.join(BACKUPS_DIR, filename);
+            if (!fs.existsSync(srcPath)) {
+                return res.status(404).json({ error: 'Backup file not found' });
+            }
+            const dbPath = dbManager.getDatabasePath();
+            if (dbManager.db) {
+                await new Promise((resolve, reject) => {
+                    dbManager.db.close((err) => { if (err) reject(err); else resolve(); });
+                });
+                dbManager.db = null;
+            }
+            fs.copyFileSync(srcPath, dbPath);
+            await dbManager.connect();
+            logger.info(`Database restored from backup: ${filename}`);
+            res.json({ success: true, message: `Database restored from ${filename}` });
+        } catch (error) {
+            logger.error('Error restoring backup:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
     // Add a health check endpoint
     app.get('/api/health', (req, res) => {
         res.json({ status: 'ok', timestamp: new Date().toISOString() });
