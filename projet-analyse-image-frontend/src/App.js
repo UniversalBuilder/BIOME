@@ -3,6 +3,7 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import Settings from './pages/Settings';
+import Help from './pages/Help';
 import Layout from './components/Layout';
 import ToastProvider from './components/ToastProvider';
 import { ensureBackendRunning } from './services/backendLauncher';
@@ -166,6 +167,8 @@ function App() {
               />
             } />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/help" element={<Help />} />
+            <Route path="/help/:pageId" element={<Help />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>

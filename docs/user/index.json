@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "pages": [
+    {
+      "id": "getting-started",
+      "title": "Getting Started",
+      "description": "Install, launch and first steps with BIOME",
+      "file": "getting-started.md",
+      "icon": "rocket"
+    },
+    {
+      "id": "projects",
+      "title": "Projects",
+      "description": "Create and manage bioimage analysis projects",
+      "file": "projects.md",
+      "icon": "folder"
+    },
+    {
+      "id": "users-and-groups",
+      "title": "Users & Groups",
+      "description": "Manage researchers, groups and access",
+      "file": "users-and-groups.md",
+      "icon": "users"
+    },
+    {
+      "id": "analytics",
+      "title": "Analytics",
+      "description": "Charts, statistics and activity tracking",
+      "file": "analytics.md",
+      "icon": "chart"
+    },
+    {
+      "id": "database",
+      "title": "Database",
+      "description": "Backup, restore and data management",
+      "file": "database.md",
+      "icon": "database"
+    },
+    {
+      "id": "faq",
+      "title": "FAQ",
+      "description": "Frequently asked questions",
+      "file": "faq.md",
+      "icon": "question"
+    },
+    {
+      "id": "changelog",
+      "title": "Changelog",
+      "description": "What's new in each version",
+      "file": "changelog.md",
+      "icon": "clock"
+    }
+  ]
+}

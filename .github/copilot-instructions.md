@@ -56,3 +56,15 @@
 	- Maintain the Avatar‑inspired palette and consistent hover/Focus (`hover-soft`) utilities; follow existing component patterns.
 
 Keep changes environment‑aware, reuse the modal pattern, and update the changelog when altering user‑visible behavior.
+
+- Help & Documentation system
+	- User-facing docs live in `docs/user/` at the repo root as plain Markdown files.
+	- `docs/user/index.json` is the manifest that drives the Help page sidebar — add an entry here to register a new page (no code change needed).
+	- The app fetches docs at runtime from `raw.githubusercontent.com` via `src/services/docsService.js`.
+	- The Help page lives at `/help` and `/help/:pageId` — see `src/pages/Help.js`.
+	- Entry point in the UI: **Settings page** → "Help & Documentation" card.
+	- **Maintenance rule**: whenever a user-visible feature is added or changed:
+		1. Update or create the relevant `docs/user/<feature>.md` file.
+		2. Add a changelog entry in `docs/user/changelog.md`.
+		3. If it's a new top-level section, add an entry to `docs/user/index.json`.
+		4. Keep `CHANGELOG.md` (repo root) up to date for the technical record.

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import Environment from '../utils/environmentDetection';
 
@@ -242,6 +243,39 @@ function Settings() {
             </div>
           </div>
         )}
+
+        {/* Help & Documentation */}
+        <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm lg:col-span-2 xl:col-span-3">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Help &amp; Documentation</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Browse user guides, feature references, and FAQs. Documentation is loaded live from the GitHub repository.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { id: 'getting-started', label: 'Getting Started', desc: 'Installation & first steps' },
+              { id: 'projects', label: 'Projects', desc: 'Create & manage projects' },
+              { id: 'faq', label: 'FAQ', desc: 'Common questions' },
+              { id: 'changelog', label: 'Changelog', desc: "What's new" },
+            ].map(({ id, label, desc }) => (
+              <Link
+                key={id}
+                to={`/help/${id}`}
+                className="flex flex-col gap-1 p-3 rounded-lg bg-gray-50 dark:bg-night-700 border border-gray-200 dark:border-night-600 hover:bg-bioluminescent-500/10 hover:border-bioluminescent-500/40 transition-colors group"
+              >
+                <span className="font-medium text-sm text-gray-900 dark:text-gray-100 group-hover:text-bioluminescent-600 dark:group-hover:text-bioluminescent-400 transition-colors">{label}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{desc}</span>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-3">
+            <Link
+              to="/help"
+              className="inline-flex items-center gap-1 text-sm text-bioluminescent-600 dark:text-bioluminescent-400 hover:underline"
+            >
+              Open full documentation →
+            </Link>
+          </div>
+        </div>
 
       </div>
     </div>
