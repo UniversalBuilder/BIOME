@@ -309,17 +309,6 @@ function LandingPage({ activeTab, onNavigateToTab }) {
         return (
           <div className="w-full h-full overflow-hidden flex flex-col">
             <div className="flex-1 min-h-0 overflow-y-auto w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2" style={{
-                  background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: '0 0 10px rgba(0, 247, 255, 0.3)'
-                }}>Dashboard</h2>
-                <p className="text-gray-600 dark:text-gray-300 mt-1">
-                  Overview of your bioimage analysis projects and activities
-                </p>
-              </div>
               <Dashboard
                 analytics={analytics}
                 activities={projectActivities}
@@ -354,17 +343,6 @@ function LandingPage({ activeTab, onNavigateToTab }) {
         return (
           <div className="projects-container w-full h-full overflow-hidden flex flex-col">
             <div className="flex-1 min-h-0 overflow-y-auto w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2" style={{
-                  background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: '0 0 10px rgba(0, 247, 255, 0.3)'
-                }}>Project Management</h2>
-                <p className="text-gray-600 dark:text-gray-300 mt-1">
-                  View, edit, and manage your bioimage analysis projects
-                </p>
-              </div>
               <div className="grid grid-cols-12 gap-6">
                 <div className="col-span-5 lg:col-span-4">
                   <ProjectList
@@ -397,12 +375,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
                       <p className="text-gray-600 dark:text-gray-300 mb-4">Select a project from the list to view and edit its details</p>
                       <button
                         onClick={handleCreateNewProject}
-                        className="btn"
-                        style={{
-                          background: 'linear-gradient(45deg, rgba(20, 75, 123, 0.1), rgba(73, 155, 160, 0.1))',
-                          borderColor: 'rgba(20, 75, 123, 0.3)',
-                          color: '#144B7B'
-                        }}
+                        className="btn border border-indigo-500/30 dark:border-bioluminescent-500/30 text-indigo-700 dark:text-bioluminescent-400 bg-indigo-500/5 dark:bg-bioluminescent-500/10 hover:bg-indigo-500/10 dark:hover:bg-bioluminescent-500/20"
                       >
                         <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -420,17 +393,6 @@ function LandingPage({ activeTab, onNavigateToTab }) {
         return (
           <div className="w-full h-full overflow-y-auto">
             <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2" style={{
-                  background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: '0 0 10px rgba(0, 247, 255, 0.3)'
-                }}>Projects Table View</h2>
-                <p className="text-gray-600 dark:text-gray-300 mt-1">
-                  View all projects in a table format with sorting and filtering options
-                </p>
-              </div>
               <div className="pb-6">
                 <ProjectTableView 
                   projects={projects}
@@ -448,17 +410,6 @@ function LandingPage({ activeTab, onNavigateToTab }) {
         return (
           <div className="w-full h-full overflow-hidden flex flex-col">
             <div className="flex-1 min-h-0 overflow-y-auto w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2" style={{
-                  background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: '0 0 10px rgba(0, 247, 255, 0.3)'
-                }}>Users & Groups Management</h2>
-                <p className="text-gray-600 dark:text-gray-300 mt-1">
-                  Manage users and groups for your bioimage analysis projects
-                </p>
-              </div>
               <UserGroupManager 
                 onUserGroupChange={loadProjects} 
               />
@@ -469,17 +420,6 @@ function LandingPage({ activeTab, onNavigateToTab }) {
         return (
           <div className="w-full h-full overflow-hidden flex flex-col">
             <div className="flex-1 min-h-0 overflow-y-auto w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2" style={{
-                  background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: '0 0 10px rgba(0, 247, 255, 0.3)'
-                }}>Database Management</h2>
-                <p className="text-gray-600 dark:text-gray-300 mt-1">
-                  Manage your BIOME database and data integrity
-                </p>
-              </div>
               <DatabaseManager 
                 onDatabaseChange={loadProjects}
               />
@@ -510,7 +450,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
 
   if (error) {
     return (
-      <div className="w-full h-full bg-slate-50 dark:bg-night-900">
+      <div className="w-full h-full bg-isabelline dark:bg-night-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-400 p-4 mb-4 rounded-lg shadow-md">
             <div className="flex">

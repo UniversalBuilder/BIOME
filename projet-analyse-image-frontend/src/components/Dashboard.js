@@ -12,11 +12,7 @@ const getActivityIcon = (activityType) => {
   switch (activityType) {
     case 'create':
       return (
-        <div className="flex-shrink-0 mt-0.5 rounded-full p-1" style={{
-          background: 'linear-gradient(45deg, rgba(34, 197, 94, 0.2), rgba(132, 204, 22, 0.2))',
-          color: 'rgba(34, 197, 94, 0.8)',
-          border: '1px solid rgba(34, 197, 94, 0.3)'
-        }}>
+        <div className="flex-shrink-0 mt-0.5 rounded-full p-1 bg-bioluminescent-500/20 text-bioluminescent-600 dark:text-bioluminescent-400">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
@@ -24,11 +20,7 @@ const getActivityIcon = (activityType) => {
       );
     case 'update':
       return (
-        <div className="flex-shrink-0 mt-0.5 rounded-full p-1" style={{
-          background: 'linear-gradient(45deg, rgba(0, 247, 255, 0.2), rgba(77, 180, 255, 0.2))',
-          color: 'rgba(0, 247, 255, 0.8)',
-          border: '1px solid rgba(0, 247, 255, 0.3)'
-        }}>
+        <div className="flex-shrink-0 mt-0.5 rounded-full p-1 bg-cyan-400/20 text-cyan-600 dark:text-cyan-400">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
@@ -36,11 +28,7 @@ const getActivityIcon = (activityType) => {
       );
     case 'journal_entry':
       return (
-        <div className="flex-shrink-0 mt-0.5 rounded-full p-1" style={{
-          background: 'linear-gradient(45deg, rgba(155, 107, 243, 0.2), rgba(92, 119, 222, 0.2))',
-          color: 'rgba(155, 107, 243, 0.8)',
-          border: '1px solid rgba(155, 107, 243, 0.3)'
-        }}>
+        <div className="flex-shrink-0 mt-0.5 rounded-full p-1 bg-purple-400/20 text-purple-600 dark:text-purple-400">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
@@ -48,11 +36,7 @@ const getActivityIcon = (activityType) => {
       );
     case 'update_users':
       return (
-        <div className="flex-shrink-0 mt-0.5 rounded-full p-1" style={{
-          background: 'linear-gradient(45deg, rgba(251, 191, 36, 0.2), rgba(249, 115, 22, 0.2))',
-          color: 'rgba(251, 191, 36, 0.8)',
-          border: '1px solid rgba(251, 191, 36, 0.3)'
-        }}>
+        <div className="flex-shrink-0 mt-0.5 rounded-full p-1 bg-yellow-400/20 text-yellow-600 dark:text-yellow-400">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
@@ -60,11 +44,7 @@ const getActivityIcon = (activityType) => {
       );
     default:
       return (
-        <div className="flex-shrink-0 mt-0.5 rounded-full p-1" style={{
-          background: 'linear-gradient(45deg, rgba(107, 114, 128, 0.2), rgba(156, 163, 175, 0.2))',
-          color: 'rgba(107, 114, 128, 0.8)',
-          border: '1px solid rgba(107, 114, 128, 0.3)'
-        }}>
+        <div className="flex-shrink-0 mt-0.5 rounded-full p-1 bg-gray-400/20 text-gray-500 dark:text-gray-400">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -270,8 +250,8 @@ const ActivityFeed = ({ activities = [] }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm flex flex-col h-full">
-      <div className="p-4 border-b border-gray-200 dark:border-night-600 flex justify-between items-center">
+    <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200/40 dark:border-night-700/50 shadow-sm flex flex-col h-full">
+      <div className="p-4 border-b border-gray-200/40 dark:border-night-700/50 flex justify-between items-center">
         <Tooltip>
           <Tooltip.Trigger asChild>
             <h3 className="text-base font-medium text-slate-800 dark:text-gray-200">Activity Feed</h3>
@@ -284,13 +264,7 @@ const ActivityFeed = ({ activities = [] }) => {
           <Tooltip.Trigger asChild>
             <button
               onClick={handleExportActivities}
-              className="btn btn-sm"
-              style={{
-                background: 'linear-gradient(45deg, #22c55e, #84cc16)',
-                color: 'white',
-                border: 'none',
-                textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-              }}
+              className="btn btn-sm btn-primary-gradient"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -298,7 +272,7 @@ const ActivityFeed = ({ activities = [] }) => {
               Export Log
             </button>
           </Tooltip.Trigger>
-          <Tooltip.Panel className="bg-slate-800 text-white text-xs px-2 py-1 rounded shadow-lg">
+          <Tooltip.Panel className="bg-gray-800/90 text-white text-xs px-2 py-1 rounded shadow-lg backdrop-filter backdrop-blur-sm">
             Export full activity log as Excel file
           </Tooltip.Panel>
         </Tooltip>
@@ -311,15 +285,15 @@ const ActivityFeed = ({ activities = [] }) => {
               <div className="flex-1 min-w-0 overflow-hidden">
                 <div className="flex justify-between items-start">
                   <div className="text-xs font-medium text-bioluminescent-600 dark:text-bioluminescent-400 break-words overflow-wrap-anywhere">{activity.project_name}</div>
-                  <div className="text-[10px] text-slate-400 dark:text-gray-500 whitespace-nowrap ml-2">
+                  <div className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap ml-2">
                     {activity.formattedDate}
                   </div>
                 </div>
-                <p className="text-xs text-slate-700 dark:text-gray-300 mt-0.5 break-words overflow-wrap-anywhere whitespace-normal line-clamp-2">{activity.details}</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 mt-0.5 break-words overflow-wrap-anywhere whitespace-normal line-clamp-2">{activity.details}</p>
                 {activity.changedFields.length > 0 && (
                   <div className="mt-1 flex flex-wrap gap-1">
                     {activity.changedFields.slice(0, 2).map((change, idx) => (
-                      <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+                      <span key={idx} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
                         {change}
                       </span>
                     ))}
@@ -333,7 +307,7 @@ const ActivityFeed = ({ activities = [] }) => {
               </div>
             </div>
           )) : (
-            <div className="flex flex-col items-center justify-center h-full py-8 text-slate-500 dark:text-gray-400">
+            <div className="flex flex-col items-center justify-center h-full py-8 text-gray-500 dark:text-gray-400">
               <svg className="w-8 h-8 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -344,7 +318,7 @@ const ActivityFeed = ({ activities = [] }) => {
       </ScrollableContainer>
       {/* Show more / All shown indicator */}
       {activities.length > 5 && (
-        <div className="px-4 pb-3 pt-1 border-t border-gray-100 dark:border-night-600">
+        <div className="px-4 pb-3 pt-1 border-t border-gray-100/40 dark:border-night-700/50">
           {hasMore ? (
             <button
               onClick={handleShowMore}
@@ -500,13 +474,7 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                     <Tooltip.Trigger asChild>
                       <ImportProjectButton 
                         onProjectImported={handleProjectImported}
-                        className="btn btn-sm hover-soft mr-2"
-                        style={{
-                          background: 'linear-gradient(45deg, #6366f1, #8b5cf6)',
-                          color: 'white',
-                          border: 'none',
-                          boxShadow: '0 2px 4px rgba(99, 102, 241, 0.3)'
-                        }}
+                        className="btn btn-sm hover-soft mr-2 btn-cancel"
                       >
                         <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -520,13 +488,8 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                   </Tooltip>
                   
                   <button
-                    className="btn btn-sm hover-soft"
+                    className="btn btn-sm hover-soft btn-action"
                     onClick={() => onQuickAction && onQuickAction('create')}
-                    style={{
-                      background: 'linear-gradient(45deg, #00F7FF, #4DB4FF)',
-                      color: 'white',
-                      border: 'none'
-                    }}
                   >
                     <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -609,19 +572,19 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
               <Tooltip.Trigger asChild>
                 <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col relative overflow-hidden group">
                   <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <svg className="w-16 h-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-16 h-16 text-bioluminescent-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+                    <div className="p-2 rounded-lg bg-bioluminescent-500/10 dark:bg-bioluminescent-500/20 text-bioluminescent-600 dark:text-bioluminescent-400">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200">Time Statistics</h3>
                   </div>
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400 mt-auto mb-1">
+                  <div className="text-2xl font-bold text-bioluminescent-600 dark:text-bioluminescent-400 mt-auto mb-1">
                     {averageTimePerProject}h
                   </div>
                   <p className="text-xs text-slate-600 dark:text-gray-400">Average time spent per project</p>
@@ -638,19 +601,19 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
               <Tooltip.Trigger asChild>
                 <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm p-4 flex flex-col relative overflow-hidden group">
                   <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <svg className="w-16 h-16 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-16 h-16 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                    <div className="p-2 rounded-lg bg-violet-500/10 dark:bg-violet-500/20 text-violet-600 dark:text-violet-400">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <h3 className="text-sm font-medium text-slate-800 dark:text-gray-200">Completion Rate</h3>
                   </div>
-                  <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-auto mb-1">
+                  <div className="text-2xl font-bold text-violet-600 dark:text-violet-400 mt-auto mb-1">
                     {completionRate}%
                   </div>
                   <p className="text-xs text-slate-600 dark:text-gray-400">Projects completed successfully</p>
@@ -707,15 +670,12 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                   />
                   <button 
                     type="submit"
-                    className="btn btn-sm"
+                    className={`btn btn-sm ${
+                      searchQuery.trim()
+                        ? 'btn-action'
+                        : 'bg-gray-100 dark:bg-night-700 text-gray-400 dark:text-gray-500 opacity-60'
+                    }`}
                     disabled={!searchQuery.trim() || isSearching}
-                    style={{
-                      background: searchQuery.trim() ? 'linear-gradient(45deg, #00F7FF, #4DB4FF)' : '',
-                      color: searchQuery.trim() ? 'white' : '',
-                      border: searchQuery.trim() ? 'none' : '',
-                      textShadow: searchQuery.trim() ? '0 1px 2px rgba(0,0,0,0.2)' : '',
-                      opacity: searchQuery.trim() ? 1 : 0.6
-                    }}
                   >
                     {isSearching ? (
                       <>
@@ -760,46 +720,42 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
           </div>
 
           <div className="dashboard-card about-card">
-            <div className="h-full bg-gradient-to-br from-night-800 via-night-800 to-bioluminescent-900/20 dark:from-night-800 dark:via-night-800 dark:to-bioluminescent-900/30 rounded-lg border border-bioluminescent-500/20 shadow-lg p-4 flex flex-col relative overflow-hidden">
-              {/* Decorative glow */}
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-bioluminescent-500/10 rounded-full blur-2xl" />
-              
+            <div className="h-full bg-white dark:bg-night-800 rounded-lg shadow-sm p-4 flex flex-col">
               {/* Header */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-bioluminescent-400 to-bioluminescent-600 flex items-center justify-center shadow-lg shadow-bioluminescent-500/30">
-                  <span className="text-white font-bold text-sm">B</span>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-white">BIOME</h3>
-                  <p className="text-[10px] text-bioluminescent-300/80">Bio Imaging Organization & Management</p>
-                </div>
+              <div className="mb-3">
+                <h3 className="text-xl font-bold leading-tight" style={{
+                  background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}>BIOME</h3>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Bio Imaging Organization & Management</p>
               </div>
               
               {/* Version badge */}
               <div className="flex items-center gap-2 mb-3">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-bioluminescent-500/20 text-bioluminescent-300 border border-bioluminescent-500/30">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-700 dark:text-amber-400">
                   v{appMeta?.version || '2.0.0'}
                 </span>
-                <span className="text-[10px] text-gray-400">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">
                   {appMeta?.releaseDate || new Date().toISOString().slice(0,10)}
                 </span>
               </div>
               
               {/* Tech stack */}
               <div className="flex gap-1.5 mb-3">
-                <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Tauri</span>
-                <span className="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/20">React</span>
-                <span className="px-1.5 py-0.5 rounded text-[9px] bg-green-500/10 text-green-400 border border-green-500/20">SQLite</span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-500/10 text-cyan-700 dark:text-cyan-400">Tauri</span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/10 text-blue-700 dark:text-blue-400">React</span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] bg-green-500/10 text-green-700 dark:text-green-400">SQLite</span>
               </div>
               
               {/* Copyright */}
-              <p className="text-[10px] text-gray-500 mt-auto mb-2">© 2025 CIF UNIL</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-auto mb-2">© 2025 CIF UNIL</p>
               
               {/* Action buttons */}
               <div className="flex gap-2">
                 <button
                   onClick={() => setIsAboutOpen(true)}
-                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-bioluminescent-500/20 text-bioluminescent-300 hover:bg-bioluminescent-500/30 border border-bioluminescent-500/30 transition-all"
+                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-gray-100 dark:bg-gray-500/20 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500/30 transition-all"
                 >
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -810,7 +766,7 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                   href="https://cif.unil.ch"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-gray-500/20 text-gray-300 hover:bg-gray-500/30 border border-gray-500/30 transition-all"
+                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-medium bg-gray-100 dark:bg-gray-500/20 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500/30 transition-all"
                 >
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c-1.657 0-3-4.03-3-9s1.343-9 3-9m0 18c1.657 0 3-4.03 3-9s-1.343-9-3-9m-9 9a9 9 0 019-9" />
@@ -824,19 +780,19 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
           {/* About Modal */}
           {isAboutOpen && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 relative">
+              <div className="bg-white dark:bg-night-800 rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 relative">
                 <button
                   onClick={() => setIsAboutOpen(false)}
-                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+                  className="absolute top-4 right-4 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
                 
-                <h2 className="text-xl font-medium text-slate-800 mb-4">About BIOME</h2>
+                <h2 className="text-xl font-medium text-gray-900 dark:text-gray-100 mb-4">About BIOME</h2>
                 
-                <div className="space-y-4 text-sm text-slate-600">
+                <div className="space-y-4 text-sm text-gray-700 dark:text-gray-300">
                   <div className="space-y-2">
                     <p className="leading-relaxed">BIOME (Bio Imaging Organization and Management Environment) is a comprehensive project management tool designed specifically for bioimage analysis workflows. It helps researchers and imaging facilities track, organize, and manage their microscopy data analysis projects efficiently.</p>
                     
@@ -850,24 +806,24 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                     </ul>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-200">
+                  <div className="pt-4 border-t border-gray-200 dark:border-night-600">
                     <p className="font-medium mb-2">Developer</p>
                     <p>Yannick KREMPP</p>
                     <p>Bioimaging analysis and IT</p>
                     <p>CIF | Cellular Imaging Facility</p>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-200">
+                  <div className="pt-4 border-t border-gray-200 dark:border-night-600">
                     <p className="font-medium mb-2">Contact</p>
-                    <p>Mail: <a href="mailto:yannick.krempp@unil.ch" className="text-blue-600 hover:text-blue-800">yannick.krempp@unil.ch</a></p>
-                    <p>Web: <a href="https://cif.unil.ch" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">cif.unil.ch</a></p>
+                    <p>Mail: <a href="mailto:yannick.krempp@unil.ch" className="text-bioluminescent-600 dark:text-bioluminescent-400 hover:text-bioluminescent-700 dark:hover:text-bioluminescent-300">yannick.krempp@unil.ch</a></p>
+                    <p>Web: <a href="https://cif.unil.ch" target="_blank" rel="noopener noreferrer" className="text-bioluminescent-600 dark:text-bioluminescent-400 hover:text-bioluminescent-700 dark:hover:text-bioluminescent-300">cif.unil.ch</a></p>
                     <p>Social: 
-                      <a href="https://www.linkedin.com/in/yannick-krempp" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 ml-1">LinkedIn</a> |
-                      <a href="https://www.youtube.com/@CIFUNIL" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 ml-1">Youtube</a>
+                      <a href="https://www.linkedin.com/in/yannick-krempp" target="_blank" rel="noopener noreferrer" className="text-bioluminescent-600 dark:text-bioluminescent-400 hover:text-bioluminescent-700 dark:hover:text-bioluminescent-300 ml-1">LinkedIn</a> |
+                      <a href="https://www.youtube.com/@CIFUNIL" target="_blank" rel="noopener noreferrer" className="text-bioluminescent-600 dark:text-bioluminescent-400 hover:text-bioluminescent-700 dark:hover:text-bioluminescent-300 ml-1">Youtube</a>
                     </p>
                   </div>
 
-                  <div className="pt-4 border-t border-slate-200">
+                  <div className="pt-4 border-t border-gray-200 dark:border-night-600">
                     <p className="font-medium mb-2">Location</p>
                     <p>DNF » rue du Bugnon 9 | Bureau 212 » CH-1005 Lausanne</p>
                     <p className="mt-2">Agora » Rue du Bugnon 25A | Office 03 248 » 1005 Lausanne</p>

@@ -4,8 +4,22 @@ import ScrollTopButton from './ScrollTopButton';
 import DebugConsole from './DebugConsole';
 import Environment from '../utils/environmentDetection';
 
+const PAGE_TITLES = {
+  '/': { title: 'Dashboard', subtitle: 'Overview of your bioimage analysis projects and activities' },
+  '/projects': { title: 'Project Management', subtitle: 'View, edit, and manage your bioimage analysis projects' },
+  '/table': { title: 'Projects Table View', subtitle: 'View all projects in a table format with sorting and filtering options' },
+  '/users-and-groups': { title: 'Users & Groups Management', subtitle: 'Manage users and groups for your bioimage analysis projects' },
+  '/database': { title: 'Database Management', subtitle: 'Manage your BIOME database and data integrity' },
+  '/analytics': { title: 'Analytics', subtitle: 'Analyze and visualize your bioimage project data' },
+  '/settings': { title: 'Application Settings', subtitle: 'Configure your BIOME application preferences' },
+  '/help': { title: 'Help & Documentation', subtitle: 'Guides and references for using BIOME' },
+};
+
 function Layout({ children }) {
   const [showDebugConsole, setShowDebugConsole] = useState(false);
+  const location = useLocation();
+  const pageInfo = PAGE_TITLES[location.pathname]
+    ?? (location.pathname.startsWith('/help') ? PAGE_TITLES['/help'] : null);
   
   // Check if we're running in Tauri environment
   useEffect(() => {
@@ -47,8 +61,8 @@ function Layout({ children }) {
   }, []);
   
   return (
-    <div className="app-container bg-isabelline dark:bg-night-900 h-screen flex flex-col overflow-hidden">
-      <header className="bg-white dark:bg-night-800 border-b border-gray-200 dark:border-night-600 flex-none z-10">
+    <div className="app-container bg-isabelline dark:bg-night-900 h-screen flex flex-col">
+      <header className="app-header bg-white dark:bg-night-800 border-b border-gray-200 dark:border-night-600 flex-none z-10">
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* App title with original cyan gradient colors */}
@@ -83,6 +97,13 @@ function Layout({ children }) {
               </nav>
             </div>
           </div>
+          {/* Page title strip */}
+          {pageInfo && (
+            <div className="pb-2 flex items-baseline gap-2">
+              <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{pageInfo.title}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{pageInfo.subtitle}</span>
+            </div>
+          )}
         </div>
       </header>
 

@@ -84,18 +84,6 @@ function Settings() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2" style={{
-          background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          textShadow: '0 0 10px rgba(0, 247, 255, 0.3)'
-        }}>
-          Application Settings
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300">Configure your BIOME application preferences</p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Environment Information */}
         <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm">
@@ -107,8 +95,7 @@ function Settings() {
               <span 
                 className="px-3 py-1 rounded-full text-sm font-medium text-white"
                 style={{
-                  background: 'linear-gradient(45deg, #22c55e, #84cc16)',
-                  boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)'
+                  background: 'linear-gradient(45deg, #22c55e, #84cc16)'
                 }}
               >
                 {isTauri ? 'Desktop' : 'Web'}
@@ -140,8 +127,7 @@ function Settings() {
                   isDarkMode ? '' : 'bg-gray-200'
                 }`}
                 style={isDarkMode ? {
-                  background: 'linear-gradient(45deg, #22c55e, #84cc16)',
-                  boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)'
+                  background: 'linear-gradient(45deg, #22c55e, #84cc16)'
                 } : {}}
                 title="Toggle dark mode"
               >
@@ -197,8 +183,7 @@ function Settings() {
                     autoBackup ? '' : 'bg-gray-200'
                   }`}
                   style={autoBackup ? {
-                    background: 'linear-gradient(45deg, #22c55e, #84cc16)',
-                    boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)'
+                    background: 'linear-gradient(45deg, #22c55e, #84cc16)'
                   } : {}}
                 >
                   <span
@@ -245,7 +230,7 @@ function Settings() {
         )}
 
         {/* Help & Documentation */}
-        <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm lg:col-span-2 xl:col-span-3">
+        <div className="bg-white dark:bg-night-800 rounded-lg p-6 shadow-sm lg:col-span-2 xl:col-span-3">
           <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Help &amp; Documentation</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Browse user guides, feature references, and FAQs. Documentation is loaded live from the GitHub repository.
@@ -260,7 +245,7 @@ function Settings() {
               <Link
                 key={id}
                 to={`/help/${id}`}
-                className="flex flex-col gap-1 p-3 rounded-lg bg-gray-50 dark:bg-night-700 border border-gray-200 dark:border-night-600 hover:bg-bioluminescent-500/10 hover:border-bioluminescent-500/40 transition-colors group"
+                className="flex flex-col gap-1 p-3 rounded-lg bg-gray-50 dark:bg-night-700 hover:bg-bioluminescent-500/10 hover:border-bioluminescent-500/40 transition-colors group"
               >
                 <span className="font-medium text-sm text-gray-900 dark:text-gray-100 group-hover:text-bioluminescent-600 dark:group-hover:text-bioluminescent-400 transition-colors">{label}</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">{desc}</span>

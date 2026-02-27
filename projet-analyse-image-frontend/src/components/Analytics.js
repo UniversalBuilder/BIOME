@@ -1322,13 +1322,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     <div className="analytics-page">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6 animate-fade-in">
-          <h2 className="text-3xl font-bold mb-2" style={{
-            background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            textShadow: '0 0 10px rgba(0, 247, 255, 0.3)'
-          }}>Project Analytics</h2>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
+          <p className="text-gray-600 dark:text-gray-300">
             Data insights from {isFiltered ? filteredProjects.length : projects.length} projects
             {isFiltered && (
               <span className="ml-2 text-blue-600 text-sm font-medium">

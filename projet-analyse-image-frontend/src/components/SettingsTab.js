@@ -57,8 +57,7 @@ function SettingsTab({ isActive, onNavigate }) {
               <span 
                 className="px-3 py-1 rounded-full text-sm font-medium text-white"
                 style={{
-                  background: 'linear-gradient(45deg, #22c55e, #84cc16)',
-                  boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)'
+                  background: 'linear-gradient(45deg, #22c55e, #84cc16)'
                 }}
               >
                 {isTauri ? '🖥️ Desktop' : '🌐 Web'}
@@ -127,8 +126,7 @@ function SettingsTab({ isActive, onNavigate }) {
                   isDarkMode ? '' : 'bg-gray-200'
                 }`}
                 style={isDarkMode ? {
-                  background: 'linear-gradient(45deg, #22c55e, #84cc16)',
-                  boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)'
+                  background: 'linear-gradient(45deg, #22c55e, #84cc16)'
                 } : {}}
                 title="Toggle dark mode"
               >

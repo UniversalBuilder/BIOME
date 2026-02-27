@@ -60,18 +60,14 @@ function Skeleton({ className }) {
 // ── Markdown renderer with custom Tailwind styling ───────────────────────────
 const markdownComponents = {
   h1: ({ children }) => (
-    <h1 className="text-2xl font-bold mt-6 mb-4 pb-2 border-b border-gray-200 dark:border-night-600 text-gray-900 dark:text-gray-100"
-      style={{
-        background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-      }}
-    >{children}</h1>
+    <h1 className="text-2xl font-bold mt-6 mb-4 pb-2 border-b border-gray-200 dark:border-night-600 gradient-heading">
+      {children}
+    </h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-xl font-semibold mt-8 mb-3 text-gray-900 dark:text-gray-100 border-l-4 pl-3"
-      style={{ borderColor: '#00F7FF' }}
-    >{children}</h2>
+    <h2 className="text-xl font-semibold mt-8 mb-3 text-gray-900 dark:text-gray-100 border-l-4 border-cyan-400 dark:border-[#00F7FF] pl-3">
+      {children}
+    </h2>
   ),
   h3: ({ children }) => (
     <h3 className="text-base font-semibold mt-5 mb-2 text-gray-800 dark:text-gray-200">{children}</h3>
@@ -191,30 +187,16 @@ function Help() {
   return (
     <div className="h-full overflow-y-auto">
     <div className="p-6 max-w-6xl mx-auto">
-      {/* Page header */}
-      <div className="mb-6">
-        <h2
-          className="text-3xl font-bold mb-2"
-          style={{
-            background: 'linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            textShadow: '0 0 10px rgba(0, 247, 255, 0.3)',
-          }}
+      {/* GitHub docs link */}
+      <div className="mb-4">
+        <a
+          href="https://github.com/UniversalBuilder/BIOME/tree/main/docs/user"
+          target="_blank"
+          rel="noreferrer"
+          className="text-bioluminescent-400 hover:text-bioluminescent-300 underline underline-offset-2 text-xs"
         >
-          Help & Documentation
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300">
-          Browse guides and references for using BIOME.{' '}
-          <a
-            href="https://github.com/UniversalBuilder/BIOME/tree/main/docs/user"
-            target="_blank"
-            rel="noreferrer"
-            className="text-bioluminescent-400 hover:text-bioluminescent-300 underline underline-offset-2 text-sm"
-          >
-            View on GitHub ↗
-          </a>
-        </p>
+          View source docs on GitHub ↗
+        </a>
       </div>
 
       {/* Full-page network error */}
@@ -261,6 +243,7 @@ function Help() {
                               : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-night-700'}
                           `}
                           style={isActive ? { borderLeft: '3px solid #00F7FF', paddingLeft: '13px' } : {}}
+                          /* Note: borderLeft uses inline style to achieve exactly 3px – Tailwind border-l is 4px */
                         >
                           <span className={isActive ? 'text-bioluminescent-400' : 'text-gray-400'}>
                             {IconMap[page.icon] || IconMap.folder}

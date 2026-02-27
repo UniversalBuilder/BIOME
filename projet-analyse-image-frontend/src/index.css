@@ -59,9 +59,14 @@
     color: #E1FFFF;
   }
 
-  /* Prevent layout shift from scrollbars */
-  html {
-    overflow-y: scroll; /* Always show scrollbar space */
+  /* No document-level scroll — app uses h-screen overflow-hidden layout */
+
+  /* Top bar: permanent drop shadow for clear content separation */
+  .app-header {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  }
+  body.dark .app-header {
+    box-shadow: 0 4px 22px rgba(0, 0, 0, 0.60);
   }
   
   /* Ensure stable layout for all containers */
@@ -103,6 +108,42 @@
   /* Custom Isabelline background color */
   .bg-isabelline {
     background-color: #FAF4F0 !important;
+  }
+}
+
+@layer utilities {
+  /* Shared gradient heading — same tri-color glow used on all page titles */
+  .gradient-heading {
+    background: linear-gradient(45deg, #00F7FF, #9B6BF3, #4DB4FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+  }
+
+  /* Action button — cyan/blue gradient (save, open folder, upload…) */
+  .btn-action {
+    background: linear-gradient(45deg, #00BFFF, #0080FF);
+    color: white;
+    border: none;
+  }
+  .btn-action:disabled {
+    background: rgba(156, 163, 175, 0.4);
+    color: rgba(107, 114, 128, 0.7);
+  }
+
+  /* Cancel / secondary action button — purple/violet gradient */
+  .btn-cancel {
+    background: linear-gradient(45deg, #8B5CF6, #6366F1);
+    color: white;
+    border: none;
+  }
+
+  /* Primary CTA button — bioluminescent green */
+  .btn-primary-gradient {
+    background: linear-gradient(45deg, #22c55e, #84cc16);
+    color: white;
+    border: none;
   }
 }
 

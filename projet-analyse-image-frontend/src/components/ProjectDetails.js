@@ -140,7 +140,7 @@ const MultiSelectField = ({ options, value, onChange, placeholder, fieldName }) 
         ref={buttonRef}
         type="button"
         onClick={() => handleToggleDropdown()}
-        className="w-full px-3 py-2 bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 text-left flex justify-between items-center"
+        className="w-full px-3 py-2 bg-white/70 dark:bg-night-700/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 text-left flex justify-between items-center"
       >
         <span className={currentSelections.length === 0 ? 'text-gray-500' : ''}>{displayText}</span>
         <svg className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,6 +229,8 @@ const getTimeSpentBarColor = (minutes) => {
 function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProject, setIsNewProject, showScroll = true }) {
   const [isEditing, setIsEditing] = useState(false);
   const [localEditingData, setLocalEditingData] = useState(null);
+  const [isMetadataCollapsed, setIsMetadataCollapsed] = useState(false);
+  const [isWorkspaceCollapsed, setIsWorkspaceCollapsed] = useState(false);
   const [journalEntry, setJournalEntry] = useState('');
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
@@ -262,7 +264,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   const folderWarningCallbackRef = React.useRef(null);
 
   // Define common classes
-  const inputBaseClasses = "w-full px-3 py-2 bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300";
+  const inputBaseClasses = "w-full px-3 py-2 bg-white/70 dark:bg-night-700/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300";
 
   // Check if the app is running in Tauri environment
   useEffect(() => {
@@ -1168,7 +1170,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         <select
           id="group-select"
           name="group-select"
-          className="w-full px-3 py-2 bg-white/40 dark:bg-surface-darker/40 backdrop-filter backdrop-blur-sm rounded-md focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100"
+          className="w-full px-3 py-2 bg-white/40 dark:bg-night-700/60 backdrop-filter backdrop-blur-sm rounded-md focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100"
           value={displayData.group_id || ''}
           onChange={(e) => handleGroupChange(e.target.value)}
           disabled={!isEditing}
@@ -1198,7 +1200,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         <select
           id="user-select"
           name="user-select"
-          className="w-full px-3 py-2 bg-white/40 dark:bg-surface-darker/40 backdrop-filter backdrop-blur-sm rounded-md focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100"
+          className="w-full px-3 py-2 bg-white/40 dark:bg-night-700/60 backdrop-filter backdrop-blur-sm rounded-md focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100"
           value={displayData.user_id || ''}
           onChange={(e) => handleInputChange('user_id', e.target.value)}
           disabled={!isEditing || !displayData.group_id}
@@ -1267,7 +1269,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         <Tooltip.Trigger asChild>
           <button
             id="create-structure-button"
-            className={`px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center whitespace-nowrap ${
+            className={`btn-action px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center whitespace-nowrap ${
               isProjectSaved() && hasAdequateProjectInfo() && displayData.project_path && !folderStatus.isValid && (folderStatus.isEmpty || process.env.NODE_ENV === 'development' || !isTauri) ? 
               '' : 
               'opacity-50 cursor-not-allowed'
@@ -1275,23 +1277,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             onClick={handleCreateFolderStructure}
             disabled={!isProjectSaved() || !hasAdequateProjectInfo() || !displayData.project_path || folderStatus.isValid}
             aria-label="Create bioimage analysis folder structure for this project"
-            style={{
-              background: (isProjectSaved() && hasAdequateProjectInfo() && displayData.project_path && !folderStatus.isValid && (folderStatus.isEmpty || process.env.NODE_ENV === 'development' || !isTauri)) ? 
-                'linear-gradient(45deg, #00BFFF, #0080FF)' : 
-                'rgba(156, 163, 175, 0.3)',
-              borderColor: (isProjectSaved() && hasAdequateProjectInfo() && displayData.project_path && !folderStatus.isValid && (folderStatus.isEmpty || process.env.NODE_ENV === 'development' || !isTauri)) ? 
-                'rgba(0, 191, 255, 0.3)' : 
-                'rgba(156, 163, 175, 0.3)',
-              color: (isProjectSaved() && hasAdequateProjectInfo() && displayData.project_path && !folderStatus.isValid && (folderStatus.isEmpty || process.env.NODE_ENV === 'development' || !isTauri)) ? 
-                'white' : 
-                'rgba(107, 114, 128, 0.7)',
-              backdropFilter: 'blur(10px)',
-              border: (isProjectSaved() && hasAdequateProjectInfo() && displayData.project_path && !folderStatus.isValid && (folderStatus.isEmpty || process.env.NODE_ENV === 'development' || !isTauri)) ? 
-                '1px solid rgba(0, 191, 255, 0.3)' : 
-                '1px solid rgba(156, 163, 175, 0.3)',
-              boxShadow: (isProjectSaved() && hasAdequateProjectInfo() && displayData.project_path && !folderStatus.isValid && (folderStatus.isEmpty || process.env.NODE_ENV === 'development' || !isTauri)) ? 
-                '0 2px 8px rgba(0, 191, 255, 0.2)' : 'none'
-            }}
           >
             <span className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1378,7 +1363,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         <Tooltip.Trigger asChild>
           <button
             id="update-readme-button"
-            className={`px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center whitespace-nowrap ${
+            className={`btn-action px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center whitespace-nowrap ${
               isProjectSaved() && (folderStatus.isValid || (process.env.NODE_ENV === 'development' && displayData.folder_created)) ? 
               '' : 
               'opacity-50 cursor-not-allowed'
@@ -1386,23 +1371,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             onClick={handleUpdateReadme}
             disabled={!isProjectSaved() || !(folderStatus.isValid || (process.env.NODE_ENV === 'development' && displayData.folder_created))}
             aria-label="Update the readme file with current project details"
-            style={{
-              background: (isProjectSaved() && (folderStatus.isValid || (process.env.NODE_ENV === 'development' && displayData.folder_created))) ? 
-                'linear-gradient(45deg, #00BFFF, #0080FF)' : 
-                'rgba(156, 163, 175, 0.3)',
-              borderColor: (isProjectSaved() && (folderStatus.isValid || (process.env.NODE_ENV === 'development' && displayData.folder_created))) ? 
-                'rgba(0, 191, 255, 0.3)' : 
-                'rgba(156, 163, 175, 0.3)',
-              color: (isProjectSaved() && (folderStatus.isValid || (process.env.NODE_ENV === 'development' && displayData.folder_created))) ? 
-                'white' : 
-                'rgba(107, 114, 128, 0.7)',
-              backdropFilter: 'blur(10px)',
-              border: (isProjectSaved() && (folderStatus.isValid || (process.env.NODE_ENV === 'development' && displayData.folder_created))) ? 
-                '1px solid rgba(0, 191, 255, 0.3)' : 
-                '1px solid rgba(156, 163, 175, 0.3)',
-              boxShadow: (isProjectSaved() && (folderStatus.isValid || (process.env.NODE_ENV === 'development' && displayData.folder_created))) ? 
-                '0 2px 8px rgba(0, 191, 255, 0.2)' : 'none'
-            }}
           >
             <span className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1434,7 +1402,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         <Tooltip.Trigger asChild>
           <button
             id="relink-resources-button"
-            className={`px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center whitespace-nowrap ${
+            className={`btn-cancel px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center whitespace-nowrap ${
               isProjectSaved() && displayData.project_path ? 
               '' : 
               'opacity-50 cursor-not-allowed'
@@ -1442,23 +1410,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             onClick={() => setShowRelinkModal(true)}
             disabled={!isProjectSaved() || !displayData.project_path}
             aria-label="Relink resources to this project"
-            style={{
-              background: (isProjectSaved() && displayData.project_path) ? 
-                'linear-gradient(45deg, #8B5CF6, #7C3AED)' : 
-                'rgba(156, 163, 175, 0.3)',
-              borderColor: (isProjectSaved() && displayData.project_path) ? 
-                'rgba(139, 92, 246, 0.3)' : 
-                'rgba(156, 163, 175, 0.3)',
-              color: (isProjectSaved() && displayData.project_path) ? 
-                'white' : 
-                'rgba(107, 114, 128, 0.7)',
-              backdropFilter: 'blur(10px)',
-              border: (isProjectSaved() && displayData.project_path) ? 
-                '1px solid rgba(139, 92, 246, 0.3)' : 
-                '1px solid rgba(156, 163, 175, 0.3)',
-              boxShadow: (isProjectSaved() && displayData.project_path) ? 
-                '0 2px 8px rgba(139, 92, 246, 0.2)' : 'none'
-            }}
           >
             <span className="flex items-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1477,7 +1428,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         </Tooltip.Panel>
       </Tooltip>
 
-      <div className="ml-auto text-xs text-slate-500">
+      <div className="ml-auto text-xs text-gray-500 dark:text-gray-400">
         {!displayData.project_path ? (
           <div>No project folder selected</div>
         ) : (
@@ -1945,70 +1896,17 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
           )}
         </div>
         <div className="flex items-center gap-2">
-          {isEditing ? (
-            <>
-              <button
-                onClick={handleSave}
-                className="transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
-                style={{
-                  background: 'linear-gradient(45deg, #00BFFF, #0080FF)',
-                  borderColor: 'rgba(0, 191, 255, 0.3)',
-                  color: 'white',
-                  backdropFilter: 'blur(10px)',
-                  border: 'none',
-                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.2)'
-                }}
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Save
-              </button>
-              <button
-                onClick={handleCancel}
-                className="transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
-                style={{
-                  background: 'linear-gradient(45deg, #8B5CF6, #6366F1)',
-                  borderColor: 'rgba(139, 92, 246, 0.3)',
-                  color: 'white',
-                  backdropFilter: 'blur(10px)',
-                  border: 'none',
-                  boxShadow: '0 2px 8px rgba(139, 92, 246, 0.2)'
-                }}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={handleStartEditing}
-                className="transition-all duration-200 px-3 py-2 rounded-xl text-sm font-medium flex items-center whitespace-nowrap"
-                style={{
-                  background: 'linear-gradient(45deg, #00BFFF, #0080FF)',
-                  borderColor: 'rgba(0, 191, 255, 0.3)',
-                  color: 'white',
-                  backdropFilter: 'blur(10px)',
-                  border: 'none',
-                  boxShadow: '0 2px 8px rgba(0, 191, 255, 0.2)'
-                }}
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit Project
-              </button>
-              <button
-                onClick={handleDelete}
-                className="btn btn-icon btn-sm text-red-600 hover:text-red-800 transition-colors hover:scale-[1.02]"
-                aria-label="Delete project"
-                title="Delete project"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </>
+          {!isEditing && (
+            <button
+              onClick={handleDelete}
+              className="btn btn-icon btn-sm text-red-600 hover:text-red-800 transition-colors hover:scale-[1.02]"
+              aria-label="Delete project"
+              title="Delete project"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           )}
         </div>
       </div>
@@ -2022,17 +1920,59 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         <div className="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-800/40">
           {/* Zone A header bar */}
           <div className="flex items-center gap-2 px-4 py-2 bg-gray-100/90 dark:bg-gray-700/50 border-b border-gray-200/50 dark:border-gray-600/30">
-            <svg className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Project Metadata</span>
-            {!isEditing && (
-              <span className="ml-auto text-xs text-gray-400 dark:text-gray-500 italic">Use <strong className="font-medium not-italic">Edit Project</strong> to modify these fields</span>
-            )}
-            {isEditing && (
-              <span className="ml-auto text-xs text-bioluminescent-500 italic font-medium">Editing mode active</span>
-            )}
+            <button
+              onClick={() => setIsMetadataCollapsed(v => !v)}
+              className="flex items-center gap-2 flex-none text-left focus:outline-none"
+              aria-label={isMetadataCollapsed ? 'Expand project metadata' : 'Collapse project metadata'}
+            >
+              <svg className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Project Metadata</span>
+              <svg
+                className={`w-3.5 h-3.5 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${isMetadataCollapsed ? '-rotate-90' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div className="ml-auto flex items-center gap-2">
+              {!isMetadataCollapsed && !isEditing && (
+                <button
+                  onClick={handleStartEditing}
+                  className="btn-action transition-all duration-200 px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit Project Metadata
+                </button>
+              )}
+              {isEditing && (
+                <>
+                  <button
+                    onClick={handleSave}
+                    className="btn-action transition-all duration-200 px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 whitespace-nowrap"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    className="btn-cancel transition-all duration-200 px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 whitespace-nowrap"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+              {isMetadataCollapsed && !isEditing && (
+                <span className="text-xs text-gray-400 dark:text-gray-500 italic">Click to expand</span>
+              )}
+            </div>
           </div>
+          {!isMetadataCollapsed && (
           <div className="p-4 space-y-6">
 
         {/* Section 1: Project Information */}
@@ -2316,13 +2256,8 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   className={`px-4 py-2 rounded-md transition-all duration-200 text-sm font-medium flex items-center gap-2 ${
                     isNewProject && !isProjectSaved() 
                       ? 'opacity-50 cursor-not-allowed text-gray-400'
-                      : 'text-white hover:opacity-80'
+                      : 'btn-action'
                   }`}
-                  style={{
-                    background: isNewProject && !isProjectSaved() 
-                      ? 'rgba(156, 163, 175, 0.3)'
-                      : 'linear-gradient(45deg, #00BFFF, #0080FF)'
-                  }}
                   title={isNewProject && !isProjectSaved() 
                     ? 'Please save the project first before selecting parent folder'
                     : 'Select parent folder where your project folder will be created\n\nYour project folder will be automatically named:\n' + (hasAdequateProjectInfo() ? generateSuggestedPath().split(/[\\//]/).pop() : 'YYYY-MM-DD_Group_User_Software')}
@@ -2476,20 +2411,36 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         </div>
 
           </div>
+          )}
         </div>
 
         {/* ── Zone B: Project Workspace ─────────────────────────────────── */}
         {!isEditing && (
-          <div className="rounded-xl overflow-hidden mt-2 bg-bioluminescent-50/50 dark:bg-bioluminescent-900/20">
+          <div className="rounded-xl overflow-hidden mt-2 bg-bioluminescent-100/10 dark:bg-bioluminescent-900/35">
             {/* Zone B header bar */}
             <div className="flex items-center gap-2 px-4 py-2 bg-bioluminescent-100/70 dark:bg-bioluminescent-900/40 border-b border-bioluminescent-200/50 dark:border-bioluminescent-700/30">
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bioluminescent-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-bioluminescent-500"></span>
-              </span>
-              <span className="text-xs font-semibold text-bioluminescent-600 dark:text-bioluminescent-400 uppercase tracking-wider">Project Workspace</span>
-              <span className="ml-auto text-xs text-bioluminescent-500 dark:text-bioluminescent-500 italic">Add entries, files and documents — no edit mode required</span>
+              <button
+                onClick={() => setIsWorkspaceCollapsed(v => !v)}
+                className="flex items-center gap-2 flex-none focus:outline-none"
+                aria-label={isWorkspaceCollapsed ? 'Expand project workspace' : 'Collapse project workspace'}
+              >
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bioluminescent-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-bioluminescent-500"></span>
+                </span>
+                <span className="text-xs font-semibold text-bioluminescent-600 dark:text-bioluminescent-400 uppercase tracking-wider">Project Workspace</span>
+                <svg
+                  className={`w-3.5 h-3.5 text-bioluminescent-500 dark:text-bioluminescent-400 transition-transform duration-200 ${isWorkspaceCollapsed ? '-rotate-90' : ''}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {!isWorkspaceCollapsed && (
+                <span className="ml-auto text-xs text-bioluminescent-500 dark:text-bioluminescent-500 italic">Add entries, files and documents — no edit mode required</span>
+              )}
             </div>
+            {!isWorkspaceCollapsed && (
             <div className="p-4 space-y-6">
 
         {/* Section 4.5: Project Resources */}
@@ -2503,11 +2454,11 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                 Resources
               </h4>
               <div className="flex items-center gap-2">
-                <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer" style={{ background: 'linear-gradient(45deg, #00BFFF, #0080FF)'}}>
+                <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer btn-action">
                   Upload Images
                   <input type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={handleUploadImages} disabled={uploading} />
                 </label>
-                <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer" style={{ background: 'linear-gradient(45deg, #6366F1, #8B5CF6)'}}>
+                <label className="px-3 py-2 rounded-md text-white text-sm font-medium cursor-pointer btn-cancel">
                   Upload Docs
                   <input type="file" accept="application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple className="hidden" onChange={handleUploadDocs} disabled={uploading} />
                 </label>
@@ -2578,20 +2529,20 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             {/* Documents list */}
             <div className="mb-2">
               <h5 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Reference Documents</h5>
-              <div className="bg-white/70 dark:bg-gray-800/60 rounded-xl shadow-sm">
+              <div className="bg-bioluminescent-100/20 dark:bg-bioluminescent-900/40 rounded-xl shadow-sm overflow-hidden">
                 <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-xs uppercase text-gray-500">
+                  <thead className="bg-bioluminescent-100/60 dark:bg-bioluminescent-900/50">
+                    <tr className="text-left text-xs uppercase text-bioluminescent-700 dark:text-bioluminescent-300">
                       <th className="px-3 py-2">File</th>
                       <th className="px-3 py-2 w-1/3">Caption</th>
                       <th className="px-3 py-2 w-24 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody className="divide-y divide-bioluminescent-100 dark:divide-bioluminescent-800/30">
                     {resources.filter(r => r.kind !== 'image').map(r => (
                       <tr key={r.id}>
                         <td className="px-3 py-2">
-                          <a className="text-blue-600 hover:underline break-all" href={`${getApiBase()}/projects/${project.id}/references/${r.id}/file`} target="_blank" rel="noreferrer">
+                          <a className="text-bioluminescent-600 dark:text-bioluminescent-400 hover:text-bioluminescent-700 dark:hover:text-bioluminescent-300 hover:underline break-all" href={`${getApiBase()}/projects/${project.id}/references/${r.id}/file`} target="_blank" rel="noreferrer">
                             {r.original_name}
                           </a>
                         </td>
@@ -2654,12 +2605,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
               </h4>
               <button
                 onClick={handleAddJournalEntry}
-                className="px-4 py-2 rounded-md text-white hover:opacity-80 transition-all duration-200 text-sm font-medium flex items-center gap-2"
+                className={`btn-action px-4 py-2 rounded-md text-white hover:opacity-80 transition-all duration-200 text-sm font-medium flex items-center gap-2 ${
+                  !journalEntry.trim() ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
                 disabled={!journalEntry.trim()}
-                style={{
-                  background: journalEntry.trim() ? 'linear-gradient(45deg, #00BFFF, #0080FF)' : 'rgba(156, 163, 175, 0.5)',
-                  opacity: journalEntry.trim() ? 1 : 0.6
-                }}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -2672,27 +2621,27 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
               <textarea
                 value={journalEntry}
                 onChange={(e) => setJournalEntry(e.target.value)}
-                className="w-full px-3 py-2 bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors mb-3 text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300"
+                className="w-full px-3 py-2 bg-bioluminescent-100/20 dark:bg-bioluminescent-900/40 border border-bioluminescent-600/20 dark:border-bioluminescent-600/30 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-400 dark:focus:ring-bioluminescent-500 focus:border-transparent outline-none transition-colors mb-3 text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300"
                 placeholder="Add a journal entry..."
                 rows={3}
               />
             </div>
             
             {/* Journal entries list */}
-            <div className="bg-white/70 dark:bg-gray-800/60 backdrop-filter backdrop-blur-lg rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="bg-bioluminescent-100/20 dark:bg-bioluminescent-900/40 rounded-xl shadow-sm overflow-hidden">
               <table className="w-full">
-                <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-night-700">
+                <thead className="sticky top-0 z-10 bg-bioluminescent-100/60 dark:bg-bioluminescent-900/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider">Entry</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-bioluminescent-300 uppercase tracking-wider w-1/4">Date</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-bioluminescent-700 dark:text-bioluminescent-300 uppercase tracking-wider">Entry</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-bioluminescent-700 dark:text-bioluminescent-300 uppercase tracking-wider w-1/4">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border dark:divide-border-dark">
+                <tbody className="divide-y divide-bioluminescent-600/15 dark:divide-bioluminescent-600/20">
                   {localJournalEntries.length > 0 ? (
                     localJournalEntries.map((entry, index) => (
                       <tr 
                         key={entry.id || index}
-                        className="animate-fade-in hover:bg-gray-50 dark:hover:bg-night-700 transition-colors"
+                        className="animate-fade-in hover:bg-bioluminescent-100/20 dark:hover:bg-bioluminescent-900/40 transition-colors"
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
                         <td className="px-4 py-3">
@@ -2752,6 +2701,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         )}
 
             </div>
+            )}
           </div>
         )}
 

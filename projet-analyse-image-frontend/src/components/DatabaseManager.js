@@ -206,7 +206,7 @@ function DatabaseManager({ onDatabaseChange }) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 h-full">
                     {/* Export Database */}
-                    <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
+                    <div className="bg-white dark:bg-night-800 rounded-lg p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
                         <div className="flex flex-col items-center text-center flex-1">
                             <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-night-700 flex items-center justify-center mb-4">
                                 <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -229,7 +229,7 @@ function DatabaseManager({ onDatabaseChange }) {
                     </div>
 
                     {/* Import Database */}
-                    <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
+                    <div className="bg-white dark:bg-night-800 rounded-lg p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
                         <div className="flex flex-col items-center text-center flex-1">
                             <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-night-700 flex items-center justify-center mb-4">
                                 <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -263,7 +263,7 @@ function DatabaseManager({ onDatabaseChange }) {
                     </div>
 
                     {/* Reset Database */}
-                    <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
+                    <div className="bg-white dark:bg-night-800 rounded-lg p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
                         <div className="flex flex-col items-center text-center flex-1">
                             <div className="w-12 h-12 rounded-full bg-gray-50 dark:bg-night-700 flex items-center justify-center mb-4">
                                 <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -315,7 +315,7 @@ function DatabaseManager({ onDatabaseChange }) {
                     </div>
 
                     {/* Load Demo Data */}
-                    <div className="bg-white dark:bg-night-800 rounded-lg border border-violet-200 dark:border-violet-800/40 p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
+                    <div className="bg-white dark:bg-night-800 rounded-lg p-6 shadow-sm hover:shadow-lg transition-colors flex flex-col h-full">
                         <div className="flex flex-col items-center text-center flex-1">
                             <div className="w-12 h-12 rounded-full bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center mb-4">
                                 <svg className="w-6 h-6 text-violet-500 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -339,7 +339,7 @@ function DatabaseManager({ onDatabaseChange }) {
                 </div>
 
                 {/* Database Information Section */}
-                <div className="mt-8 bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm">
+                <div className="mt-8 bg-white dark:bg-night-800 rounded-lg shadow-sm">
                     <button 
                         onClick={() => setShowInfo(!showInfo)}
                         className="w-full p-6 text-left hover:bg-gray-50 dark:hover:bg-night-700 transition-colors rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
@@ -365,7 +365,7 @@ function DatabaseManager({ onDatabaseChange }) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Hybrid Storage Model</h4>
-                                    <div className="p-3 bg-gray-50 dark:bg-night-700 rounded-md text-sm text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-night-600 space-y-3">
+                                    <div className="p-3 bg-gray-50 dark:bg-night-700 rounded-md text-sm text-gray-800 dark:text-gray-200 space-y-3">
                                         <div>
                                             <span className="font-medium text-bioluminescent-600 dark:text-bioluminescent-400">SQLite Database</span>
                                             <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">Stores project metadata, users, groups, journal entries, and activity logs.</p>
@@ -374,7 +374,7 @@ function DatabaseManager({ onDatabaseChange }) {
                                             <span className="font-medium text-bioluminescent-600 dark:text-bioluminescent-400">Project Folders</span>
                                             <p className="text-xs mt-1 text-gray-600 dark:text-gray-400">Each project has its own folder containing reference images, resources, and output files.</p>
                                         </div>
-                                        <div className="pt-2 border-t border-gray-200 dark:border-night-600">
+                                        <div className="pt-2 border-t border-gray-200/60 dark:border-night-700/40">
                                             <p className="text-xs text-gray-500 dark:text-gray-500">Export/Import operations back up the database only. Project folders are managed separately via the filesystem.</p>
                                         </div>
                                     </div>
@@ -396,7 +396,7 @@ function DatabaseManager({ onDatabaseChange }) {
             </div>
 
                 {/* Automatic Backups Section */}
-                <div className="mt-6 bg-white dark:bg-night-800 rounded-lg border border-bioluminescent-200 dark:border-bioluminescent-800/50 shadow-sm">
+                <div className="mt-6 bg-white dark:bg-night-800 rounded-lg shadow-sm">
                     <div className="p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
@@ -409,8 +409,7 @@ function DatabaseManager({ onDatabaseChange }) {
                             <button
                                 onClick={handleCreateBackup}
                                 disabled={loading}
-                                className="px-4 py-2 text-sm font-medium rounded-xl text-white shadow-sm transition-all duration-200 disabled:opacity-50"
-                                style={{ background: 'linear-gradient(45deg, #00BFFF, #0080FF)' }}
+                                className="px-4 py-2 text-sm font-medium rounded-xl text-white shadow-sm transition-all duration-200 disabled:opacity-50 btn-action"
                             >
                                 {loading ? 'Creating…' : '+ Create Backup Now'}
                             </button>
@@ -440,7 +439,7 @@ function DatabaseManager({ onDatabaseChange }) {
                                 No backups yet. Click <strong>Create Backup Now</strong> or enable Auto-Backup in Settings.
                             </div>
                         ) : (
-                            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-night-600">
+                            <div className="overflow-hidden rounded-lg">
                                 <table className="w-full text-sm">
                                     <thead className="bg-gray-50 dark:bg-night-700">
                                         <tr>
@@ -450,7 +449,7 @@ function DatabaseManager({ onDatabaseChange }) {
                                             <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-200 dark:divide-night-600">
+                                    <tbody className="divide-y divide-gray-200/60 dark:divide-night-700/50">
                                         {backups.map((b) => (
                                             <tr key={b.filename} className="hover:bg-gray-50 dark:hover:bg-night-700 transition-colors">
                                                 <td className="px-4 py-2 font-mono text-xs text-gray-700 dark:text-gray-300">{b.filename}</td>
@@ -460,8 +459,7 @@ function DatabaseManager({ onDatabaseChange }) {
                                                     <button
                                                         onClick={() => handleRestoreClick(b.filename)}
                                                         disabled={loading}
-                                                        className="px-3 py-1 text-xs font-medium rounded-lg text-white transition-all duration-200 disabled:opacity-50"
-                                                        style={{ background: 'linear-gradient(45deg, #8B5CF6, #6366F1)' }}
+                                                        className="px-3 py-1 text-xs font-medium rounded-lg text-white transition-all duration-200 disabled:opacity-50 btn-cancel"
                                                     >
                                                         Restore
                                                     </button>
