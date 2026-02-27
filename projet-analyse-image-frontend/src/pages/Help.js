@@ -189,6 +189,7 @@ function Help() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
+    <div className="h-full overflow-y-auto">
     <div className="p-6 max-w-6xl mx-auto">
       {/* Page header */}
       <div className="mb-6">
@@ -316,6 +317,7 @@ function Help() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
