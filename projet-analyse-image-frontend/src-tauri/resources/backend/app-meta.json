@@ -1,18 +1,18 @@
 {
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "BIOME Frontend - Bio Imaging Organization and Management Environment",
-  "releaseDate": "2026-02-26",
+  "releaseDate": "2026-02-27",
   "source": "frontend",
   "changelog": {
-    "version": "2.2.0",
-    "date": "2026-02-26",
+    "version": "2.3.0",
+    "date": "2026-02-27",
     "summary": [
-      "**Demo Data mode**: New \"Load Demo Data\" button in the Database page. Populates the database with 10 realistic bioimage analysis projects, 6 researchers across 3 imaging core groups, and ~20 journal entries. A safety backup is created automatically before loading if the database already contains data.",
-      "**Empty database on first launch**: BIOME now starts completely empty on first run and after Reset. Demo content is opt-in via the explicit \"Load Demo Data\" button — real user data is never silently overwritten by application updates or resets.",
-      "**Backup date display**: All backups in the list were showing the same \"Created\" timestamp (the filesystem `mtime`). Dates are now parsed directly from the filename (`database-YYYY-MM-DD_HH-MM-SS.sqlite`), showing the correct individual creation time for each backup.",
-      "**Delete Project modal positioning**: The confirmation dialog now uses a React Portal and renders at true viewport center, regardless of scroll position or parent transform context.",
-      "**WizardFormModal**: All modals now use a React Portal (`z-[9999]`) ensuring correct stacking and centering in all scroll contexts. Added `variant=\"danger\"` prop for destructive-action modals (red button + warning icon in title).",
-      "**Project creation wizard**: Background changed from a heavy blue gradient to a neutral `bg-gray-50 dark:bg-night-900`. Main card now uses the standard app card style (`night-800` border, `shadow-sm`) instead of a blurred glass effect."
+      "**Persistent page titles in top bar**: Each page's title and subtitle are now displayed in the navigation bar and remain visible regardless of scroll position. Large title banners have been removed from the scrollable page content.",
+      "**About card**: Replaced the green \"B\" letter avatar with the BIOME gradient logotype, matching the app header. Version badge changed from green to amber. Details and Website buttons now use the same neutral style.",
+      "**Project Details — collapsible sections**: Project Metadata (Zone A) and Project Workspace (Zone B) can now be independently collapsed/expanded via chevron toggles. \"Edit Project Metadata\" button relocated to the Zone A header.",
+      "**Colour consistency — Project Workspace**: All remaining blue accents (textarea, table headers, dividers, file links, row hovers) replaced with bioluminescent green to match the design system.",
+      "**Top bar shadow**: Moved from a Tailwind arbitrary-value utility (silently dropped by JIT at runtime) to a plain CSS class (`app-header`), making the drop shadow permanently visible.",
+      "**Double scrollbar**: Removed the `html`-level `overflow-y: scroll` that was forcing an always-visible inactive scrollbar track alongside the correct internal `ScrollableContainer` scrollbar."
     ]
   }
 }

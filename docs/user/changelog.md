@@ -4,7 +4,24 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ---
 
-## v2.2.0 — February 2026
+## v2.3.0 — February 2026
+
+### New Features
+- **Page titles in top bar** — each page now shows its title and subtitle anchored in the navigation bar, staying visible as you scroll. The large title banners have been removed from the scrollable page area.
+
+### Improvements
+- **About card** — replaced the letter avatar with the BIOME gradient logotype; version badge is now amber; action buttons use a consistent neutral style
+- **Project details — collapsible sections** — Zone A (Project Metadata) and Zone B (Project Workspace) are now independently collapsible via a chevron toggle; "Edit Project Metadata" button moved to the Zone A header
+- **Colour consistency** — all remaining blue accents in the Project Workspace (textarea, table headers, file links, row hovers) replaced with bioluminescent green
+- **Top bar shadow** — now permanently visible, providing a clear separation between the navigation bar and scrollable content
+
+### Bug Fixes
+- Removed duplicate vertical scrollbar that appeared alongside the Activity Feed scrollbar
+- Removed phantom right-side gap caused by reserved scrollbar space
+- Top bar shadow no longer flickers — it was previously only appearing on hover due to a Tailwind JIT issue
+
+---
+
 
 ### New Features
 - **Demo Data mode** — new "Load Demo Data" button in the Database page populates the app with 10 realistic bioimage projects, 6 researchers, and ~20 journal entries for evaluation or training

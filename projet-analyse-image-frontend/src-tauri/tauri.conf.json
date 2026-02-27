@@ -54,7 +54,7 @@
   },
   "productName": "BIOME",
   "mainBinaryName": "BIOME",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "identifier": "com.biome.desktop",
   "plugins": {},
   "app": {

@@ -1,6 +1,6 @@
 {
-  "name": "bia-manager-backend",
-  "version": "2.1.0",
+  "name": "biome-backend",
+  "version": "2.3.0",
   "description": "BIOME Backend - Bio Imaging Organization and Management Environment",
   "main": "src/server.js",
   "author": "Yannick Krempp",

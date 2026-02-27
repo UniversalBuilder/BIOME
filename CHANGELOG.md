@@ -6,7 +6,21 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
-## [2.2.0] - 2026-02-26
+## [2.3.0] - 2026-02-27
+### Added
+- **Persistent page titles in top bar**: Each page's title and subtitle are now displayed in the navigation bar and remain visible regardless of scroll position. Large title banners have been removed from the scrollable page content.
+
+### Changed
+- **About card**: Replaced the green "B" letter avatar with the BIOME gradient logotype, matching the app header. Version badge changed from green to amber. Details and Website buttons now use the same neutral style.
+- **Project Details — collapsible sections**: Project Metadata (Zone A) and Project Workspace (Zone B) can now be independently collapsed/expanded via chevron toggles. "Edit Project Metadata" button relocated to the Zone A header.
+- **Colour consistency — Project Workspace**: All remaining blue accents (textarea, table headers, dividers, file links, row hovers) replaced with bioluminescent green to match the design system.
+- **Top bar shadow**: Moved from a Tailwind arbitrary-value utility (silently dropped by JIT at runtime) to a plain CSS class (`app-header`), making the drop shadow permanently visible.
+
+### Fixed
+- **Double scrollbar**: Removed the `html`-level `overflow-y: scroll` that was forcing an always-visible inactive scrollbar track alongside the correct internal `ScrollableContainer` scrollbar.
+- **Right-side gap**: Removed `scrollbar-gutter: stable` that was reserving phantom scrollbar space on the right side of the window.
+- **Top bar shadow flicker**: Shadow was previously only appearing on hover due to Tailwind JIT not generating the `dark:shadow-[…]` arbitrary class at runtime.
+
 ### Added
 - **Demo Data mode**: New "Load Demo Data" button in the Database page. Populates the database with 10 realistic bioimage analysis projects, 6 researchers across 3 imaging core groups, and ~20 journal entries. A safety backup is created automatically before loading if the database already contains data.
 - **Empty database on first launch**: BIOME now starts completely empty on first run and after Reset. Demo content is opt-in via the explicit "Load Demo Data" button — real user data is never silently overwritten by application updates or resets.

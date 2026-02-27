@@ -5,7 +5,7 @@
 **A comprehensive bioimage analysis project management tool for research facilities and laboratories**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](#download)
+[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](#download)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#installation)
 
 [🚀 Quick Start](#quick-start) • [📦 Download](#download) • [📚 Documentation](#documentation) • [🤝 Contributing](#contributing)
@@ -45,7 +45,7 @@ BIOME is a specialized project management application designed for **bioimage an
 
 ### Option 1: Desktop Application (Recommended)
 
-1. **Download** the latest MSI installer from Releases: [BIOME_2.2.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.2.0/BIOME_2.2.0_x64_en-US.msi)
+1. **Download** the latest MSI installer from Releases: [BIOME_2.3.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.3.0/BIOME_2.3.0_x64_en-US.msi)
    - Or visit the [GitHub Releases Page](https://github.com/UniversalBuilder/BIOME/releases/latest) to pick another version
 2. **Install** by double-clicking the MSI file
 3. **Launch** BIOME from your Start Menu
