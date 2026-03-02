@@ -3,6 +3,7 @@
 
 import { createFolderStructure, validateProjectFolder, updateReadme, scanProjectFolder, openInExplorer } from './tauriApi';
 import Environment from '../utils/environmentDetection';
+import { formatDateTime, getSavedTimezone } from '../utils/timeUtils';
 
 // Base URL for API endpoints
 const getApiUrl = () => {
@@ -122,8 +123,9 @@ export const downloadReadmeTemplate = async (projectName, projectDescription, jo
   // Add journal entries if available
   if (journalEntries && journalEntries.length > 0) {
     journalEntries.forEach(entry => {
-      const entryDate = new Date(entry.entry_date).toISOString().split('T')[0];
-      const editedNote = entry.edited_at ? `\n(edited${entry.edited_by ? ` by ${entry.edited_by}` : ''} on ${new Date(entry.edited_at).toLocaleString()})` : '';
+      const tz = getSavedTimezone();
+      const entryDate = formatDateTime(entry.entry_date, tz);
+      const editedNote = entry.edited_at ? `\n(edited${entry.edited_by ? ` by ${entry.edited_by}` : ''} on ${formatDateTime(entry.edited_at, tz)})` : '';
       readmeContent += `### ${entryDate}\n${entry.entry_text}${editedNote}\n\n`;
     });
   } else {

@@ -5,6 +5,8 @@ import { Tooltip } from './Tooltip';
 import Environment from '../utils/environmentDetection';
 import { openFolderInExplorer } from '../services/filesystemApi';
 import ImportProjectButton from './ImportProjectButton';
+import { useTimezone } from '../contexts/TimezoneContext';
+import { formatDateTime } from '../utils/timeUtils';
 
 const COL_CLASSES = {
   name: 'flex-1 min-w-[200px]',
@@ -129,6 +131,7 @@ function ProjectTableView({
   loading = false
 }) {
   const navigate = useNavigate();
+  const { timezone } = useTimezone();
   const [sortField, setSortField] = useState('last_updated');
   const [sortOrder, setSortOrder] = useState('desc');
   const [searchTerm, setSearchTerm] = useState(filters.searchTerm || '');
@@ -584,8 +587,7 @@ function ProjectTableView({
   // Format date to be more readable
   const formatDate = (dateString) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return formatDateTime(dateString, timezone);
   };
   
   // Add missing sort functions

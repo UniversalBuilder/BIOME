@@ -2,8 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { databaseService } from '../services/api';
 import { runManualBackup, getLastBackupDate } from '../services/backupService';
 import WizardFormModal from './WizardFormModal';
+import { useTimezone } from '../contexts/TimezoneContext';
+import { formatDateTime } from '../utils/timeUtils';
 
 function DatabaseManager({ onDatabaseChange }) {
+    const { timezone } = useTimezone();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
@@ -428,7 +431,7 @@ function DatabaseManager({ onDatabaseChange }) {
                         )}
                         {lastBackupDate && (
                             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                                Last backup: {new Date(lastBackupDate).toLocaleString()}
+                                Last backup: {formatDateTime(lastBackupDate, timezone)}
                             </p>
                         )}
 
@@ -453,7 +456,7 @@ function DatabaseManager({ onDatabaseChange }) {
                                         {backups.map((b) => (
                                             <tr key={b.filename} className="hover:bg-gray-50 dark:hover:bg-night-700 transition-colors">
                                                 <td className="px-4 py-2 font-mono text-xs text-gray-700 dark:text-gray-300">{b.filename}</td>
-                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400">{new Date(b.created_at).toLocaleString()}</td>
+                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400">{formatDateTime(b.created_at, timezone)}</td>
                                                 <td className="px-4 py-2 text-right text-gray-500">{Math.round(b.size / 1024)} KB</td>
                                                 <td className="px-4 py-2 text-right">
                                                     <button

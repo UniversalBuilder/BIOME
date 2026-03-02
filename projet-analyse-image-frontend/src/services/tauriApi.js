@@ -2,6 +2,7 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
+import { formatDateTime, getSavedTimezone } from '../utils/timeUtils';
 
 // Import the improved environment detection
 import Environment from '../utils/environmentDetection';
@@ -98,9 +99,10 @@ export const updateReadme = async (basePath, projectName, projectDescription, jo
     
     // Format journal entries for Rust
     const formattedEntries = journalEntries.map(entry => {
-      const editedNote = entry.edited_at ? `\n(edited${entry.edited_by ? ` by ${entry.edited_by}` : ''} on ${new Date(entry.edited_at).toLocaleString()})` : '';
+      const tz = getSavedTimezone();
+      const editedNote = entry.edited_at ? `\n(edited${entry.edited_by ? ` by ${entry.edited_by}` : ''} on ${formatDateTime(entry.edited_at, tz)})` : '';
       return ({
-        date: new Date(entry.entry_date).toLocaleString(),
+        date: formatDateTime(entry.entry_date, tz),
         text: `${entry.entry_text}${editedNote}`
       });
     });

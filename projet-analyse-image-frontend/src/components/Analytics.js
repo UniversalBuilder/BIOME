@@ -15,6 +15,8 @@ import {
 import { Bar, Pie, Line, Scatter } from 'react-chartjs-2';
 import { Tooltip } from './Tooltip';
 import { ThemeContext } from '../contexts/ThemeContext';
+import { useTimezone } from '../contexts/TimezoneContext';
+import { formatDateTime, formatDateOnly } from '../utils/timeUtils';
 
 // Register ChartJS components
 ChartJS.register(
@@ -32,6 +34,7 @@ ChartJS.register(
 
 const Analytics = ({ projects = [], analytics = {} }) => {
   const { isDarkMode } = useContext(ThemeContext);
+  const { timezone } = useTimezone();
   
   // Get min creation date and max last update date from projects
   const getDefaultDateRange = () => {
@@ -120,7 +123,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
       // Create summary sheet
       const summaryData = [
         ['BIOME Analytics Report', ''],
-        ['Generated on', new Date().toLocaleString()],
+        ['Generated on', formatDateTime(new Date().toISOString(), timezone)],
         ['Period', isFiltered ? `${startDate || 'All time'} to ${endDate || 'Present'}` : 'All time'],
         ['', ''],
         ['Key Metrics', ''],
@@ -151,9 +154,9 @@ const Analytics = ({ projects = [], analytics = {} }) => {
           project.name,
           project.status || 'Unknown',
           project.software || 'Not specified',
-          creationDate ? creationDate.toLocaleDateString() : '',
-          lastUpdateDate ? lastUpdateDate.toLocaleDateString() : '',
-          completionDate ? completionDate.toLocaleDateString() : '',
+          creationDate ? formatDateOnly(creationDate.toISOString(), timezone) : '',
+          lastUpdateDate ? formatDateOnly(lastUpdateDate.toISOString(), timezone) : '',
+          completionDate ? formatDateOnly(completionDate.toISOString(), timezone) : '',
           project.time_spent_minutes ? Math.round(project.time_spent_minutes / 60 * 100) / 100 : 0,
           duration
         ]);

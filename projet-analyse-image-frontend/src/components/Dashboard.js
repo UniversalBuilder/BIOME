@@ -6,6 +6,8 @@ import GroupAnalytics from './GroupAnalytics';
 import QuickActions from './QuickActions';
 import ImportProjectButton from './ImportProjectButton';
 import { useTheme } from '../contexts/ThemeContext';
+import { useTimezone } from '../contexts/TimezoneContext';
+import { formatDateTime, formatDateOnly, getSavedTimezone } from '../utils/timeUtils';
 import { appService } from '../services/api';
 
 const getActivityIcon = (activityType) => {
@@ -54,7 +56,8 @@ const getActivityIcon = (activityType) => {
 };
 
 // Format activity data for display
-const formatActivity = (activity) => {
+const formatActivity = (activity, timezone) => {
+  const tz = timezone || getSavedTimezone();
   let changedFields = [];
   if (activity.changed_fields) {
     try {
@@ -72,7 +75,7 @@ const formatActivity = (activity) => {
           return {
             ...activity,
             changedFields,
-            formattedDate: new Date(activity.activity_date).toLocaleString()
+            formattedDate: formatDateTime(activity.activity_date, tz)
           };
         }
       } else if (typeof activity.changed_fields === 'object') {
@@ -83,7 +86,7 @@ const formatActivity = (activity) => {
         return {
           ...activity,
           changedFields,
-          formattedDate: new Date(activity.activity_date).toLocaleString()
+          formattedDate: formatDateTime(activity.activity_date, tz)
         };
       }
 
@@ -115,7 +118,7 @@ const formatActivity = (activity) => {
   return {
     ...activity,
     changedFields,
-    formattedDate: new Date(activity.activity_date).toLocaleString()
+    formattedDate: formatDateTime(activity.activity_date, tz)
   };
 };
 
@@ -137,8 +140,8 @@ const generateXLSX = async (activities) => {
         : '';
         
       return [
-        new Date(activity.activity_date).toLocaleString(),
-        activity.project_name || '',
+        formatDateTime(activity.activity_date, getSavedTimezone()),
+        activity.project_name || '',,
         activity.user_name || '',
         activity.activity_type || '',
         activity.details || '',
@@ -153,10 +156,10 @@ const generateXLSX = async (activities) => {
     // Add a summary sheet
     const summaryData = [
       ['BIOME Activity Log', ''],
-      ['Generated on', new Date().toLocaleString()],
+      ['Generated on', formatDateTime(new Date().toISOString(), getSavedTimezone())],
       ['Total activities', activities.length],
       ['Period covered', activities.length > 0 
-        ? `${new Date(activities[activities.length-1].activity_date).toLocaleDateString()} to ${new Date(activities[0].activity_date).toLocaleDateString()}`
+        ? `${formatDateOnly(activities[activities.length-1].activity_date, getSavedTimezone())} to ${formatDateOnly(activities[0].activity_date, getSavedTimezone())}`
         : 'No data'
       ],
     ];
@@ -176,6 +179,7 @@ const generateXLSX = async (activities) => {
 
 const ActivityFeed = ({ activities = [] }) => {
   const [displayCount, setDisplayCount] = useState(5);
+  const { timezone } = useTimezone();
 
   useEffect(() => {
     console.log('Activity feed received activities:', activities.length);
@@ -194,8 +198,8 @@ const ActivityFeed = ({ activities = [] }) => {
   const formattedActivities = useMemo(() => {
     return activities
       .slice(0, displayCount)
-      .map(activity => formatActivity(activity));
-  }, [activities, displayCount]);
+      .map(activity => formatActivity(activity, timezone));
+  }, [activities, displayCount, timezone]);
 
   const remainingCount = activities.length - displayCount;
   const hasMore = remainingCount > 0;
@@ -340,6 +344,7 @@ const ActivityFeed = ({ activities = [] }) => {
 const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUserId, onQuickAction }) => {
   useTheme(); // Keeping useTheme import since it might be used in the future
   const navigate = useNavigate();
+  const { timezone } = useTimezone();
   
   // Add state for the About panel
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -522,7 +527,7 @@ const Dashboard = ({ analytics = {}, activities = [], projects = [], currentUser
                         </div>
                         <span className="truncate text-sm text-slate-800 dark:text-gray-200 font-medium">{p.name}</span>
                       </div>
-                      <span className="text-xs text-slate-400 dark:text-gray-500 ml-2 shrink-0">{new Date(p.last_updated || p.creation_date).toLocaleDateString()}</span>
+                      <span className="text-xs text-slate-400 dark:text-gray-500 ml-2 shrink-0">{formatDateOnly(p.last_updated || p.creation_date, timezone)}</span>
                     </div>
                   ))}
                 {projects.length === 0 && (

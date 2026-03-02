@@ -5,12 +5,15 @@ import './components/StatusColors.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { TimezoneProvider } from './contexts/TimezoneContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <ThemeProvider>
-      <App />
+      <TimezoneProvider>
+        <App />
+      </TimezoneProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

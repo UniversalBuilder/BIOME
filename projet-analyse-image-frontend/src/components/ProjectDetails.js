@@ -9,6 +9,8 @@ import WizardFormModal from './WizardFormModal';
 import RelinkResourcesModal from './RelinkResourcesModal';
 import Environment from '../utils/environmentDetection';
 import ScrollableContainer from './ScrollableContainer';
+import { useTimezone } from '../contexts/TimezoneContext';
+import { formatDateTime, formatDateOnly } from '../utils/timeUtils';
 
 const MAX_HOURS = 48;
 
@@ -227,6 +229,7 @@ const getTimeSpentBarColor = (minutes) => {
 };
 
 function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProject, setIsNewProject, showScroll = true }) {
+  const { timezone } = useTimezone();
   const [isEditing, setIsEditing] = useState(false);
   const [localEditingData, setLocalEditingData] = useState(null);
   const [isMetadataCollapsed, setIsMetadataCollapsed] = useState(false);
@@ -1442,7 +1445,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             </div>
             <div>
               {displayData.readme_last_updated ? 
-                `README last updated: ${new Date(displayData.readme_last_updated).toLocaleString()}` : 
+                `README last updated: ${formatDateTime(displayData.readme_last_updated, timezone)}` : 
                 'README not yet generated'}
             </div>
             {!isTauri && (
@@ -1878,9 +1881,9 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                 const safeFormat = (ts) => {
                   if (!ts) return null;
                   try {
-                    const d = new Date(ts);
-                    if (isNaN(d.getTime())) return null;
-                    return d.toLocaleString();
+                    const formatted = formatDateTime(ts, timezone);
+                    if (formatted === '—') return null;
+                    return formatted;
                   } catch {
                     return null;
                   }
@@ -2672,13 +2675,13 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <div className="text-xs text-text-muted">{new Date(entry.entry_date).toLocaleString()}</div>
+                          <div className="text-xs text-text-muted">{formatDateTime(entry.entry_date, timezone)}</div>
                           {entry.edited_at && (
                             <div className="text-[11px] text-blue-600 dark:text-bioluminescent-400">edited 
                               {(() => {
                                 try {
-                                  const d = new Date(entry.edited_at);
-                                  if (!isNaN(d.getTime())) return ` · ${d.toLocaleString()}`;
+                                  const label = formatDateTime(entry.edited_at, timezone);
+                                  if (label && label !== '—') return ` · ${label}`;
                                 } catch {}
                                 return '';
                               })()}
@@ -2836,7 +2839,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
             placeholder="Update the journal entry text"
           />
           {editingJournalEntry?.edited_at && (
-            <div className="text-xs text-text-muted">Last edited: {new Date(editingJournalEntry.edited_at).toLocaleString()}</div>
+            <div className="text-xs text-text-muted">Last edited: {formatDateTime(editingJournalEntry.edited_at, timezone)}</div>
           )}
           {/* Diff preview */}
           <div className="mt-2">
