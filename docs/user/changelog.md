@@ -8,8 +8,13 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ### New Features
 - **Dynamic metadata options** — Software, Imaging Techniques, Sample Type, and Analysis Goal options are now stored in the database. Add, rename, or delete any option at any time without leaving the app.
-- **Metadata Management panel** — new section in **Settings** (tabbed panel) allows managing all four option lists; deleting an option that is still used in a project is blocked with a clear message.
+- **Metadata Management panel** — new section in **Settings** (tabbed panel) allows managing all four option lists; options are displayed as compact chips sorted A → Z; deleting an option that is still used in a project is blocked with a clear message.
 - **Software as multi-select** — the Software field now supports multiple selections, stored the same way as the other metadata fields.
+
+### Improvements
+- **Alphabetical option ordering** — all metadata option dropdowns (project creation, project editing) show choices sorted A → Z automatically.
+- **Compact chip layout** — the Metadata Management card in Settings now uses a space-efficient chip layout instead of full-width rows.
+- **Settings page scrollable** — the Settings page now scrolls correctly when content is taller than the window.
 
 ### Removed
 - **Objective Magnification** — field removed; existing data is preserved but the field no longer appears in forms, project details, or exports.

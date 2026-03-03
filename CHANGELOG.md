@@ -6,18 +6,26 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
-## [2.4.0] - 2026-03-01
+## [2.4.0] - 2026-03-03
 ### Added
 - **Dynamic metadata options**: Software, Imaging Techniques, Sample Type, and Analysis Goal options are now stored in the database (`metadata_options` table) instead of being hard-coded. Options can be added, renamed, and deleted at runtime.
 - **Metadata Management in Settings**: New full-width tabbed panel in Settings allows managing all four metadata option lists (add, edit, delete with usage-conflict protection).
 - **Software as multi-select**: The Software field is now multi-select (JSON array), consistent with the other metadata fields.
 - **Migration script v2.4.0**: Converts existing `software` plain-string values to JSON arrays and seeds the `metadata_options` table.
 
+### Changed
+- **Metadata options A→Z**: All metadata option lists (settings manager + all dropdown menus) are now sorted alphabetically at both the database query level and the client-side render.
+- **Metadata manager chip layout**: Options in the Settings Metadata Management card are now displayed as compact chips (flex-wrap) instead of full-row bordered list items, reducing wasted vertical space. Edit/delete actions appear as icon buttons on hover.
+- **Analytics dashboard**: Sample Type, Imaging Technique, and Analysis Goal charts now read live category lists from the database; Software distribution and efficiency charts now handle multi-select JSON arrays.
+
+### Fixed
+- **Settings page not scrollable**: Settings page was clipped by the app's `overflow-hidden` layout — wrapped in a `h-full overflow-y-auto` container so it scrolls correctly.
+- **Backend startup syntax error**: Pre-existing nested single-quote issue in `strftime` SQL strings inside `projects.js` caused the Node backend to crash on restart — converted to template literals.
+- **Metadata-options 404**: `/api/metadata-options` routes were not available in the running process when the app was already open before the routes were added.
+
 ### Removed
 - **Objective Magnification field**: Removed from the project schema, API routes, creation wizard, and project details view.
-
-### Changed
-- **Analytics dashboard**: Sample Type, Imaging Technique, and Analysis Goal charts now read live category lists from the database; Software distribution and efficiency charts now handle multi-select JSON arrays.
+- **Manual reorder endpoint**: `PUT /api/metadata-options/reorder/:category` removed; ordering is now always alphabetical.
 
  - 2026-02-27
 ### Added
