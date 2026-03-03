@@ -179,15 +179,15 @@ export default function MetadataOptionsManager() {
 
       {!isLoading && !loadError && (
         <>
-          {/* Options list */}
-          <ul className="space-y-2 mb-4">
+          {/* Options — compact chips, sorted A→Z */}
+          <div className="flex flex-wrap gap-2 mb-4 min-h-[2rem]">
             {currentList.length === 0 && (
-              <li className="text-sm text-gray-400 dark:text-gray-500 italic py-2">No options yet. Add one below.</li>
+              <span className="text-sm text-gray-400 dark:text-gray-500 italic py-1">No options yet. Add one below.</span>
             )}
-            {currentList.map(opt => (
-              <li
+            {[...currentList].sort((a, b) => a.value.localeCompare(b.value)).map(opt => (
+              <div
                 key={opt.id}
-                className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-night-700 border border-gray-200 dark:border-night-600 group"
+                className="group inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-gray-100 dark:bg-night-700 text-sm text-gray-700 dark:text-gray-200 transition-colors hover:bg-gray-200 dark:hover:bg-night-600"
               >
                 {editingId === opt.id ? (
                   <>
@@ -197,47 +197,52 @@ export default function MetadataOptionsManager() {
                       onChange={e => setEditValue(e.target.value)}
                       onKeyDown={e => { if (e.key === 'Enter') saveEdit(opt.id); if (e.key === 'Escape') cancelEdit(); }}
                       autoFocus
-                      className="flex-1 px-2 py-1 text-sm bg-white dark:bg-night-800 border border-bioluminescent-400 rounded focus:outline-none text-gray-800 dark:text-gray-100"
+                      className="px-2 py-0.5 text-sm bg-white dark:bg-night-800 border border-bioluminescent-400 rounded focus:outline-none text-gray-800 dark:text-gray-100 min-w-[7rem]"
                     />
                     <button
                       onClick={() => saveEdit(opt.id)}
                       disabled={isSavingEdit}
-                      className="px-2 py-1 text-xs font-medium rounded bg-bioluminescent-500/20 text-bioluminescent-600 dark:text-bioluminescent-400 hover:bg-bioluminescent-500/30 border border-bioluminescent-500/30 transition-colors disabled:opacity-50"
+                      className="text-xs font-medium text-bioluminescent-600 dark:text-bioluminescent-400 hover:text-bioluminescent-700 disabled:opacity-50 transition-colors"
                     >
-                      {isSavingEdit ? 'Saving…' : 'Save'}
+                      {isSavingEdit ? '…' : 'Save'}
                     </button>
                     <button
                       onClick={cancelEdit}
-                      className="px-2 py-1 text-xs rounded text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                      className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                      title="Cancel"
                     >
-                      Cancel
+                      ×
                     </button>
-                    {editError && <span className="text-xs text-red-500 ml-1">{editError}</span>}
+                    {editError && <span className="text-xs text-red-500">{editError}</span>}
                   </>
                 ) : (
                   <>
-                    <span className="flex-1 text-sm text-gray-700 dark:text-gray-200">{opt.value}</span>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span>{opt.value}</span>
+                    <span className="hidden group-hover:inline-flex items-center gap-0.5 ml-0.5">
                       <button
                         onClick={() => startEdit(opt)}
-                        className="px-2 py-1 text-xs rounded text-gray-500 dark:text-gray-400 hover:text-bioluminescent-600 dark:hover:text-bioluminescent-400 hover:bg-bioluminescent-500/10 transition-colors"
+                        className="text-gray-400 hover:text-bioluminescent-500 dark:hover:text-bioluminescent-400 transition-colors"
                         title="Edit"
                       >
-                        Edit
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
                       </button>
                       <button
                         onClick={() => requestDelete(opt)}
-                        className="px-2 py-1 text-xs rounded text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                         title="Delete"
                       >
-                        Delete
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                       </button>
-                    </div>
+                    </span>
                   </>
                 )}
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
 
           {/* Add new option */}
           <div className="flex gap-2 items-start">

@@ -1224,7 +1224,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   };
 
   const renderSoftwareField = () => {
-    const softwareValues = metadataOptions.software.map(o => o.value);
+    const softwareValues = metadataOptions.software.map(o => o.value).sort((a, b) => a.localeCompare(b));
     if (isEditing) {
       return (
         <MultiSelectField
@@ -2107,7 +2107,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   <td className="px-4 py-3">
                     {isEditing ? (
                       <MultiSelectField
-                        options={metadataOptions.imagingTechniques.map(o => o.value)}
+                        options={metadataOptions.imagingTechniques.map(o => o.value).sort((a, b) => a.localeCompare(b))}
                         value={displayData.image_types || '[]'}
                         onChange={(value) => handleInputChange('image_types', value)}
                         placeholder={isLoadingOptions ? 'Loading...' : 'Select imaging techniques...'}
@@ -2138,7 +2138,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   <td className="px-4 py-3">
                     {isEditing ? (
                       <MultiSelectField
-                        options={metadataOptions.sampleTypes.map(o => o.value)}
+                        options={metadataOptions.sampleTypes.map(o => o.value).sort((a, b) => a.localeCompare(b))}
                         value={displayData.sample_type || '[]'}
                         onChange={(value) => handleInputChange('sample_type', value)}
                         placeholder={isLoadingOptions ? 'Loading...' : 'Select sample types...'}
@@ -2169,7 +2169,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   <td className="px-4 py-3">
                     {isEditing ? (
                       <MultiSelectField
-                        options={metadataOptions.analysisGoals.map(o => o.value)}
+                        options={metadataOptions.analysisGoals.map(o => o.value).sort((a, b) => a.localeCompare(b))}
                         value={displayData.analysis_goal || '[]'}
                         onChange={(value) => handleInputChange('analysis_goal', value)}
                         placeholder={isLoadingOptions ? 'Loading...' : 'Select analysis goals...'}

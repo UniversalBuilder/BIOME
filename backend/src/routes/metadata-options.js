@@ -15,7 +15,7 @@ router.get('/metadata-options', async (req, res) => {
       `SELECT id, category, value, display_order, is_active, created_at
        FROM metadata_options
        WHERE category = ? AND is_active = 1
-       ORDER BY display_order ASC, value ASC`,
+       ORDER BY value ASC`,
       [category]
     );
     res.json(options);
@@ -69,29 +69,6 @@ router.post('/metadata-options', async (req, res) => {
     }
     console.error('Error creating metadata option:', error);
     res.status(500).json({ error: 'Failed to create metadata option' });
-  }
-});
-
-// PUT /api/metadata-options/reorder/:category  â€” must come BEFORE /:id
-router.put('/metadata-options/reorder/:category', async (req, res) => {
-  const { category } = req.params;
-  const { orderedIds } = req.body;
-  if (!VALID_CATEGORIES.includes(category)) return res.status(400).json({ error: 'Invalid category' });
-  if (!Array.isArray(orderedIds)) return res.status(400).json({ error: 'orderedIds must be an array' });
-
-  try {
-    for (let i = 0; i < orderedIds.length; i++) {
-      await db.run('UPDATE metadata_options SET display_order = ? WHERE id = ? AND category = ?',
-        [i, orderedIds[i], category]);
-    }
-    const updated = await db.all(
-      'SELECT * FROM metadata_options WHERE category = ? AND is_active = 1 ORDER BY display_order ASC, value ASC',
-      [category]
-    );
-    res.json(updated);
-  } catch (error) {
-    console.error('Error reordering metadata options:', error);
-    res.status(500).json({ error: 'Failed to reorder metadata options' });
   }
 });
 

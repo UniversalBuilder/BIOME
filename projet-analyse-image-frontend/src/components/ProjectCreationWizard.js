@@ -602,7 +602,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                     Analysis Software *
                   </label>
                   <MultiSelectField
-                    options={metadataOptions.software.map(o => o.value)}
+                    options={metadataOptions.software.map(o => o.value).sort((a, b) => a.localeCompare(b))}
                     value={projectData.software}
                     onChange={(value) => handleInputChange('software', value)}
                     placeholder={isLoadingOptions ? 'Loading...' : 'Select software...'}
@@ -657,7 +657,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                     Sample Types
                   </label>
                   <MultiSelectField
-                    options={metadataOptions.sampleTypes.map(o => o.value)}
+                    options={metadataOptions.sampleTypes.map(o => o.value).sort((a, b) => a.localeCompare(b))}
                     value={projectData.sample_type}
                     onChange={(value) => handleInputChange('sample_type', value)}
                     placeholder={isLoadingOptions ? 'Loading...' : 'Select sample types'}
@@ -670,7 +670,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                     Imaging Techniques
                   </label>
                   <MultiSelectField
-                    options={metadataOptions.imagingTechniques.map(o => o.value)}
+                    options={metadataOptions.imagingTechniques.map(o => o.value).sort((a, b) => a.localeCompare(b))}
                     value={projectData.image_types}
                     onChange={(value) => handleInputChange('image_types', value)}
                     placeholder={isLoadingOptions ? 'Loading...' : 'Select imaging techniques'}
@@ -683,7 +683,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                     Analysis Goals
                   </label>
                   <MultiSelectField
-                    options={metadataOptions.analysisGoals.map(o => o.value)}
+                    options={metadataOptions.analysisGoals.map(o => o.value).sort((a, b) => a.localeCompare(b))}
                     value={projectData.analysis_goal}
                     onChange={(value) => handleInputChange('analysis_goal', value)}
                     placeholder={isLoadingOptions ? 'Loading...' : 'Select analysis goals'}
