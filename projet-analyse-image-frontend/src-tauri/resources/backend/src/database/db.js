@@ -123,6 +123,46 @@ class DatabaseManager {
             } catch (e) {
                 console.warn('Could not verify/create project_resources table:', e.message || e);
             }
+
+            // Ensure metadata_options table exists (v2.4.0)
+            try {
+                const metaTable = await this.get("SELECT name FROM sqlite_master WHERE type='table' AND name='metadata_options'");
+                if (!metaTable) {
+                    console.log('Applying migration: create metadata_options table');
+                    await this.run(`CREATE TABLE IF NOT EXISTS metadata_options (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        category TEXT NOT NULL,
+                        value TEXT NOT NULL,
+                        display_order INTEGER DEFAULT 0,
+                        is_active BOOLEAN DEFAULT 1,
+                        created_at TEXT DEFAULT (datetime('now')),
+                        UNIQUE(category, value)
+                    )`);
+                    await this.run(`CREATE INDEX IF NOT EXISTS idx_metadata_options_category ON metadata_options(category, is_active)`);
+                    // Seed default options
+                    const seedData = [
+                        ['software','Fiji',0],['software','ImageJ',1],['software','CellProfiler',2],
+                        ['software','Imaris',3],['software','QuPath',4],['software','OMERO',5],
+                        ['software','Arivis',6],['software','Other',7],
+                        ['imaging_techniques','widefield microscopy',0],['imaging_techniques','widefield fluorescence microscopy',1],
+                        ['imaging_techniques','slide scanning',2],['imaging_techniques','confocal microscopy',3],
+                        ['imaging_techniques','time lapse microscopy',4],['imaging_techniques','super resolution microscopy',5],
+                        ['imaging_techniques','high content screening',6],['imaging_techniques','other',7],
+                        ['sample_type','cells on slides',0],['sample_type','tissue slices',1],
+                        ['sample_type','cells in multiwell plates',2],['sample_type','whole organ / animal',3],
+                        ['sample_type','other',4],
+                        ['analysis_goal','object counting',0],['analysis_goal','intensity measurement',1],
+                        ['analysis_goal','3D reconstruction',2],['analysis_goal','object classification',3],
+                        ['analysis_goal','object morphometry',4],['analysis_goal','other',5]
+                    ];
+                    for (const [cat, val, ord] of seedData) {
+                        await this.run('INSERT OR IGNORE INTO metadata_options (category, value, display_order) VALUES (?, ?, ?)', [cat, val, ord]);
+                    }
+                    console.log('metadata_options table created and seeded.');
+                }
+            } catch (e) {
+                console.warn('Could not verify/create metadata_options table:', e.message || e);
+            }
         } catch (err) {
             console.error('Migration check/apply failed:', err);
             // Do not throw to avoid blocking app startup; log only.

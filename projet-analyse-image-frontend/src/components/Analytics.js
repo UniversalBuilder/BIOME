@@ -17,6 +17,7 @@ import { Tooltip } from './Tooltip';
 import { ThemeContext } from '../contexts/ThemeContext';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatDateTime, formatDateOnly } from '../utils/timeUtils';
+import metadataOptionsApi from '../services/metadataOptionsApi';
 
 // Register ChartJS components
 ChartJS.register(
@@ -66,6 +67,20 @@ const Analytics = ({ projects = [], analytics = {} }) => {
   const [endDate, setEndDate] = useState(defaultDateRange.endDate);
   const [filteredProjects, setFilteredProjects] = useState(projects);
   const [isFiltered, setIsFiltered] = useState(false);
+  
+  // Dynamic metadata options
+  const [metadataOptions, setMetadataOptions] = useState({
+    software: [],
+    imagingTechniques: [],
+    sampleTypes: [],
+    analysisGoals: []
+  });
+
+  useEffect(() => {
+    metadataOptionsApi.getAllOptions()
+      .then(options => setMetadataOptions(options))
+      .catch(err => console.error('Analytics: failed to load metadata options', err));
+  }, []);
   
   // Filter projects by date range - wrapped in useCallback
   const applyDateFilter = useCallback(() => {
@@ -153,7 +168,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
 //          project.name || 'Unnamed',
           project.name,
           project.status || 'Unknown',
-          project.software || 'Not specified',
+          (() => { try { const a = JSON.parse(project.software || '[]'); return a.length ? a.join(', ') : 'Not specified'; } catch { return project.software || 'Not specified'; } })(),
           creationDate ? formatDateOnly(creationDate.toISOString(), timezone) : '',
           lastUpdateDate ? formatDateOnly(lastUpdateDate.toISOString(), timezone) : '',
           completionDate ? formatDateOnly(completionDate.toISOString(), timezone) : '',
@@ -419,12 +434,23 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     ],
   };
 
-  // Calculate number of projects by software
+  // Calculate number of projects by software (handles multi-select JSON arrays)
   const softwareCounts = {};
   // Use filtered projects instead of all projects
   filteredProjects.forEach(project => {
-    const software = project.software || 'Not specified';
-    softwareCounts[software] = (softwareCounts[software] || 0) + 1;
+    let softwareList = ['Not specified'];
+    const swRaw = project.software;
+    if (swRaw && String(swRaw).trim() !== '' && String(swRaw).trim() !== '[]') {
+      try {
+        const arr = Array.isArray(swRaw) ? swRaw : JSON.parse(swRaw);
+        if (arr.length > 0) softwareList = arr;
+      } catch {
+        softwareList = [swRaw];
+      }
+    }
+    softwareList.forEach(software => {
+      softwareCounts[software] = (softwareCounts[software] || 0) + 1;
+    });
   });
 
   // Sort by project count and get top 8 plus "Others"
@@ -830,34 +856,10 @@ const Analytics = ({ projects = [], analytics = {} }) => {
 
   // Enhanced Analytics Data Processing
 
-  // Define predefined categories
-  const PREDEFINED_CATEGORIES = {
-    sampleTypes: [
-      'cells on slides',
-      'tissue slices', 
-      'cells in multiwell plates',
-      'whole organ / animal',
-      'other'
-    ],
-    imagingTechniques: [
-      'widefield microscopy',
-      'widefield fluorescence microscopy',
-      'slide scanning',
-      'confocal microscopy',
-      'time lapse microscopy',
-      'super resolution microscopy',
-      'high content screening',
-      'other'
-    ],
-    analysisGoals: [
-      'object counting',
-      'intensity measurement',
-      '3D reconstruction',
-      'object classification',
-      'object morphometry',
-      'other'
-    ]
-  };
+  // Build option arrays from dynamic state (values only)
+  const dynSampleTypes = metadataOptions.sampleTypes.map(o => o.value);
+  const dynImagingTechniques = metadataOptions.imagingTechniques.map(o => o.value);
+  const dynAnalysisGoals = metadataOptions.analysisGoals.map(o => o.value);
 
   // Helper function to parse multi-selection fields (comma-separated or array)
   const parseMultiSelectionField = (fieldValue, predefinedOptions) => {
@@ -889,16 +891,16 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     });
   };
 
-  // Sample Type Distribution with predefined categories
+  // Sample Type Distribution with dynamic categories
   const sampleTypeCounts = {};
-  // Initialize all predefined categories with 0
-  PREDEFINED_CATEGORIES.sampleTypes.forEach(type => {
+  // Initialize all dynamic categories with 0
+  dynSampleTypes.forEach(type => {
     sampleTypeCounts[type] = 0;
   });
   
   filteredProjects.forEach(project => {
     if (project.sample_type && project.sample_type.trim()) {
-      const selections = parseMultiSelectionField(project.sample_type, PREDEFINED_CATEGORIES.sampleTypes);
+      const selections = parseMultiSelectionField(project.sample_type, dynSampleTypes);
       selections.forEach(selection => {
         sampleTypeCounts[selection] = (sampleTypeCounts[selection] || 0) + 1;
       });
@@ -922,16 +924,16 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     ],
   };
 
-  // Image Type Distribution with predefined categories
+  // Image Type Distribution with dynamic categories
   const imageTypeCounts = {};
-  // Initialize all predefined categories with 0
-  PREDEFINED_CATEGORIES.imagingTechniques.forEach(technique => {
+  // Initialize all dynamic categories with 0
+  dynImagingTechniques.forEach(technique => {
     imageTypeCounts[technique] = 0;
   });
   
   filteredProjects.forEach(project => {
     if (project.image_types && project.image_types.trim()) {
-      const selections = parseMultiSelectionField(project.image_types, PREDEFINED_CATEGORIES.imagingTechniques);
+      const selections = parseMultiSelectionField(project.image_types, dynImagingTechniques);
       selections.forEach(selection => {
         imageTypeCounts[selection] = (imageTypeCounts[selection] || 0) + 1;
       });
@@ -955,16 +957,16 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     ],
   };
 
-  // Analysis Goal Distribution with predefined categories
+  // Analysis Goal Distribution with dynamic categories
   const analysisGoalCounts = {};
-  // Initialize all predefined categories with 0
-  PREDEFINED_CATEGORIES.analysisGoals.forEach(goal => {
+  // Initialize all dynamic categories with 0
+  dynAnalysisGoals.forEach(goal => {
     analysisGoalCounts[goal] = 0;
   });
   
   filteredProjects.forEach(project => {
     if (project.analysis_goal && project.analysis_goal.trim()) {
-      const selections = parseMultiSelectionField(project.analysis_goal, PREDEFINED_CATEGORIES.analysisGoals);
+      const selections = parseMultiSelectionField(project.analysis_goal, dynAnalysisGoals);
       selections.forEach(selection => {
         analysisGoalCounts[selection] = (analysisGoalCounts[selection] || 0) + 1;
       });
@@ -988,17 +990,28 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     ],
   };
 
-  // Software Efficiency Analysis
+  // Software Efficiency Analysis (handles multi-select JSON arrays)
   const softwareEfficiency = {};
   filteredProjects.forEach(project => {
-    const software = project.software || 'Not specified';
     const timeSpent = project.time_spent_minutes || 0;
-    
-    if (!softwareEfficiency[software]) {
-      softwareEfficiency[software] = { totalTime: 0, projectCount: 0 };
+    // Parse software as JSON array (new format) or plain string (legacy)
+    let softwareList = ['Not specified'];
+    const softwareRaw = project.software;
+    if (softwareRaw && String(softwareRaw).trim() !== '' && String(softwareRaw).trim() !== '[]') {
+      try {
+        const arr = Array.isArray(softwareRaw) ? softwareRaw : JSON.parse(softwareRaw);
+        if (arr.length > 0) softwareList = arr;
+      } catch {
+        softwareList = [softwareRaw];
+      }
     }
-    softwareEfficiency[software].totalTime += timeSpent;
-    softwareEfficiency[software].projectCount += 1;
+    softwareList.forEach(software => {
+      if (!softwareEfficiency[software]) {
+        softwareEfficiency[software] = { totalTime: 0, projectCount: 0 };
+      }
+      softwareEfficiency[software].totalTime += timeSpent;
+      softwareEfficiency[software].projectCount += 1;
+    });
   });
 
   const softwareEfficiencyData = {

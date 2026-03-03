@@ -279,8 +279,7 @@ export const projectService = {
             // Microscopy-specific multi-select fields
             image_types: projectData.image_types || null,
             analysis_goal: projectData.analysis_goal || null,
-            sample_type: projectData.sample_type || null,
-            objective_magnification: projectData.objective_magnification || null
+            sample_type: projectData.sample_type || null
         };
 
         console.log('Creating project with data:', JSON.stringify(cleanData, null, 2));

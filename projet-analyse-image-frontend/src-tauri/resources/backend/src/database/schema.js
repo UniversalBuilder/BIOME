@@ -31,7 +31,6 @@ const schema = [
     user_id INTEGER,
     image_types TEXT,
     sample_type TEXT,
-    objective_magnification TEXT,
     analysis_goal TEXT,
     output_type TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
@@ -69,7 +68,21 @@ const schema = [
     size INTEGER,
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-  )`
+  )`,
+
+  // Dynamic metadata options for project fields
+  `CREATE TABLE IF NOT EXISTS metadata_options (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT NOT NULL,
+    value TEXT NOT NULL,
+    display_order INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT 1,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(category, value)
+  )`,
+
+  `CREATE INDEX IF NOT EXISTS idx_metadata_options_category 
+   ON metadata_options(category, is_active)`
 ];
 
 module.exports = schema;

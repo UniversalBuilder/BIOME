@@ -4,6 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatDateTime } from '../utils/timeUtils';
 import Environment from '../utils/environmentDetection';
+import MetadataOptionsManager from '../components/MetadataOptionsManager';
 
 function Settings() {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -95,6 +96,7 @@ function Settings() {
   };
 
   return (
+    <div className="h-full overflow-y-auto">
     <div className="p-6 max-w-6xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {/* Environment Information */}
@@ -321,6 +323,15 @@ function Settings() {
           </div>
         )}
 
+        {/* Metadata Management */}
+        <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm lg:col-span-2 xl:col-span-3">
+          <h3 className="text-lg font-semibold mb-1 text-gray-900 dark:text-gray-100">Metadata Management</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+            Configure the available options for project metadata fields: Software, Imaging Techniques, Sample Type, and Analysis Goal.
+          </p>
+          <MetadataOptionsManager />
+        </div>
+
         {/* Help & Documentation */}
         <div className="bg-white dark:bg-night-800 rounded-lg p-6 shadow-sm lg:col-span-2 xl:col-span-3">
           <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Help &amp; Documentation</h3>
@@ -355,6 +366,7 @@ function Settings() {
         </div>
 
       </div>
+    </div>
     </div>
   );
 }

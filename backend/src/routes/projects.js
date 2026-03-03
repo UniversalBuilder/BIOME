@@ -285,7 +285,7 @@ router.post('/', async (req, res) => {
 
 // Add new route to get journal entries for a project
 router.get('/:id/journal', (req, res) => {
-    const sql = 'SELECT id, project_id, entry_text, strftime('%Y-%m-%dT%H:%M:%SZ', entry_date) as entry_date, strftime('%Y-%m-%dT%H:%M:%SZ', edited_at) as edited_at, edited_by FROM journal_entries WHERE project_id = ? ORDER BY entry_date DESC';
+    const sql = `SELECT id, project_id, entry_text, strftime('%Y-%m-%dT%H:%M:%SZ', entry_date) as entry_date, strftime('%Y-%m-%dT%H:%M:%SZ', edited_at) as edited_at, edited_by FROM journal_entries WHERE project_id = ? ORDER BY entry_date DESC`;
     db.all(sql, [req.params.id], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
@@ -319,13 +319,13 @@ router.post('/:id/journal', async (req, res) => {
         
         // Return the newly created entry with formatted date
         const row = await db.get(
-            'SELECT id, entry_text, strftime('%Y-%m-%dT%H:%M:%SZ', entry_date) as entry_date, strftime('%Y-%m-%dT%H:%M:%SZ', edited_at) as edited_at, edited_by FROM journal_entries WHERE id = ?', 
+            `SELECT id, entry_text, strftime('%Y-%m-%dT%H:%M:%SZ', entry_date) as entry_date, strftime('%Y-%m-%dT%H:%M:%SZ', edited_at) as edited_at, edited_by FROM journal_entries WHERE id = ?`, 
             [result.lastID]
         );
         
         // Update project's last_updated timestamp
         await db.run(
-            'UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?',
+            `UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?`,
             [project_id]
         );
         
@@ -352,7 +352,7 @@ router.delete('/:id/journal/:entryId', async (req, res) => {
             'journal_entry_deleted',
             (existing.entry_text || '').substring(0, 100)
         );
-        await db.run('UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?', [projectId]);
+        await db.run(`UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?`, [projectId]);
         res.json({ success: true });
     } catch (err) {
         console.error('Error deleting journal entry:', err);
@@ -378,7 +378,7 @@ router.patch('/:id/journal/:entryId', async (req, res) => {
 
         // Update entry text and edited metadata
         await db.run(
-            'UPDATE journal_entries SET entry_text = ?, edited_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), edited_by = ? WHERE id = ?',
+            `UPDATE journal_entries SET entry_text = ?, edited_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), edited_by = ? WHERE id = ?`,
             [entry_text, edited_by || null, entryId]
         );
 
@@ -391,11 +391,11 @@ router.patch('/:id/journal/:entryId', async (req, res) => {
         );
 
         // Touch project last_updated
-        await db.run('UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?', [projectId]);
+        await db.run(`UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?`, [projectId]);
 
         // Return updated row
         const row = await db.get(
-            'SELECT id, project_id, entry_text, strftime('%Y-%m-%dT%H:%M:%SZ', entry_date) as entry_date, strftime('%Y-%m-%dT%H:%M:%SZ', edited_at) as edited_at, edited_by FROM journal_entries WHERE id = ?',
+            `SELECT id, project_id, entry_text, strftime('%Y-%m-%dT%H:%M:%SZ', entry_date) as entry_date, strftime('%Y-%m-%dT%H:%M:%SZ', edited_at) as edited_at, edited_by FROM journal_entries WHERE id = ?`,
             [entryId]
         );
         res.json(row);
@@ -524,7 +524,7 @@ router.post('/:id/references/upload', upload.array('files', 20), async (req, res
         }
 
         // Touch project last_updated
-        await db.run('UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?', [projectId]);
+        await db.run(`UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?`, [projectId]);
         res.json({ uploaded: saved });
     } catch (err) {
         console.error('Error uploading project resources:', err);
@@ -576,7 +576,7 @@ router.delete('/:id/references/:resId', async (req, res) => {
                 try { fs.unlinkSync(filePath); } catch {}
             }
         }
-        await db.run('UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?', [req.params.id]);
+        await db.run(`UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?`, [req.params.id]);
         res.json({ success: true });
     } catch (err) {
         console.error('Error deleting resource:', err);
@@ -629,7 +629,7 @@ router.post('/:id/readme/resources', async (req, res) => {
             content = content.trimEnd() + '\n' + section;
         }
         fs.writeFileSync(targetReadme, content, 'utf8');
-        await db.run('UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?', [req.params.id]);
+        await db.run(`UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?`, [req.params.id]);
         res.json({ updated: true, readme: path.basename(targetReadme) });
     } catch (err) {
         console.error('Error updating README resources:', err);
@@ -662,7 +662,7 @@ router.post('/:id/readme/update', async (req, res) => {
 
         // Fetch journal entries latest first
         const journal = await db.all(
-            'SELECT entry_text, strftime('%Y-%m-%dT%H:%M:%SZ', entry_date) as entry_date, strftime('%Y-%m-%dT%H:%M:%SZ', edited_at) as edited_at, edited_by FROM journal_entries WHERE project_id = ? ORDER BY entry_date DESC',
+            `SELECT entry_text, strftime('%Y-%m-%dT%H:%M:%SZ', entry_date) as entry_date, strftime('%Y-%m-%dT%H:%M:%SZ', edited_at) as edited_at, edited_by FROM journal_entries WHERE project_id = ? ORDER BY entry_date DESC`,
             [projectId]
         );
 
@@ -866,7 +866,7 @@ router.post('/:id/readme/update', async (req, res) => {
         }
 
         // Touch project last_updated and readme_last_updated
-        await db.run('UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), readme_last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?', [projectId]);
+        await db.run(`UPDATE projects SET last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), readme_last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?`, [projectId]);
 
         res.json({ updated: true, readme: path.basename(targetReadme), timestamp: new Date().toISOString() });
     } catch (err) {
@@ -947,7 +947,7 @@ router.put('/:id', async (req, res) => {
                 });
                 
                 // Add timestamp to values and fields
-                updateFields.push('last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')');
+                updateFields.push(`last_updated = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')`);
                 
                 const sql = `
                     UPDATE projects 

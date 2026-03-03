@@ -4,6 +4,7 @@ import { Tooltip } from './Tooltip';
 import { projectService, groupService } from '../services/api';
 import { selectDirectory } from '../services/tauriApi';
 import { createProjectStructure, validateProjectStructure, scanProjectFolder, openFolderInExplorer } from '../services/filesystemApi';
+import metadataOptionsApi from '../services/metadataOptionsApi';
 import Modal from './Modal';
 import WizardFormModal from './WizardFormModal';
 import RelinkResourcesModal from './RelinkResourcesModal';
@@ -13,35 +14,6 @@ import { useTimezone } from '../contexts/TimezoneContext';
 import { formatDateTime, formatDateOnly } from '../utils/timeUtils';
 
 const MAX_HOURS = 48;
-
-// Predefined category options
-const PREDEFINED_OPTIONS = {
-  sampleTypes: [
-    'cells on slides',
-    'tissue slices', 
-    'cells in multiwell plates',
-    'whole organ / animal',
-    'other'
-  ],
-  imagingTechniques: [
-    'widefield microscopy',
-    'widefield fluorescence microscopy',
-    'slide scanning',
-    'confocal microscopy',
-    'time lapse microscopy',
-    'super resolution microscopy',
-    'high content screening',
-    'other'
-  ],
-  analysisGoals: [
-    'object counting',
-    'intensity measurement',
-    '3D reconstruction',
-    'object classification',
-    'object morphometry',
-    'other'
-  ]
-};
 
 // Output/Result type categories
 const PREDEFINED_OUTPUT_TYPES = [
@@ -266,6 +238,15 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   const [folderWarningMessage, setFolderWarningMessage] = useState('');
   const folderWarningCallbackRef = React.useRef(null);
 
+  // Dynamic metadata options
+  const [metadataOptions, setMetadataOptions] = useState({
+    software: [],
+    imagingTechniques: [],
+    sampleTypes: [],
+    analysisGoals: []
+  });
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
+
   // Define common classes
   const inputBaseClasses = "w-full px-3 py-2 bg-white/70 dark:bg-night-700/60 backdrop-filter backdrop-blur-lg rounded-xl focus:ring-2 focus:ring-bioluminescent-300 dark:focus:ring-bioluminescent-600 focus:border-transparent outline-none transition-colors text-sm text-gray-900 dark:text-gray-100 shadow-sm hover:shadow-lg transition-all duration-300";
 
@@ -330,6 +311,24 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
+  }, []);
+
+  // Load metadata options on component mount
+  useEffect(() => {
+    const loadMetadataOptions = async () => {
+      try {
+        setIsLoadingOptions(true);
+        const options = await metadataOptionsApi.getAllOptions();
+        setMetadataOptions(options);
+      } catch (error) {
+        console.error('Error loading metadata options:', error);
+        // Keep empty arrays as fallback
+      } finally {
+        setIsLoadingOptions(false);
+      }
+    };
+
+    loadMetadataOptions();
   }, []);
 
   // Initialize local journal entries when project changes
@@ -428,7 +427,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     const hasName = data.name && String(data.name).trim() !== '' && data.name !== 'New Project';
     // Description is OPTIONAL - not required for folder creation
     const hasDescription = true; // Always true since description is optional
-    const hasSoftware = data.software && String(data.software).trim() !== '';
+    const hasSoftware = data.software && String(data.software).trim() !== '' && String(data.software).trim() !== '[]';
     
     // Check for group - either group_id or group_name should exist
     const hasGroup = (data.group_id && String(data.group_id).trim() !== '') || 
@@ -475,7 +474,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         group_id: localEditingData.group_id,
         image_types: localEditingData.image_types,
         sample_type: localEditingData.sample_type,
-        objective_magnification: localEditingData.objective_magnification,
         analysis_goal: localEditingData.analysis_goal
       };
 
@@ -491,7 +489,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         console.log('Updating project with new field values:', {
           image_types: projectToSave.image_types,
           sample_type: projectToSave.sample_type,
-          objective_magnification: projectToSave.objective_magnification,
           analysis_goal: projectToSave.analysis_goal
         });
         await projectService.update(project.id, projectToSave);
@@ -1226,41 +1223,32 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     }
   };
 
-  // eslint-disable-next-line no-unused-vars
   const renderSoftwareField = () => {
+    const softwareValues = metadataOptions.software.map(o => o.value);
     if (isEditing) {
       return (
-        <select
-          id="software-select"
-          name="software-select"
-          className={`${inputBaseClasses} ${!isEditing && 'bg-surface dark:bg-surface-dark text-text dark:text-text-dark'}`}
-          value={displayData.software || ''}
-          onChange={(e) => handleInputChange('software', e.target.value)}
-          disabled={!isEditing}
-        >
-          <option value="">Select software</option>
-          {[
-            'CellProfiler',
-            'Fiji',
-            'Imaris',
-            'LAS X',
-            'MetaMorph',
-            'Nikon NIS Elements',
-            'Python',
-            'QuPath',
-            'Zen',
-            'Other'
-          ].map(software => (
-            <option key={software} value={software}>
-              {software}
-            </option>
-          ))}
-        </select>
+        <MultiSelectField
+          options={softwareValues}
+          value={displayData.software || '[]'}
+          onChange={(value) => handleInputChange('software', value)}
+          placeholder={isLoadingOptions ? 'Loading...' : 'Select software...'}
+          fieldName="software"
+        />
       );
     } else {
+      const raw = project.software;
+      let display = 'Not specified';
+      if (raw && String(raw).trim() !== '' && String(raw).trim() !== '[]') {
+        try {
+          const arr = Array.isArray(raw) ? raw : JSON.parse(raw);
+          display = arr.join(', ');
+        } catch {
+          display = raw;
+        }
+      }
       return (
-        <div className="px-3 py-2 bg-surface dark:bg-surface-dark text-text dark:text-text-dark rounded-md">
-          {displayData.software || "No software selected"}
+        <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">
+          {display}
         </div>
       );
     }
@@ -2119,10 +2107,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   <td className="px-4 py-3">
                     {isEditing ? (
                       <MultiSelectField
-                        options={PREDEFINED_OPTIONS.imagingTechniques}
-                        value={displayData.image_types || ''}
+                        options={metadataOptions.imagingTechniques.map(o => o.value)}
+                        value={displayData.image_types || '[]'}
                         onChange={(value) => handleInputChange('image_types', value)}
-                        placeholder="Select imaging techniques..."
+                        placeholder={isLoadingOptions ? 'Loading...' : 'Select imaging techniques...'}
                         fieldName="image_types"
                       />
                     ) : (
@@ -2150,10 +2138,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   <td className="px-4 py-3">
                     {isEditing ? (
                       <MultiSelectField
-                        options={PREDEFINED_OPTIONS.sampleTypes}
-                        value={displayData.sample_type || ''}
+                        options={metadataOptions.sampleTypes.map(o => o.value)}
+                        value={displayData.sample_type || '[]'}
                         onChange={(value) => handleInputChange('sample_type', value)}
-                        placeholder="Select sample types..."
+                        placeholder={isLoadingOptions ? 'Loading...' : 'Select sample types...'}
                         fieldName="sample_type"
                       />
                     ) : (
@@ -2173,26 +2161,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   </td>
                 </tr>
                 
-                {/* Objective Magnification */}
-                <tr>
-                  <td className="px-4 py-3">
-                    <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Objective Magnification</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={displayData.objective_magnification || ''}
-                        onChange={(e) => handleInputChange('objective_magnification', e.target.value)}
-                        className={inputBaseClasses}
-                        placeholder="e.g. 63x oil immersion, 40x water immersion, 20x air"
-                      />
-                    ) : (
-                      <div className="px-3 py-2 bg-white/60 dark:bg-gray-800/50 rounded-md text-sm text-gray-900 dark:text-gray-100 backdrop-filter backdrop-blur-sm">{project.objective_magnification || 'Not specified'}</div>
-                    )}
-                  </td>
-                </tr>
-                
                 {/* Analysis Goal */}
                 <tr>
                   <td className="px-4 py-3">
@@ -2201,10 +2169,10 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   <td className="px-4 py-3">
                     {isEditing ? (
                       <MultiSelectField
-                        options={PREDEFINED_OPTIONS.analysisGoals}
-                        value={displayData.analysis_goal || ''}
+                        options={metadataOptions.analysisGoals.map(o => o.value)}
+                        value={displayData.analysis_goal || '[]'}
                         onChange={(value) => handleInputChange('analysis_goal', value)}
-                        placeholder="Select analysis goals..."
+                        placeholder={isLoadingOptions ? 'Loading...' : 'Select analysis goals...'}
                         fieldName="analysis_goal"
                       />
                     ) : (

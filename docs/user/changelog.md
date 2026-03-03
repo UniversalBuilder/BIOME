@@ -4,7 +4,17 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ---
 
-## v2.3.0 — February 2026
+## v2.4.0 — March 2026
+
+### New Features
+- **Dynamic metadata options** — Software, Imaging Techniques, Sample Type, and Analysis Goal options are now stored in the database. Add, rename, or delete any option at any time without leaving the app.
+- **Metadata Management panel** — new section in **Settings** (tabbed panel) allows managing all four option lists; deleting an option that is still used in a project is blocked with a clear message.
+- **Software as multi-select** — the Software field now supports multiple selections, stored the same way as the other metadata fields.
+
+### Removed
+- **Objective Magnification** — field removed; existing data is preserved but the field no longer appears in forms, project details, or exports.
+
+---
 
 ### New Features
 - **Page titles in top bar** — each page now shows its title and subtitle anchored in the navigation bar, staying visible as you scroll. The large title banners have been removed from the scrollable page area.

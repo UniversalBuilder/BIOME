@@ -6,6 +6,7 @@ const userRoutes = require('./routes/users');
 const groupRoutes = require('./routes/groups');
 const filesystemRoutes = require('./routes/filesystem');
 const systemRoutes = require('./routes/system');
+const metadataOptionsRoutes = require('./routes/metadata-options');
 const dbManager = require('./database/db');
 const fs = require('fs');
 
@@ -93,6 +94,7 @@ dbManager.connect().then(() => {
     app.use('/api/filesystem', filesystemRoutes);
     app.use('/api/resources', require('./routes/resources'));
     app.use('/api/system', systemRoutes);
+    app.use('/api', metadataOptionsRoutes);
 
     // Database management routes
     app.get('/api/database/info', (req, res) => {

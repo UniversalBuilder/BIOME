@@ -3,50 +3,10 @@ import './StatusColors.css';
 import { projectService, groupService, userService } from '../services/api';
 import { selectDirectory } from '../services/tauriApi';
 import { createProjectStructure, validateProjectStructure } from '../services/filesystemApi';
+import metadataOptionsApi from '../services/metadataOptionsApi';
 import Environment from '../utils/environmentDetection';
 import WizardFormModal from './WizardFormModal';
 
-// Predefined lists
-const PREDEFINED_OPTIONS = {
-  sampleTypes: [
-    'cells on slides',
-    'tissue slices', 
-    'cells in multiwell plates',
-    'whole organ / animal',
-    'other'
-  ],
-  imagingTechniques: [
-    'widefield microscopy',
-    'widefield fluorescence microscopy',
-    'slide scanning',
-    'confocal microscopy',
-    'time lapse microscopy',
-    'super resolution microscopy',
-    'high content screening',
-    'other'
-  ],
-  analysisGoals: [
-    'object counting',
-    'intensity measurement',
-    '3D reconstruction',
-    'object classification',
-    'object morphometry',
-    'other'
-  ]
-};
-
-const PREDEFINED_SOFTWARE = [
-  'CellProfiler',
-  'Fiji',
-  'Imaris',
-  'LAS X',
-  'MetaMorph',
-  'Nikon NIS Elements',
-  'Python',
-  'QuPath',
-  'Zen',
-  'Other'
-];
 
 // Output/Result type categories
 const PREDEFINED_OUTPUT_TYPES = [
@@ -152,7 +112,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
   const [projectData, setProjectData] = useState({
     name: 'New Project',
     description: '',
-    software: '',
+    software: '[]',
     output_type: '',
     sample_type: '[]',
     image_types: '[]',
@@ -163,6 +123,15 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
     expected_hours: 8,
     status: 'Intake' // maps to "Preparing" in UI
   });
+  
+  // Dynamic metadata options
+  const [metadataOptions, setMetadataOptions] = useState({
+    software: [],
+    imagingTechniques: [],
+    sampleTypes: [],
+    analysisGoals: []
+  });
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   
   // Validation and UI state
   const [errors, setErrors] = useState({});
@@ -183,6 +152,20 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
       }
     };
     loadGroups();
+
+    // Load metadata options
+    const loadMetadataOptions = async () => {
+      try {
+        setIsLoadingOptions(true);
+        const options = await metadataOptionsApi.getAllOptions();
+        setMetadataOptions(options);
+      } catch (error) {
+        console.error('Failed to load metadata options:', error);
+      } finally {
+        setIsLoadingOptions(false);
+      }
+    };
+    loadMetadataOptions();
   }, []);
 
   // When group changes, load users for that group
@@ -309,7 +292,9 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
       newErrors.description = 'Project description is required';
     }
     
-    if (!projectData.software || projectData.software.trim() === '') {
+    const softwareVal = projectData.software;
+    const softwareEmpty = !softwareVal || softwareVal.trim() === '' || softwareVal.trim() === '[]';
+    if (softwareEmpty) {
       newErrors.analysis_software = 'Please specify the analysis software to be used';
     }
 
@@ -351,7 +336,6 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
     user_id: data.user_id || null,
     image_types: data.image_types || null,
     sample_type: data.sample_type || null,
-    objective_magnification: data.objective_magnification || null,
     analysis_goal: data.analysis_goal || null
   });
 
@@ -617,24 +601,13 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Analysis Software *
                   </label>
-                  <select
+                  <MultiSelectField
+                    options={metadataOptions.software.map(o => o.value)}
                     value={projectData.software}
-                    onChange={(e) => handleInputChange('software', e.target.value)}
-                    className={`${inputBaseClasses} ${errors.analysis_software ? errorClasses : ''}`}
-                  >
-                    <option value="">Select software</option>
-                    {PREDEFINED_SOFTWARE.map(s => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                  {projectData.software === 'Other' && (
-                    <input
-                      type="text"
-                      className={`${inputBaseClasses} mt-2`}
-                      placeholder="Enter software name"
-                      onChange={(e) => handleInputChange('software', e.target.value)}
-                    />
-                  )}
+                    onChange={(value) => handleInputChange('software', value)}
+                    placeholder={isLoadingOptions ? 'Loading...' : 'Select software...'}
+                    fieldName="software"
+                  />
                   {errors.analysis_software && (
                     <p className="text-red-600 text-xs mt-1">{errors.analysis_software}</p>
                   )}
@@ -684,10 +657,10 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                     Sample Types
                   </label>
                   <MultiSelectField
-                    options={PREDEFINED_OPTIONS.sampleTypes}
+                    options={metadataOptions.sampleTypes.map(o => o.value)}
                     value={projectData.sample_type}
                     onChange={(value) => handleInputChange('sample_type', value)}
-                    placeholder="Select sample types"
+                    placeholder={isLoadingOptions ? 'Loading...' : 'Select sample types'}
                     fieldName="sample_type"
                   />
                 </div>
@@ -697,10 +670,10 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                     Imaging Techniques
                   </label>
                   <MultiSelectField
-                    options={PREDEFINED_OPTIONS.imagingTechniques}
+                    options={metadataOptions.imagingTechniques.map(o => o.value)}
                     value={projectData.image_types}
                     onChange={(value) => handleInputChange('image_types', value)}
-                    placeholder="Select imaging techniques"
+                    placeholder={isLoadingOptions ? 'Loading...' : 'Select imaging techniques'}
                     fieldName="image_types"
                   />
                 </div>
@@ -710,10 +683,10 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
                     Analysis Goals
                   </label>
                   <MultiSelectField
-                    options={PREDEFINED_OPTIONS.analysisGoals}
+                    options={metadataOptions.analysisGoals.map(o => o.value)}
                     value={projectData.analysis_goal}
                     onChange={(value) => handleInputChange('analysis_goal', value)}
-                    placeholder="Select analysis goals"
+                    placeholder={isLoadingOptions ? 'Loading...' : 'Select analysis goals'}
                     fieldName="analysis_goal"
                   />
                 </div>

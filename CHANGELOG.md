@@ -6,7 +6,20 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
-## [2.3.0] - 2026-02-27
+## [2.4.0] - 2026-03-01
+### Added
+- **Dynamic metadata options**: Software, Imaging Techniques, Sample Type, and Analysis Goal options are now stored in the database (`metadata_options` table) instead of being hard-coded. Options can be added, renamed, and deleted at runtime.
+- **Metadata Management in Settings**: New full-width tabbed panel in Settings allows managing all four metadata option lists (add, edit, delete with usage-conflict protection).
+- **Software as multi-select**: The Software field is now multi-select (JSON array), consistent with the other metadata fields.
+- **Migration script v2.4.0**: Converts existing `software` plain-string values to JSON arrays and seeds the `metadata_options` table.
+
+### Removed
+- **Objective Magnification field**: Removed from the project schema, API routes, creation wizard, and project details view.
+
+### Changed
+- **Analytics dashboard**: Sample Type, Imaging Technique, and Analysis Goal charts now read live category lists from the database; Software distribution and efficiency charts now handle multi-select JSON arrays.
+
+ - 2026-02-27
 ### Added
 - **Persistent page titles in top bar**: Each page's title and subtitle are now displayed in the navigation bar and remain visible regardless of scroll position. Large title banners have been removed from the scrollable page content.
 

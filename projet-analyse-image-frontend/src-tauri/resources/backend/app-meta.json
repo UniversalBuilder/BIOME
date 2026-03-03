@@ -1,18 +1,18 @@
 {
   "version": "2.3.0",
   "description": "BIOME Frontend - Bio Imaging Organization and Management Environment",
-  "releaseDate": "2026-02-27",
+  "releaseDate": "2026-03-01",
   "source": "frontend",
   "changelog": {
-    "version": "2.3.0",
-    "date": "2026-02-27",
+    "version": "2.4.0",
+    "date": "2026-03-01",
     "summary": [
-      "**Persistent page titles in top bar**: Each page's title and subtitle are now displayed in the navigation bar and remain visible regardless of scroll position. Large title banners have been removed from the scrollable page content.",
-      "**About card**: Replaced the green \"B\" letter avatar with the BIOME gradient logotype, matching the app header. Version badge changed from green to amber. Details and Website buttons now use the same neutral style.",
-      "**Project Details — collapsible sections**: Project Metadata (Zone A) and Project Workspace (Zone B) can now be independently collapsed/expanded via chevron toggles. \"Edit Project Metadata\" button relocated to the Zone A header.",
-      "**Colour consistency — Project Workspace**: All remaining blue accents (textarea, table headers, dividers, file links, row hovers) replaced with bioluminescent green to match the design system.",
-      "**Top bar shadow**: Moved from a Tailwind arbitrary-value utility (silently dropped by JIT at runtime) to a plain CSS class (`app-header`), making the drop shadow permanently visible.",
-      "**Double scrollbar**: Removed the `html`-level `overflow-y: scroll` that was forcing an always-visible inactive scrollbar track alongside the correct internal `ScrollableContainer` scrollbar."
+      "**Dynamic metadata options**: Software, Imaging Techniques, Sample Type, and Analysis Goal options are now stored in the database (`metadata_options` table) instead of being hard-coded. Options can be added, renamed, and deleted at runtime.",
+      "**Metadata Management in Settings**: New full-width tabbed panel in Settings allows managing all four metadata option lists (add, edit, delete with usage-conflict protection).",
+      "**Software as multi-select**: The Software field is now multi-select (JSON array), consistent with the other metadata fields.",
+      "**Migration script v2.4.0**: Converts existing `software` plain-string values to JSON arrays and seeds the `metadata_options` table.",
+      "**Objective Magnification field**: Removed from the project schema, API routes, creation wizard, and project details view.",
+      "**Analytics dashboard**: Sample Type, Imaging Technique, and Analysis Goal charts now read live category lists from the database; Software distribution and efficiency charts now handle multi-select JSON arrays."
     ]
   }
 }
