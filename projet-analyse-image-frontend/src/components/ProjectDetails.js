@@ -2395,10 +2395,9 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                 className="flex items-center gap-2 flex-none focus:outline-none"
                 aria-label={isWorkspaceCollapsed ? 'Expand project workspace' : 'Collapse project workspace'}
               >
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-bioluminescent-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-bioluminescent-500"></span>
-                </span>
+                <svg className="w-3.5 h-3.5 text-bioluminescent-600 dark:text-bioluminescent-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7m0 0V5a2 2 0 00-2-2H5a2 2 0 00-2 2v2m0 0h18" />
+                </svg>
                 <span className="text-xs font-semibold text-bioluminescent-600 dark:text-bioluminescent-400 uppercase tracking-wider">Project Workspace</span>
                 <svg
                   className={`w-3.5 h-3.5 text-bioluminescent-500 dark:text-bioluminescent-400 transition-transform duration-200 ${isWorkspaceCollapsed ? '-rotate-90' : ''}`}
@@ -2407,8 +2406,8 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              {!isWorkspaceCollapsed && (
-                <span className="ml-auto text-xs text-bioluminescent-500 dark:text-bioluminescent-500 italic">Add entries, files and documents — no edit mode required</span>
+              {isWorkspaceCollapsed && !isEditing && (
+                <span className="ml-auto text-xs text-gray-400 dark:text-gray-500 italic">Click to expand</span>
               )}
             </div>
             {!isWorkspaceCollapsed && (
