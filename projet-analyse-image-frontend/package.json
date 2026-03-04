@@ -50,7 +50,7 @@
         "cypress:open": "cypress open",
         "eject": "react-scripts eject",
         "tauri": "tauri",
-        "pretauri-dev": "node ../scripts/generate-app-meta.js",
+        "pretauri-dev": "node ../scripts/cleanup-port.js && node ../scripts/generate-app-meta.js",
         "tauri-dev": "tauri dev",
         "tauri-build": "tauri build --bundles msi",
         "prestart-both": "node ../scripts/generate-app-meta.js",
