@@ -21,10 +21,6 @@ function UserGroupManager({ onUserGroupChange }) {
     const [showAddUser, setShowAddUser] = useState(false);
     const [showAddGroup, setShowAddGroup] = useState(false);
 
-    // Add new state variables for collapse functionality
-    const [groupsCollapsed, setGroupsCollapsed] = useState(false);
-    const [usersCollapsed, setUsersCollapsed] = useState(false);
-
     const [showDeleteUserConfirm, setShowDeleteUserConfirm] = useState(false);
     const [showDeleteGroupConfirm, setShowDeleteGroupConfirm] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
@@ -329,19 +325,19 @@ function UserGroupManager({ onUserGroupChange }) {
     };
 
     return (
-        <div className="w-full">
-            <div className="max-w-7xl mx-auto">
+        <div className="w-full h-full flex flex-col">
+            <div className="max-w-7xl mx-auto w-full h-full flex flex-col">
                 {error && (
                     <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400">
                         {error}
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0 mb-6">
                     {/* Groups Section - Now 5 columns wide */}
-                    <div className="lg:col-span-5 space-y-4">
-                        <div className="dashboard-card">
-                            <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm transition-all duration-300 hover:shadow-lg">
+                    <div className="lg:col-span-5 flex flex-col min-h-0">
+                        <div className="dashboard-card flex-1 flex flex-col min-h-0">
+                            <div className="flex-1 min-h-0 bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm transition-all duration-300 hover:shadow-lg flex flex-col">
                                 <div className="p-4 border-b border-gray-200 dark:border-night-600 flex justify-between items-center">
                                     <Tooltip>
                                         <Tooltip.Trigger asChild>
@@ -357,21 +353,6 @@ function UserGroupManager({ onUserGroupChange }) {
                                         </Tooltip.Panel>
                                     </Tooltip>
                                     <div className="flex items-center gap-2">
-                                        <button 
-                                            onClick={() => setGroupsCollapsed(prev => !prev)}
-                                            className="btn btn-icon text-text-muted dark:text-text-muted hover:text-text dark:hover:text-text-dark"
-                                            aria-label={groupsCollapsed ? "Expand groups" : "Collapse groups"}
-                                        >
-                                            {groupsCollapsed ? (
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            ) : (
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                                </svg>
-                                            )}
-                                        </button>
                                         <button
                                             onClick={() => setShowAddGroup(true)}
                                             className="px-4 py-2 rounded-xl text-white hover:opacity-80 transition-all duration-200 text-sm font-medium"
@@ -384,8 +365,7 @@ function UserGroupManager({ onUserGroupChange }) {
                                     </div>
                                 </div>
 
-                                {!groupsCollapsed && (
-                                    <div className="flex-1 min-h-0 overflow-y-auto max-h-[32rem]">
+                                <div className="flex-1 min-h-0 overflow-y-auto">
                                         <table className="w-full">
                                             <thead className="sticky top-0 z-10 bg-white/90 dark:bg-night-700 backdrop-filter backdrop-blur-sm">
                                                 <tr>
@@ -437,16 +417,15 @@ function UserGroupManager({ onUserGroupChange }) {
                                                 )}
                                             </tbody>
                                         </table>
-                                    </div>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Users Section - Now 7 columns wide */}
-                    <div className="lg:col-span-7 space-y-4">
-                        <div className="dashboard-card">
-                            <div className="h-full bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm transition-all duration-300 hover:shadow-lg">
+                    <div className="lg:col-span-7 flex flex-col min-h-0">
+                        <div className="dashboard-card flex-1 flex flex-col min-h-0">
+                            <div className="flex-1 min-h-0 bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 shadow-sm transition-all duration-300 hover:shadow-lg flex flex-col">
                                 <div className="p-4 border-b border-gray-200 dark:border-night-600 flex justify-between items-center">
                                     <Tooltip>
                                         <Tooltip.Trigger asChild>
@@ -462,21 +441,6 @@ function UserGroupManager({ onUserGroupChange }) {
                                         </Tooltip.Panel>
                                     </Tooltip>
                                     <div className="flex items-center gap-2">
-                                        <button 
-                                            onClick={() => setUsersCollapsed(prev => !prev)}
-                                            className="btn btn-icon text-text-muted dark:text-text-muted hover:text-text dark:hover:text-text-dark"
-                                            aria-label={usersCollapsed ? "Expand users" : "Collapse users"}
-                                        >
-                                            {usersCollapsed ? (
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            ) : (
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                                </svg>
-                                            )}
-                                        </button>
                                         <button
                                             onClick={() => setShowAddUser(true)}
                                             className="px-4 py-2 rounded-xl text-white hover:opacity-80 transition-all duration-200 text-sm font-medium hover-soft"
@@ -489,8 +453,7 @@ function UserGroupManager({ onUserGroupChange }) {
                                     </div>
                                 </div>
 
-                                {!usersCollapsed && (
-                                    <div className="flex-1 min-h-0 overflow-y-auto max-h-[32rem]">
+                                <div className="flex-1 min-h-0 overflow-y-auto">
                                         <table className="w-full">
                                             <thead className="sticky top-0 z-10 bg-white/90 backdrop-filter backdrop-blur-md dark:bg-night-700 border-b border-gray-200 dark:border-night-600">
                                                 <tr>
@@ -553,8 +516,7 @@ function UserGroupManager({ onUserGroupChange }) {
                                                 )}
                                             </tbody>
                                         </table>
-                                    </div>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </div>

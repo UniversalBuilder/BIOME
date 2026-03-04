@@ -409,7 +409,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
       case 'users':
         return (
           <div className="w-full h-full overflow-hidden flex flex-col">
-            <div className="flex-1 min-h-0 overflow-y-auto w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex-1 min-h-0 overflow-hidden w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <UserGroupManager 
                 onUserGroupChange={loadProjects} 
               />
