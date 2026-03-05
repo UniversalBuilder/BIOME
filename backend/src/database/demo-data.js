@@ -34,7 +34,7 @@ const demoProjects = [
         name: '3D Neuronal Network Reconstruction',
         description: 'High-resolution confocal imaging of neuronal networks in brain organoids for 3D reconstruction analysis using Imaris. Focus on dendritic spine morphology and synaptic connectivity patterns.',
         status: 'Active',
-        software: 'Imaris',
+        software: '["Imaris"]',
         time_spent_minutes: 2340, // 39 hours
         creation_date: '2024-11-15 09:30:00',
         last_updated: '2025-01-20 14:22:00',
@@ -44,14 +44,13 @@ const demoProjects = [
         user_id: 1,
         image_types: '["confocal microscopy"]',
         sample_type: '["whole organ / animal"]',
-        objective_magnification: '63x oil immersion',
         analysis_goal: '["3D reconstruction", "object morphometry"]'
     },
     {
         name: 'Live Cell Calcium Dynamics',
         description: 'Time-lapse confocal microscopy of calcium signaling in cardiomyocytes. Measuring calcium wave propagation and frequency analysis for cardiac function studies.',
         status: 'Completed',
-        software: 'Fiji',
+        software: '["Fiji"]',
         time_spent_minutes: 1680, // 28 hours
         creation_date: '2024-10-08 10:15:00',
         last_updated: '2024-12-03 16:45:00',
@@ -61,14 +60,13 @@ const demoProjects = [
         user_id: 2,
         image_types: '["time lapse microscopy", "confocal microscopy"]',
         sample_type: '["cells in multiwell plates"]',
-        objective_magnification: '40x water immersion',
         analysis_goal: '["intensity measurement"]'
     },
     {
         name: 'Mitochondrial Dynamics Analysis',
         description: 'Super-resolution confocal analysis of mitochondrial morphology and dynamics in response to oxidative stress. Tracking mitochondrial fusion and fission events.',
         status: 'Active',
-        software: 'Imaris',
+        software: '["Imaris"]',
         time_spent_minutes: 1920, // 32 hours
         creation_date: '2025-01-05 08:45:00',
         last_updated: '2025-01-22 11:30:00',
@@ -78,7 +76,6 @@ const demoProjects = [
         user_id: 1,
         image_types: '["super resolution microscopy", "confocal microscopy"]',
         sample_type: '["cells on slides"]',
-        objective_magnification: '100x oil immersion',
         analysis_goal: '["object morphometry"]'
     },
     
@@ -87,7 +84,7 @@ const demoProjects = [
         name: 'High-Throughput Cell Counting Pipeline',
         description: 'Automated batch processing of fluorescent cell images for quantitative analysis. Development of FIJI/ImageJ macros for standardized cell counting across multiple experimental conditions.',
         status: 'Active',
-        software: 'CellProfiler',
+        software: '["CellProfiler"]',
         time_spent_minutes: 2760, // 46 hours
         creation_date: '2024-12-01 13:20:00',
         last_updated: '2025-01-21 15:10:00',
@@ -97,14 +94,13 @@ const demoProjects = [
         user_id: 3,
         image_types: '["widefield fluorescence microscopy", "high content screening"]',
         sample_type: '["cells in multiwell plates"]',
-        objective_magnification: '20x air',
         analysis_goal: '["object counting"]'
     },
     {
         name: 'Fluorescence Intensity Quantification',
         description: 'Systematic analysis of protein expression levels using widefield fluorescence microscopy. Measuring signal intensity, background correction, and statistical analysis across treatment groups.',
         status: 'Review',
-        software: 'Fiji',
+        software: '["Fiji"]',
         time_spent_minutes: 840, // 14 hours
         creation_date: '2025-01-18 09:00:00',
         last_updated: '2025-01-22 10:15:00',
@@ -114,14 +110,13 @@ const demoProjects = [
         user_id: 4,
         image_types: '["widefield fluorescence microscopy"]',
         sample_type: '["tissue slices"]',
-        objective_magnification: '10x and 40x air',
         analysis_goal: '["intensity measurement"]'
     },
     {
         name: 'Drug Screening Assay Analysis',
         description: 'Large-scale analysis of cell viability and morphology changes in response to drug treatments. Processing 384-well plate imaging data for dose-response curves.',
         status: 'Completed',
-        software: 'CellProfiler',
+        software: '["CellProfiler"]',
         time_spent_minutes: 3600, // 60 hours
         creation_date: '2024-09-15 11:30:00',
         last_updated: '2024-11-28 14:20:00',
@@ -131,7 +126,6 @@ const demoProjects = [
         user_id: 3,
         image_types: '["high content screening", "widefield fluorescence microscopy"]',
         sample_type: '["cells in multiwell plates"]',
-        objective_magnification: '10x air',
         analysis_goal: '["object classification", "object counting"]'
     },
     
@@ -140,7 +134,7 @@ const demoProjects = [
         name: 'Tissue Classification with QuPath',
         description: 'Machine learning-based classification of tissue regions in H&E stained whole slide images using QuPath. Training classifiers for tumor, stroma, and necrotic regions identification.',
         status: 'Active',
-        software: 'QuPath',
+        software: '["QuPath"]',
         time_spent_minutes: 4200, // 70 hours
         creation_date: '2024-10-22 14:45:00',
         last_updated: '2025-01-21 16:30:00',
@@ -150,14 +144,13 @@ const demoProjects = [
         user_id: 5,
         image_types: '["slide scanning"]',
         sample_type: '["tissue slices"]',
-        objective_magnification: 'Slide scanner (multi-resolution)',
         analysis_goal: '["object classification"]'
     },
     {
         name: 'Whole Slide IHC Quantification',
         description: 'Quantitative analysis of immunohistochemistry staining across entire tissue sections. Measuring positive cell percentages and staining intensity distribution using digital pathology tools.',
         status: 'On Hold',
-        software: 'QuPath',
+        software: '["QuPath"]',
         time_spent_minutes: 2880, // 48 hours
         creation_date: '2024-11-30 08:15:00',
         last_updated: '2025-01-20 13:45:00',
@@ -167,14 +160,13 @@ const demoProjects = [
         user_id: 6,
         image_types: '["slide scanning"]',
         sample_type: '["tissue slices"]',
-        objective_magnification: 'Slide scanner (20x equivalent)',
         analysis_goal: '["intensity measurement", "object counting"]'
     },
     {
         name: 'Tumor Microenvironment Mapping',
         description: 'Spatial analysis of immune cell infiltration in tumor samples using multiplex immunofluorescence whole slide imaging. Characterizing cell-cell interactions and spatial relationships.',
         status: 'Preparing',
-        software: 'Fiji',
+        software: '["Fiji"]',
         time_spent_minutes: 1560, // 26 hours
         creation_date: '2025-01-10 12:00:00',
         last_updated: '2025-01-22 09:20:00',
@@ -184,14 +176,13 @@ const demoProjects = [
         user_id: 5,
         image_types: '["slide scanning", "widefield fluorescence microscopy"]',
         sample_type: '["tissue slices"]',
-        objective_magnification: 'Slide scanner (40x equivalent)',
         analysis_goal: '["object classification", "intensity measurement"]'
     },
     {
         name: 'Automated Particle Analysis Workflow',
         description: 'Development of automated particle counting and size analysis pipeline for nanoparticle characterization. Project discontinued due to equipment limitations and budget constraints.',
         status: 'Cancelled',
-        software: 'ImageJ',
+        software: '["Fiji"]',
         time_spent_minutes: 720, // 12 hours
         creation_date: '2024-09-01 10:00:00',
         last_updated: '2024-10-15 16:30:00',
@@ -201,7 +192,6 @@ const demoProjects = [
         user_id: 4,
         image_types: '["widefield microscopy"]',
         sample_type: '["other"]',
-        objective_magnification: '40x air',
         analysis_goal: '["object counting", "object morphometry"]'
     }
 ];
@@ -290,14 +280,14 @@ async function initializeDemoDatabase(db) {
                     name, description, status, software, time_spent_minutes,
                     creation_date, last_updated, start_date, project_path,
                     folder_created, user_id, image_types, sample_type,
-                    objective_magnification, analysis_goal
+                    analysis_goal, output_type
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     project.name, project.description, project.status, project.software,
                     project.time_spent_minutes, project.creation_date, project.last_updated,
                     project.start_date, project.project_path, project.folder_created,
                     project.user_id, project.image_types, project.sample_type,
-                    project.objective_magnification, project.analysis_goal
+                    project.analysis_goal, project.output_type || null
                 ]
             );
         }

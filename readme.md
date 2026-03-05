@@ -75,7 +75,7 @@ Get-FileHash .\BIOME_2.5.0_x64_en-US.msi -Algorithm SHA256
 ```
 Compare against the `.sha256` file published alongside the MSI on the Releases page.
 
-If Windows SmartScreen warns, select "More info" → "Run anyway" (unsigned development build).
+> ⚠️ BIOME is not yet code-signed. See [Installation → Windows Security Warning](#️-windows-security-warning) for how to bypass SmartScreen or Smart App Control.
 
 ---
 
@@ -94,6 +94,28 @@ If Windows SmartScreen warns, select "More info" → "Run anyway" (unsigned deve
 3. After installation, launch BIOME from the Start Menu
 4. First startup may take 30–60 seconds while the backend initializes
 5. Go to **Database → Load Demo Data** to explore the app with realistic content
+
+### ⚠️ Windows Security Warning
+
+BIOME is not yet code-signed. Depending on your Windows configuration you may encounter one of two security prompts:
+
+**SmartScreen (most machines) — easy bypass:**
+> "Windows protected your PC"
+
+Click **"More info"** → **"Run anyway"**.
+
+**Smart App Control (Windows 11 22H2+ fresh installs) — no bypass button:**
+> "The system administrator has configured a policy to block this installation"
+
+Smart App Control does not offer a bypass. Use one of the two methods below:
+
+**Method 1 — Install from a local network share (recommended)**  
+Copy the MSI to a shared network folder (e.g. `\\server\shared\`) and run it from there. Files on internal network shares skip Smart App Control.
+
+**Method 2 — Copy to a local folder first**  
+Move the MSI out of your Downloads folder to any other local folder (e.g. `C:\Temp\`), then right-click → "Run as administrator". Removing the file from the browser-download location discards the Mark of the Web in some configurations.
+
+> If neither method works, Smart App Control can be disabled permanently under **Windows Security → App & browser control → Smart App Control settings → Off**. Note this action is irreversible without reinstalling Windows.
 
 | Light mode | Dark mode |
 |---|---|

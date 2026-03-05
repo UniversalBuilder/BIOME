@@ -177,7 +177,7 @@ router.get('/activities/export', async (req, res) => {
 router.post('/', async (req, res) => {
     const { name, description, status, software, time_spent_minutes, project_path, 
             folder_created, readme_last_updated, start_date, user_id,
-            image_types, sample_type, objective_magnification, analysis_goal, output_type } = req.body;
+            image_types, sample_type, analysis_goal, output_type } = req.body;
     
     try {
         // Validate required fields
@@ -204,8 +204,8 @@ router.post('/', async (req, res) => {
                     name, description, status, software, time_spent_minutes,
                     project_path, folder_created, readme_last_updated,
                     start_date, user_id, creation_date, last_updated,
-                    image_types, sample_type, objective_magnification, analysis_goal, output_type
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), ?, ?, ?, ?, ?)`,
+                    image_types, sample_type, analysis_goal, output_type
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), ?, ?, ?, ?)`,
                 [
                     name,
                     description || '',
@@ -219,7 +219,6 @@ router.post('/', async (req, res) => {
                     user_id || null,
                     image_types || null,
                     sample_type || null,
-                    objective_magnification || null,
                     analysis_goal || null,
                     output_type || null
                 ]
@@ -791,7 +790,6 @@ router.post('/:id/readme/update', async (req, res) => {
             `- Output/Result Type: ${project.output_type || '—'}\n` +
             `- Imaging Techniques: ${parseArray(project.image_types) || '—'}\n` +
             `- Sample Type: ${parseArray(project.sample_type) || '—'}\n` +
-            `- Objective Magnification: ${project.objective_magnification || '—'}\n` +
             `- Analysis Goal: ${parseArray(project.analysis_goal) || '—'}\n` +
             `- Project Path: ${project.project_path || '—'}\n` +
             `- Time Spent: ${(() => { const m = parseInt(project.time_spent_minutes||0); const h=Math.floor(m/60), mm=m%60; return mm?`${h}h ${mm}m`:`${h}h`; })()}\n` +
@@ -902,7 +900,7 @@ router.put('/:id', async (req, res) => {
                 'name', 'description', 'status', 'software', 'time_spent_minutes',
                 'project_path', 'folder_created', 'readme_last_updated',
                 'start_date', 'user_id', 'image_types', 'sample_type', 
-                'objective_magnification', 'analysis_goal', 'output_type'
+                'analysis_goal', 'output_type'
             ];
 
             const fields = Object.keys(updates).filter(key => allowedFields.includes(key));
