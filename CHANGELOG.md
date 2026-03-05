@@ -5,14 +5,34 @@ All notable changes to this project will be documented in this file.
 The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) (adapted) and uses semantic, human-readable sections.
 
 ## [Unreleased]
+
+## [2.5.0] - 2026-03-05
 ### Added
-- **PDF Export for Analytics**: Full analytics reports can now be exported as professional PDF documents with all 11 charts, summary metrics, and data tables. PDFs are formatted for both screen viewing and printing.
-- **Enhanced Excel Export**: Analytics Excel export now includes 11 dedicated data sheets (one for each chart), group performance analysis, and software usage analysis. Provides comprehensive structured data for custom analysis and pivoting.
-- **New Export Services**: 
-  - `analyticsExportService.js`: Centralized data preparation for all 11 analytics charts, metrics, and analyses
+- **PDF Export for Analytics**: Full analytics reports can now be exported as professional PDF documents with all 10 charts, summary metrics, and data tables. PDFs are formatted for both screen viewing and printing.
+- **Excel Export**: Analytics Excel export generates 7 structured sheets (Summary, Projects, Status Distribution, Output Type Distribution, Software Distribution, Time Distribution, Duration Distribution) — ready for pivot table analysis.
+- **New Export Services**:
+  - `analyticsExportService.js`: Centralised data preparation for all analytics charts, metrics, and analyses
   - `pdfExportService.js`: PDF generation using jsPDF with chart rendering via html2canvas
-- **Analytics Export Documentation**: New user guide covering PDF and Excel export features, usage workflows, and troubleshooting.
+- **Analytics Export Documentation**: New user doc (`analytics-export.md`) covering PDF and Excel export features, usage workflows, and troubleshooting.
 - **Date Filter Awareness**: Both PDF and Excel exports respect the current date range filters applied on the Analytics page.
+
+### Security
+- **Tauri CSP activated**: `contentSecurityPolicy` was `null` in `tauri.conf.json` — replaced with a restrictive policy (`default-src 'self'`, `connect-src localhost:*`, CSP-inline allowed for Tailwind/React). Mitigates XSS risk in the desktop WebView.
+- **express-helmet added**: `helmet` middleware added to the Express backend (`server.js`) for defensive HTTP security headers (X-Frame-Options, X-Content-Type-Options, HSTS referrer policy, etc.).
+
+### Changed
+- **Version synchronised**: All `package.json` files (root, backend, resources/backend) and `Cargo.toml` now consistently report `2.5.0`.
+- **Repository cleaned**: Removed artefact files (`objects.txt`), stale implementation logs, one-time-use scripts (`prepare-for-repo*.ps1`, `create-clean-repo.ps1`), duplicate release notes, and leftover screenshots from the repo root.
+- **Dev docs organised**: Release checklists and dependency management docs moved to `docs/dev/`; icon conversion utilities moved to `scripts/icon-utils/`.
+
+### Fixed
+- **Debug noise removed**: Removed ~9 `console.log` debug statements left in production components (`LandingPage.js`, `Dashboard.js`, `Layout.js`) — activity feed dump, project selection log, "Exporting..." log, Tauri environment log.
+- **Unused import removed**: `Environment` import removed from `Layout.js` where the associated `useEffect` (which only logged) was deleted.
+
+### Documentation
+- **`projects.md`**: Removed reference to "objective magnification" field (deleted in v2.4.0) and removed mention of "Export as ZIP" web-mode feature (never implemented).
+- **`analytics.md`**: Corrected overview statistics cards (were "Completed" + "Users"; actual cards are "Avg. Time per Project" + "Completion Rate"); corrected "Projects by Group" section to accurately describe Group Performance data; Activity Feed correctly attributed to Dashboard only (not Analytics page).
+- **`analytics-export.md`**: PDF chart count corrected from 11 to 10; Excel sheet structure corrected from "14+ sheets" to the 7 actual sheets.
 
 ## [2.4.0] - 2026-03-03
 ### Added

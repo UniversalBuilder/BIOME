@@ -4,6 +4,27 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ---
 
+## v2.5.0 — March 2026
+
+### New Features
+- **PDF Export for Analytics** — export a full analytics report as a professional, print-ready PDF with all 10 charts, a title page, key metrics, and data tables. Works in both Desktop and Web modes.
+- **Excel Export for Analytics** — generates a structured `.xlsx` file with 7 sheets: Summary, Projects, and one sheet per chart distribution. Ready for pivot tables and custom analysis.
+- **Date-filter-aware exports** — both PDF and Excel reflect any date range filter currently applied on the Analytics page.
+
+### Security
+- **CSP enabled** — Tauri desktop app now enforces a Content Security Policy (was disabled). Restricts content sources to `self` and backend localhost only.
+- **Security headers** — Express backend now uses `helmet` middleware, adding X-Frame-Options, X-Content-Type-Options, and other defensive headers.
+
+### Improvements
+- Repository cleaned: removed stale logs, one-time scripts, and artefact files from the root folder
+- Dev documentation (release checklists, dependency notes) reorganised into `docs/dev/`
+- All debug `console.log` statements removed from production components
+
+### Bug Fixes
+- Fixed documentation inconsistencies: analytics metrics, chart counts, and feature availability now accurately reflect the running app
+
+---
+
 ## v2.4.0 — March 2026
 
 ### New Features

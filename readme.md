@@ -5,7 +5,7 @@
 **A comprehensive bioimage analysis project management tool for research facilities and laboratories**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Version](https://img.shields.io/badge/version-2.4.0-blue.svg)](#download)
+[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](#download)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#installation)
 
 [🚀 Quick Start](#quick-start) • [📦 Download](#download) • [�️ Development](#development-setup) • [📚 Documentation](#documentation) • [🤝 Contributing](#contributing)
@@ -43,7 +43,7 @@ BIOME is a specialized project management application designed for **bioimage an
 
 ### Desktop Application (Recommended)
 
-1. **Download** the latest MSI installer: [BIOME_2.4.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.4.0/BIOME_2.4.0_x64_en-US.msi)
+1. **Download** the latest MSI installer: [BIOME_2.5.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.5.0/BIOME_2.5.0_x64_en-US.msi)
 2. **Install** by double-clicking the MSI file (administrator rights required)
 3. **Launch** BIOME from your Start Menu
 4. **Explore**: BIOME starts with an empty database — click **Load Demo Data** on the Database page to populate it with realistic sample projects
@@ -71,7 +71,7 @@ npm run start-both
 
 **Verify integrity (optional):**
 ```powershell
-Get-FileHash .\BIOME_2.4.0_x64_en-US.msi -Algorithm SHA256
+Get-FileHash .\BIOME_2.5.0_x64_en-US.msi -Algorithm SHA256
 ```
 Compare against the `.sha256` file published alongside the MSI on the Releases page.
 
@@ -103,6 +103,24 @@ If Windows SmartScreen warns, select "More info" → "Run anyway" (unsigned deve
 
 ## ✨ What's New
 
+### v2.5.0 (2026-03-05)
+
+**Analytics Exports**
+Export your analytics data as a formatted PDF report or a structured Excel file, directly from the Analytics page.
+
+- **PDF**: Print-ready report with 10 charts, key metrics, and a title page — works in Desktop and Web modes
+- **Excel**: 7-sheet `.xlsx` workbook (Summary, Projects, plus one sheet per distribution chart)
+- Both exports respect the current date range filter
+
+**Security Hardening**
+- Tauri CSP policy activated (was `null`) — restricts WebView to `self` and backend localhost only
+- `express-helmet` added to the backend for defensive HTTP headers
+
+**Maintenance**
+- Repository clean-up: removed stale files, one-time scripts, and artefacts from root
+- All package versions synchronised to 2.5.0
+- Documentation audit: analytics metrics, chart counts, and feature availability corrected
+
 ### v2.4.0 (2026-03-03)
 
 **Dynamic Metadata Options**
@@ -118,10 +136,6 @@ Software, Imaging Techniques, Sample Types, and Analysis Goals are now stored in
 - Deletion is blocked if the option is in use by one or more projects
 - Compact **chip layout** for options — no wasted vertical space
 - Settings page is now correctly scrollable within the app's fixed-height layout
-
-**Bug Fixes**
-- Fixed a backend startup error caused by malformed SQL strings in project routes
-- Fixed 404 errors on `/api/metadata-options` endpoints
 
 ### v2.3.0
 - Initial infrastructure for metadata configuration management
