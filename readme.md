@@ -5,7 +5,7 @@
 **A comprehensive bioimage analysis project management tool for research facilities and laboratories**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](#download)
+[![Version](https://img.shields.io/badge/version-2.5.1-blue.svg)](#download)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#installation)
 
 [🚀 Quick Start](#quick-start) • [📦 Download](#download) • [�️ Development](#development-setup) • [📚 Documentation](#documentation) • [🤝 Contributing](#contributing)
@@ -43,7 +43,7 @@ BIOME is a specialized project management application designed for **bioimage an
 
 ### Desktop Application (Recommended)
 
-1. **Download** the latest MSI installer: [BIOME_2.5.0_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.5.0/BIOME_2.5.0_x64_en-US.msi)
+1. **Download** the latest MSI installer: [BIOME_2.5.1_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.5.1/BIOME_2.5.1_x64_en-US.msi)
 2. **Install** by double-clicking the MSI file (administrator rights required)
 3. **Launch** BIOME from your Start Menu
 4. **Explore**: BIOME starts with an empty database — click **Load Demo Data** on the Database page to populate it with realistic sample projects
@@ -71,7 +71,7 @@ npm run start-both
 
 **Verify integrity (optional):**
 ```powershell
-Get-FileHash .\BIOME_2.5.0_x64_en-US.msi -Algorithm SHA256
+Get-FileHash .\BIOME_2.5.1_x64_en-US.msi -Algorithm SHA256
 ```
 Compare against the `.sha256` file published alongside the MSI on the Releases page.
 
@@ -124,6 +124,13 @@ Move the MSI out of your Downloads folder to any other local folder (e.g. `C:\Te
 ---
 
 ## ✨ What's New
+
+### v2.5.1 (2026-03-06)
+
+**Bug Fixes**
+- **Demo data loading** — clicking **Load Demo Data** failed with `SQLITE_ERROR: table projects has no column named objective_magnification`. Fixed in both backend copies.
+- **New project creation** — the same stale column reference caused project creation to fail via the API. Fixed.
+- **Demo data software values** — all sample projects now store software as a JSON array (compatible with the multi-select field from v2.4.0). `ImageJ` corrected to `Fiji` (a valid metadata option).
 
 ### v2.5.0 (2026-03-05)
 

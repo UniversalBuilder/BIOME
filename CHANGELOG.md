@@ -6,6 +6,15 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-03-06
+### Fixed
+- **Demo data loading broken**: `demo-data.js` INSERT still referenced `objective_magnification` column (removed in v2.4.0 migration) — caused `SQLITE_ERROR: table projects has no column named objective_magnification` when clicking **Load Demo Data**.
+- **Demo data `software` field wrong type**: All 10 sample projects had `software` stored as a plain string (e.g. `'Imaris'`) instead of the required JSON array (`'["Imaris"]'`). Fixed for all projects; also corrected `'ImageJ'` → `'["Fiji"]'` (ImageJ is not a seeded metadata option).
+- **Project creation API broken**: `routes/projects.js` CREATE INSERT still listed `objective_magnification` as a column and bound a 17th parameter — caused `SQLITE_ERROR` on any new project creation.
+- **Project update allowed stale field**: `allowedFields` in the PATCH handler still contained `'objective_magnification'`, silently accepting the removed column in update requests.
+- **README template referenced removed field**: Server-generated project `README.md` template included `- Objective Magnification: ...` line referencing the removed column.
+- All five fixes applied to both backend copies (`backend/src/` and `src-tauri/resources/backend/src/`).
+
 ## [2.5.0] - 2026-03-05
 ### Added
 - **PDF Export for Analytics**: Full analytics reports can now be exported as professional PDF documents with all 10 charts, summary metrics, and data tables. PDFs are formatted for both screen viewing and printing.

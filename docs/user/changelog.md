@@ -4,6 +4,15 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ---
 
+## v2.5.1 — March 2026
+
+### Bug Fixes
+- **Demo data loading fixed** — clicking **Load Demo Data** on the Database page previously failed with a database error due to a stale column reference (`objective_magnification`) from v2.4.0. This is now resolved.
+- **New project creation fixed** — the same stale column caused project creation to silently fail via the API. Fixed.
+- **Demo data software values corrected** — all sample projects now correctly list software as a selectable option (e.g. Fiji, Imaris). The previous plain-text format was incompatible with the multi-select field introduced in v2.4.0.
+
+---
+
 ## v2.5.0 — March 2026
 
 ### New Features

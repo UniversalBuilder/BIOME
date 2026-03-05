@@ -1,18 +1,18 @@
 {
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "BIOME Frontend - Bio Imaging Organization and Management Environment",
-  "releaseDate": "2026-03-05",
+  "releaseDate": "2026-03-06",
   "source": "frontend",
   "changelog": {
-    "version": "2.5.0",
-    "date": "2026-03-05",
+    "version": "2.5.1",
+    "date": "2026-03-06",
     "summary": [
-      "**PDF Export for Analytics**: Full analytics reports can now be exported as professional PDF documents with all 10 charts, summary metrics, and data tables. PDFs are formatted for both screen viewing and printing.",
-      "**Excel Export**: Analytics Excel export generates 7 structured sheets (Summary, Projects, Status Distribution, Output Type Distribution, Software Distribution, Time Distribution, Duration Distribution) — ready for pivot table analysis.",
-      "**New Export Services**:",
-      "`analyticsExportService.js`: Centralised data preparation for all analytics charts, metrics, and analyses",
-      "`pdfExportService.js`: PDF generation using jsPDF with chart rendering via html2canvas",
-      "**Analytics Export Documentation**: New user doc (`analytics-export.md`) covering PDF and Excel export features, usage workflows, and troubleshooting."
+      "**Demo data loading broken**: `demo-data.js` INSERT still referenced `objective_magnification` column (removed in v2.4.0 migration) — caused `SQLITE_ERROR: table projects has no column named objective_magnification` when clicking **Load Demo Data**.",
+      "**Demo data `software` field wrong type**: All 10 sample projects had `software` stored as a plain string (e.g. `'Imaris'`) instead of the required JSON array (`'[\"Imaris\"]'`). Fixed for all projects; also corrected `'ImageJ'` → `'[\"Fiji\"]'` (ImageJ is not a seeded metadata option).",
+      "**Project creation API broken**: `routes/projects.js` CREATE INSERT still listed `objective_magnification` as a column and bound a 17th parameter — caused `SQLITE_ERROR` on any new project creation.",
+      "**Project update allowed stale field**: `allowedFields` in the PATCH handler still contained `'objective_magnification'`, silently accepting the removed column in update requests.",
+      "**README template referenced removed field**: Server-generated project `README.md` template included `- Objective Magnification: ...` line referencing the removed column.",
+      "All five fixes applied to both backend copies (`backend/src/` and `src-tauri/resources/backend/src/`)."
     ]
   }
 }
