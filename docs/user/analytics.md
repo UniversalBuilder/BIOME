@@ -12,8 +12,8 @@ At the top of the page you will find summary cards:
 |---|---|
 | **Total Projects** | All projects in the database |
 | **Active Projects** | Projects currently in progress |
-| **Completed** | Successfully delivered projects |
-| **Users** | Total registered researchers |
+| **Avg. Time per Project** | Average hours invested per project |
+| **Completion Rate** | Percentage of projects successfully delivered |
 
 ---
 
@@ -27,9 +27,9 @@ A pie or bar chart breakdown of all projects grouped by their current status. Us
 
 A timeline chart showing when projects were created. Helps visualise seasonal demand patterns and facility growth.
 
-### Projects by Group
+### Group Performance
 
-A breakdown of project counts per research group. Useful for reporting facility usage to stakeholders.
+For each research group: completion rate, average project duration, and total project count. Useful for comparing facility usage and efficiency across groups.
 
 ### Image Types Distribution
 
@@ -39,7 +39,7 @@ Shows how often each imaging modality (confocal, STED, TIRF, etc.) appears acros
 
 ## Activity Feed
 
-The **Activity Feed** on the Dashboard and Analytics pages shows the most recent changes across all projects — creation, edits, and status transitions.
+The **Activity Feed** on the Dashboard shows the most recent changes across all projects — creation, edits, and status transitions.
 
 - Use **Show more** to paginate through older activity
 - Each entry includes a timestamp, project name, and the type of change

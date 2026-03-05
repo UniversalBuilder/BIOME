@@ -19,7 +19,7 @@ The PDF export creates a professional, print-ready report containing all charts 
   - Average Time per Project
 
 #### Chart Pages
-The PDF includes all 11 analytics charts from your Analytics page:
+The PDF includes all 10 analytics charts from your Analytics page:
 
 1. **Project Status Distribution** - Pie chart showing projects by status (Preparing, Active, Review, Completed, On Hold)
 2. **Output/Result Type Distribution** - Breakdown of projects by their output type
@@ -31,7 +31,6 @@ The PDF includes all 11 analytics charts from your Analytics page:
 8. **Analysis Goals Distribution** - Common research objectives and analysis types
 9. **Project Status Flow** - Projects progressing through different status stages
 10. **Project Velocity** - Number of completed projects per month
-11. **Time vs. Duration** - Relationship between project duration and actual time spent
 
 #### Data Tables
 - **Summary Metrics** - All key metrics in tabular format
@@ -84,32 +83,14 @@ Complete list of all projects with:
 - Output Type
 - User
 
-#### Chart Data Sheets (11 sheets)
-Each of the major charts in Analytics has a dedicated data sheet:
+#### Chart Data Sheets (5 sheets)
+Each main distribution is exported as a dedicated sheet:
 
 - **Status Distribution** - Count of projects by status
 - **Output Type Distribution** - Count of projects by output type
 - **Software Distribution** - Software usage and count
-- **Creation Timeline** - Monthly project creation data
 - **Time Distribution** - Projects grouped by time spent ranges
-- **Monthly Hours** - Monthly time tracking data with cumulative totals
 - **Duration Distribution** - Projects grouped by duration ranges
-- **Project Velocity** - Monthly project completion data
-- **Analysis Goals** - Analysis goal type distribution
-- **Status Flow** - Status stage progression data
-- **Time vs Duration** - Raw data with project duration and time spent correlation
-
-#### Analysis Sheets
-
-- **Group Performance** - For each research group:
-  - Total Projects
-  - Completed Projects
-  - Completion Rate (%)
-  - Average Duration (days)
-
-- **Software Analysis** - For each software tool:
-  - Usage Count
-  - Average Time per Project (hours)
 
 ### How to Export as Excel
 
@@ -122,7 +103,7 @@ Each of the major charts in Analytics has a dedicated data sheet:
 
 ### Excel Features
 
-- **Multiple Worksheets** - Organized data across 14+ sheets for different analyses
+- **Multiple Worksheets** - Organized data across 7 sheets (Summary, Projects, and 5 distribution tables)
 - **Formatted Headers** - Bold headers with frozen panes for easy scrolling
 - **Ready to Analyze** - Data is ready for pivot tables, charts, and custom formulas
 - **Date Range Awareness** - Reflects the currently applied date filters

@@ -9,7 +9,7 @@ Projects are the core unit of work in BIOME. Each project represents a bioimage 
 1. Click the **+ New Project** button on the Dashboard or Projects page
 2. Work through the wizard steps:
    - **Basic Info** — Name, PI, status, dates
-   - **Sample & Imaging** — Sample type, image types, objective magnification
+   - **Sample & Imaging** — Sample type, image types
    - **Analysis** — Analysis goal, software tools
    - **Notes** — Free-text description and internal notes
 3. Click **Create** to save
@@ -59,7 +59,7 @@ On the desktop version, each project can be linked to a filesystem folder:
 3. Click **Create Folder Structure** to scaffold standard subdirectories
 4. Click **Open in Explorer** to browse the folder directly
 
-In web mode, **Export as ZIP** is available as an alternative.
+> In web mode, folder operations are not available.
 
 ---
 
