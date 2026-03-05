@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,6 +18,8 @@ import { ThemeContext } from '../contexts/ThemeContext';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatDateTime, formatDateOnly } from '../utils/timeUtils';
 import metadataOptionsApi from '../services/metadataOptionsApi';
+import analyticsExportService from '../services/analyticsExportService';
+import pdfExportService from '../services/pdfExportService';
 
 // Register ChartJS components
 ChartJS.register(
@@ -125,6 +127,88 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     setFilteredProjects(projects);
     setIsFiltered(false);
   };
+  
+  // Export state
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Chart container refs for PDF export
+  const statusChartRef = useRef(null);
+  const outputTypeChartRef = useRef(null);
+  const softwareChartRef = useRef(null);
+  const creationTimelineChartRef = useRef(null);
+  const timeSpentChartRef = useRef(null);
+  const durationChartRef = useRef(null);
+  const monthlyHoursChartRef = useRef(null);
+  const goalDistributionChartRef = useRef(null);
+  const statusFlowChartRef = useRef(null);
+  const velocityChartRef = useRef(null);
+  
+  // New PDF export function
+  const exportToPDF = async () => {
+    if (isExporting) return;
+    
+    setIsExporting(true);
+    try {
+      // Prepare analytics data using the export service
+      const allAnalyticsData = analyticsExportService.prepareAllAnalyticsData(
+        filteredProjects,
+        metadataOptions,
+        {
+          startDate: startDate || 'All time',
+          endDate: endDate || 'Present',
+          timezone: timezone
+        },
+        formatDateOnly
+      );
+      
+      // Extract chart images directly from Chart.js instances using toBase64Image()
+      // Also capture aspect ratio from the canvas dimensions for correct PDF sizing
+      const getChartImage = (ref) => {
+        try {
+          const chart = ref.current;
+          if (!chart) return null;
+          const canvas = chart.canvas || chart.ctx?.canvas;
+          const w = canvas?.width || 1;
+          const h = canvas?.height || 1;
+          // Composite onto a dark background so white chart labels remain
+          // legible when the image is placed on the PDF's white page.
+          const offscreen = document.createElement('canvas');
+          offscreen.width = w;
+          offscreen.height = h;
+          const ctx = offscreen.getContext('2d');
+          ctx.fillStyle = '#1e293b'; // slate-800 — matches app dark theme
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(canvas, 0, 0);
+          return {
+            image: offscreen.toDataURL('image/png'),
+            aspectRatio: h / w
+          };
+        } catch { return null; }
+      };
+      const chartElements = {
+        statusChart: getChartImage(statusChartRef),
+        outputTypeChart: getChartImage(outputTypeChartRef),
+        softwareChart: getChartImage(softwareChartRef),
+        creationTimelineChart: getChartImage(creationTimelineChartRef),
+        timeSpentChart: getChartImage(timeSpentChartRef),
+        durationChart: getChartImage(durationChartRef),
+        monthlyHoursChart: getChartImage(monthlyHoursChartRef),
+        goalDistributionChart: getChartImage(goalDistributionChartRef),
+        statusFlowChart: getChartImage(statusFlowChartRef),
+        velocityChart: getChartImage(velocityChartRef)
+      };
+      
+      // Generate PDF
+      await pdfExportService.exportAnalyticsPDF(allAnalyticsData, chartElements, isDarkMode);
+      try { window.toast?.('PDF exported successfully!', { type: 'success', duration: 3000 }); } catch {}
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      try { window.toast?.('Failed to export PDF. Please try again.', { type: 'error' }); } catch {}
+    } finally {
+      setIsExporting(false);
+    }
+  };
+  
   
   // Export analytics to Excel format with file save dialog
   const exportToExcel = async () => {
@@ -748,15 +832,17 @@ const Analytics = ({ projects = [], analytics = {} }) => {
 
   // Calculate key statistics - use filtered projects
   const totalProjects = filteredProjects.length;
-  const activeProjects = filteredProjects.filter(p => 
-    p.status !== 'Finished' && p.status !== 'On Hold'
+  const activeProjects = filteredProjects.filter(p =>
+    p.status === 'Active' || p.status === 'In Progress' || p.status === 'In-Progress'
   ).length;
   
   const averageTimeHours = filteredProjects.length > 0 
     ? Math.round((filteredProjects.reduce((sum, p) => sum + (p.time_spent_minutes || 0), 0) / filteredProjects.length / 60) * 10) / 10
     : 0;
     
-  const completedProjects = filteredProjects.filter(p => p.status === 'Finished').length;
+  const completedProjects = filteredProjects.filter(p =>
+    p.status === 'Completed' || p.status === 'Finished'
+  ).length;
   const completionRate = totalProjects > 0 
     ? Math.round((completedProjects / totalProjects) * 100)
     : 0;
@@ -1395,15 +1481,26 @@ const Analytics = ({ projects = [], analytics = {} }) => {
                 </button>
               )}
             </div>
-            <div className="ml-auto">
+            <div className="ml-auto flex gap-2">
+              <button
+                onClick={exportToPDF}
+                disabled={isExporting}
+                className="py-2 px-4 text-sm font-medium rounded-xl backdrop-filter backdrop-blur-md bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-500 text-white shadow-lg hover:shadow-xl border border-white/20 transition-all duration-200 flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6zm2-7h8v1.5H8V13zm0 3h8v1.5H8V16zm0-6h3v1.5H8V10z"/>
+                </svg>
+                {isExporting ? 'Exporting...' : 'Export PDF'}
+              </button>
               <button
                 onClick={exportToExcel}
-                className="py-2 px-4 text-sm font-medium rounded-xl backdrop-filter backdrop-blur-md bg-gradient-to-r from-green-400 to-lime-500 hover:from-green-500 hover:to-lime-600 text-white shadow-lg hover:shadow-xl border border-white/20 transition-all duration-200 flex items-center gap-2"
+                disabled={isExporting}
+                className="py-2 px-4 text-sm font-medium rounded-xl backdrop-filter backdrop-blur-md bg-gradient-to-r from-green-400 to-lime-500 hover:from-green-500 hover:to-lime-600 disabled:from-gray-400 disabled:to-gray-500 text-white shadow-lg hover:shadow-xl border border-white/20 transition-all duration-200 flex items-center gap-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
-                Export Report
+                {isExporting ? 'Exporting...' : 'Export Excel'}
               </button>
             </div>
           </div>
@@ -1451,7 +1548,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Pie key={`status-${chartKey}`} data={statusData} options={commonOptions} />
+              <Pie ref={statusChartRef} key={`status-${chartKey}`} data={statusData} options={commonOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -1473,7 +1570,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Pie key={`outputtype-${chartKey}`} data={outputTypeData} options={commonOptions} />
+              <Pie ref={outputTypeChartRef} key={`outputtype-${chartKey}`} data={outputTypeData} options={commonOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -1495,7 +1592,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Pie key={`software-${chartKey}`} data={softwareChartData} options={commonOptions} />
+              <Pie ref={softwareChartRef} key={`software-${chartKey}`} data={softwareChartData} options={commonOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -1517,7 +1614,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Line key={`timeline-${chartKey}`} data={timeSeriesData} options={commonOptions} />
+              <Line ref={creationTimelineChartRef} key={`timeline-${chartKey}`} data={timeSeriesData} options={commonOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -1539,7 +1636,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Bar key={`timespent-${chartKey}`} data={timeSpentData} options={commonOptions} />
+              <Bar ref={timeSpentChartRef} key={`timespent-${chartKey}`} data={timeSpentData} options={commonOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -1573,7 +1670,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Bar key={`timetracking-${chartKey}`} data={timeTrackingData} options={timeTrackingOptions} />
+              <Bar ref={monthlyHoursChartRef} key={`timetracking-${chartKey}`} data={timeTrackingData} options={timeTrackingOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -1602,7 +1699,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Bar key={`duration-${chartKey}`} data={durationData} options={commonOptions} />
+              <Bar ref={durationChartRef} key={`duration-${chartKey}`} data={durationData} options={commonOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -1675,7 +1772,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Pie key={`analysisgoal-${chartKey}`} data={analysisGoalData} options={commonOptions} />
+              <Pie ref={goalDistributionChartRef} key={`analysisgoal-${chartKey}`} data={analysisGoalData} options={commonOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -1728,7 +1825,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Bar key={`statusflow-${chartKey}`} data={statusFlowData} options={statusFlowOptions} />
+              <Bar ref={statusFlowChartRef} key={`statusflow-${chartKey}`} data={statusFlowData} options={statusFlowOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -1774,7 +1871,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
               </Tooltip>
             </div>
             <div className="p-4" style={{ height: '300px' }}>
-              <Line key={`velocity-${chartKey}`} data={velocityData} options={commonOptions} />
+              <Line ref={velocityChartRef} key={`velocity-${chartKey}`} data={velocityData} options={commonOptions} />
             </div>
             <div className="px-4 pb-4">
               <p className="text-xs text-gray-500 dark:text-gray-400 italic">

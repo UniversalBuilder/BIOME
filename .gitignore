@@ -167,6 +167,20 @@ temp/
 tmp/
 *.tmp
 
+# Generated export files (PDF/Excel reports produced at runtime or during dev)
+*.pdf
+*.xlsx
+*.xls
+*.csv
+
+# Playwright MCP working directory (screenshots, captured reports, etc.)
+.playwright-mcp/
+
+# Dev screenshots (page-*.png pattern from automated tools)
+page-*.png
+page-*.jpeg
+screenshots/
+
 # Bundle outputs (but keep pre-built distribution)
 bundle/
 # BIOME-Distribution/ - Keep this for ready-to-install MSI files

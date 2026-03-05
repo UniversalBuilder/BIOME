@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) (adapted) and uses semantic, human-readable sections.
 
 ## [Unreleased]
+### Added
+- **PDF Export for Analytics**: Full analytics reports can now be exported as professional PDF documents with all 11 charts, summary metrics, and data tables. PDFs are formatted for both screen viewing and printing.
+- **Enhanced Excel Export**: Analytics Excel export now includes 11 dedicated data sheets (one for each chart), group performance analysis, and software usage analysis. Provides comprehensive structured data for custom analysis and pivoting.
+- **New Export Services**: 
+  - `analyticsExportService.js`: Centralized data preparation for all 11 analytics charts, metrics, and analyses
+  - `pdfExportService.js`: PDF generation using jsPDF with chart rendering via html2canvas
+- **Analytics Export Documentation**: New user guide covering PDF and Excel export features, usage workflows, and troubleshooting.
+- **Date Filter Awareness**: Both PDF and Excel exports respect the current date range filters applied on the Analytics page.
 
 ## [2.4.0] - 2026-03-03
 ### Added

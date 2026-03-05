@@ -30,6 +30,13 @@
       "icon": "chart"
     },
     {
+      "id": "analytics-export",
+      "title": "Analytics Export",
+      "description": "Export reports as PDF or Excel spreadsheets",
+      "file": "analytics-export.md",
+      "icon": "download"
+    },
+    {
       "id": "database",
       "title": "Database",
       "description": "Backup, restore and data management",
