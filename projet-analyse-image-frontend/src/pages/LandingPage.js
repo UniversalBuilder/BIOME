@@ -37,14 +37,6 @@ function LandingPage({ activeTab, onNavigateToTab }) {
     try {
       // Always get the latest project data from the server when selecting a project
       const freshProject = await projectService.getById(project.id);
-      console.log(`Selected project: ${freshProject.name} (ID: ${freshProject.id})`);
-      
-      // Log journal entries for debugging
-      if (freshProject.journal_entries) {
-        console.log(`Project has ${freshProject.journal_entries.length} journal entries`);
-      } else {
-        console.log('Project has no journal entries');
-      }
       
       setSelectedProject(freshProject);
       setIsNewProject(isNew);
@@ -84,9 +76,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
 
   const fetchProjectActivities = useCallback(async () => {
     try {
-      console.log('Fetching project activities');
       const activities = await projectService.getAllActivities();
-      console.log(`Fetched ${activities.length} activities`);
       setProjectActivities(activities);
     } catch (err) {
       console.error('Failed to fetch project activities:', err);
@@ -165,7 +155,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
         onNavigateToTab('table');
         break;
       default:
-        console.log(`Unknown action: ${action}`);
+        // Unknown action — no-op
     }
   }, [activeTab, onNavigateToTab, projects, handleProjectSelect, navigate]);
 

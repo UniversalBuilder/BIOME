@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import ScrollTopButton from './ScrollTopButton';
 import DebugConsole from './DebugConsole';
-import Environment from '../utils/environmentDetection';
 
 const PAGE_TITLES = {
   '/': { title: 'Dashboard', subtitle: 'Overview of your bioimage analysis projects and activities' },
@@ -21,21 +20,6 @@ function Layout({ children }) {
   const pageInfo = PAGE_TITLES[location.pathname]
     ?? (location.pathname.startsWith('/help') ? PAGE_TITLES['/help'] : null);
   
-  // Check if we're running in Tauri environment
-  useEffect(() => {
-    const checkTauriEnvironment = async () => {
-      const result = Environment.isTauri();
-      console.log('Layout detected Tauri environment:', result);
-      // We don't need to store this in state since we can use Environment.isTauri() directly
-    };
-    
-    checkTauriEnvironment();
-    
-    // Check again after a delay to ensure Tauri API is initialized
-    const timer = setTimeout(checkTauriEnvironment, 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Add custom event listener for debug console
   useEffect(() => {
     const handleOpenDebugConsole = () => {

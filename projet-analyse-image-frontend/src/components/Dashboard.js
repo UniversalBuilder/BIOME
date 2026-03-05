@@ -182,17 +182,7 @@ const ActivityFeed = ({ activities = [] }) => {
   const { timezone } = useTimezone();
 
   useEffect(() => {
-    console.log('Activity feed received activities:', activities.length);
-    if (activities.length > 0) {
-      console.log('Recent activities:', activities.slice(0, 3).map(a => ({
-        id: a.id,
-        type: a.activity_type,
-        project: a.project_name,
-        details: a.details,
-        changed_fields: a.changed_fields,
-        date: a.activity_date
-      })));
-    }
+    // intentionally empty — activities update triggers re-render via formattedActivities
   }, [activities]);
 
   const formattedActivities = useMemo(() => {
@@ -210,8 +200,6 @@ const ActivityFeed = ({ activities = [] }) => {
 
   const handleExportActivities = async () => {
     try {
-      console.log('Exporting activities...'); // Debug log
-      
       // Generate XLSX workbook and buffer instead of CSV
       const { buffer } = await generateXLSX(activities);
       
