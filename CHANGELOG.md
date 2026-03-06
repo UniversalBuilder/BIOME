@@ -6,6 +6,10 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [2.5.3] - 2026-03-06
+### Fixed
+- **Metadata options empty on fresh install**: On a clean installation, `schema.js` creates the `metadata_options` table before `applyMigrationsSafe()` runs. The migration guarded the seed with `if (!metaTable)` — so when the table already existed (but was empty), seeding was skipped entirely. Fixed by moving the seed step outside the table-creation guard: the default options (Fiji, Imaris, CellProfiler, QuPath etc.; widefield/confocal microscopy etc.; sample types; analysis goals) are now inserted whenever `COUNT(*) = 0`, regardless of how the table was created. `INSERT OR IGNORE` ensures the seed is a no-op on existing databases.
+
 ## [2.5.2] - 2026-03-06
 ### Fixed
 - **Metadata dropdowns empty in MSI/desktop**: `helmet()` added in v2.5.0 sets `Cross-Origin-Resource-Policy: same-origin` on all backend responses by default. In the MSI, the Tauri WebView makes direct `fetch()` calls to `http://localhost:3001` from a different origin — CORP blocked the responses even though `cors()` was configured. Fixed by setting `crossOriginResourcePolicy: { policy: 'cross-origin' }` in the helmet config for both backend copies.

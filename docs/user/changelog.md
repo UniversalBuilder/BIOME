@@ -4,6 +4,13 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ---
 
+## v2.5.3 — March 2026
+
+### Bug Fixes
+- **Metadata options seeded on fresh install** — Software, Imaging Techniques, Sample Type, and Analysis Goal dropdowns now come pre-populated with default options on a brand-new installation. Previously, a clean MSI install always started with empty lists because the database table was created before the seeding step could run. Fixed: default options (Fiji, ImageJ, CellProfiler, Imaris, QuPath, OMERO, Arivis and others for software; widefield/confocal/light-sheet/etc. for imaging; cell lines/tissue slices/organoids/etc. for sample types; object counting/intensity measurement/tracking/etc. for analysis goals) are now automatically inserted whenever the table is empty.
+
+---
+
 ## v2.5.2 — March 2026
 
 ### Bug Fixes

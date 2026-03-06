@@ -139,7 +139,11 @@ class DatabaseManager {
                         UNIQUE(category, value)
                     )`);
                     await this.run(`CREATE INDEX IF NOT EXISTS idx_metadata_options_category ON metadata_options(category, is_active)`);
-                    // Seed default options
+                }
+                // Always seed if the table is empty — handles fresh installs where schema.js
+                // creates the table before applyMigrationsSafe() runs (table exists but is empty).
+                const metaCount = await this.get('SELECT COUNT(*) as count FROM metadata_options');
+                if (!metaCount || metaCount.count === 0) {
                     const seedData = [
                         ['software','Fiji',0],['software','ImageJ',1],['software','CellProfiler',2],
                         ['software','Imaris',3],['software','QuPath',4],['software','OMERO',5],
@@ -158,7 +162,7 @@ class DatabaseManager {
                     for (const [cat, val, ord] of seedData) {
                         await this.run('INSERT OR IGNORE INTO metadata_options (category, value, display_order) VALUES (?, ?, ?)', [cat, val, ord]);
                     }
-                    console.log('metadata_options table created and seeded.');
+                    console.log('metadata_options table seeded with default options.');
                 }
             } catch (e) {
                 console.warn('Could not verify/create metadata_options table:', e.message || e);

@@ -1,14 +1,13 @@
 {
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "BIOME Frontend - Bio Imaging Organization and Management Environment",
   "releaseDate": "2026-03-06",
   "source": "frontend",
   "changelog": {
-    "version": "2.5.2",
+    "version": "2.5.3",
     "date": "2026-03-06",
     "summary": [
-      "**Metadata dropdowns empty in MSI/desktop**: `helmet()` added in v2.5.0 sets `Cross-Origin-Resource-Policy: same-origin` on all backend responses by default. In the MSI, the Tauri WebView makes direct `fetch()` calls to `http://localhost:3001` from a different origin — CORP blocked the responses even though `cors()` was configured. Fixed by setting `crossOriginResourcePolicy: { policy: 'cross-origin' }` in the helmet config for both backend copies.",
-      "**Help & Documentation page fails in desktop**: Tauri CSP `connect-src` did not include `https://raw.githubusercontent.com`, blocking the runtime fetch of docs from the GitHub repository. Added to the CSP `connect-src` directive."
+      "**Metadata options empty on fresh install**: On a clean installation, `schema.js` creates the `metadata_options` table before `applyMigrationsSafe()` runs. The migration guarded the seed with `if (!metaTable)` — so when the table already existed (but was empty), seeding was skipped entirely. Fixed by moving the seed step outside the table-creation guard: the default options (Fiji, Imaris, CellProfiler, QuPath etc.; widefield/confocal microscopy etc.; sample types; analysis goals) are now inserted whenever `COUNT(*) = 0`, regardless of how the table was created. `INSERT OR IGNORE` ensures the seed is a no-op on existing databases."
     ]
   }
 }
