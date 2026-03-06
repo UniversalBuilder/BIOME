@@ -4,6 +4,14 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ---
 
+## v2.5.2 — March 2026
+
+### Bug Fixes
+- **Metadata dropdowns fixed in the desktop app** — Output Type, Sample Type, Imaging Techniques, Analysis Goal, and Software dropdowns were all empty when editing or creating projects in the installed MSI version. Root cause: a security header (`Cross-Origin-Resource-Policy: same-origin`) added in v2.5.0 blocked the Tauri desktop frontend from reading API responses. Fixed.
+- **Help & Documentation page fixed in the desktop app** — the app's built-in help page failed to load with "Failed to fetch." The desktop Content Security Policy blocked the connection to GitHub where docs are hosted. Fixed by adding the GitHub raw content URL to the allowed list.
+
+---
+
 ## v2.5.1 — March 2026
 
 ### Bug Fixes

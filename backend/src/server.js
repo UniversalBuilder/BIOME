@@ -72,7 +72,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(helmet({ contentSecurityPolicy: false })); // Security headers (CSP managed by Tauri in desktop mode)
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } })); // Security headers (CSP managed by Tauri; CORP set to cross-origin so Tauri WebView can call this backend)
 app.use(cors());
 app.use(express.json());
 

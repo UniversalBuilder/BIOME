@@ -6,6 +6,11 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [2.5.2] - 2026-03-06
+### Fixed
+- **Metadata dropdowns empty in MSI/desktop**: `helmet()` added in v2.5.0 sets `Cross-Origin-Resource-Policy: same-origin` on all backend responses by default. In the MSI, the Tauri WebView makes direct `fetch()` calls to `http://localhost:3001` from a different origin — CORP blocked the responses even though `cors()` was configured. Fixed by setting `crossOriginResourcePolicy: { policy: 'cross-origin' }` in the helmet config for both backend copies.
+- **Help & Documentation page fails in desktop**: Tauri CSP `connect-src` did not include `https://raw.githubusercontent.com`, blocking the runtime fetch of docs from the GitHub repository. Added to the CSP `connect-src` directive.
+
 ## [2.5.1] - 2026-03-06
 ### Fixed
 - **Demo data loading broken**: `demo-data.js` INSERT still referenced `objective_magnification` column (removed in v2.4.0 migration) — caused `SQLITE_ERROR: table projects has no column named objective_magnification` when clicking **Load Demo Data**.

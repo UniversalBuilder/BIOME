@@ -54,7 +54,7 @@
   },
   "productName": "BIOME",
   "mainBinaryName": "BIOME",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "identifier": "com.biome.desktop",
   "plugins": {},
   "app": {
@@ -69,7 +69,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:*; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:;"
+      "csp": "default-src 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raw.githubusercontent.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:;"
     }
   }
 }
