@@ -22,47 +22,40 @@ export const initAppLifecycle = () => {
  * Initialize Tauri-specific lifecycle handlers
  */
 const initTauriLifecycle = () => {
-  console.log('Setting up Tauri lifecycle handlers');
-  
+  diagnostics.info('Lifecycle', 'Setting up Tauri lifecycle handlers');
+
   try {
     // Listen for window close event to perform cleanup
     window.__TAURI__?.window?.getCurrent()?.listen('tauri://close-requested', async (event) => {
-      console.log('Tauri app close requested');
-      
+      diagnostics.info('Lifecycle', 'Tauri app close requested');
+
       // Prevent the default close to allow cleanup
       event.preventDefault();
-      
+
       // Perform cleanup operations
       const cleanupSuccess = await performCleanup();
-      
+
       if (cleanupSuccess) {
-        console.log('Cleanup completed, closing app');
         // Allow the window to close after cleanup
         setTimeout(() => {
           window.__TAURI__?.window?.getCurrent()?.close();
         }, 500);
       } else {
-        console.error('Cleanup failed, forcing close');
+        diagnostics.error('Lifecycle', 'Cleanup failed, forcing close');
         // Force close even if cleanup failed
         setTimeout(() => {
           window.__TAURI__?.window?.getCurrent()?.close();
         }, 1000);
       }
     });
-    
+
     // We do NOT handle beforeunload in Tauri because it triggers on F5 refresh
     // and would kill the backend process, requiring a manual restart.
     // We rely solely on tauri://close-requested for app shutdown.
-    /*
-    window.addEventListener('beforeunload', async (event) => {
-      console.log('Window beforeunload event in Tauri');
-      await performCleanup();
-    });
-    */
-    
-    console.log('Tauri lifecycle handlers set up successfully');
+
+    diagnostics.info('Lifecycle', 'Tauri lifecycle handlers set up successfully');
   } catch (error) {
-    console.error('Failed to set up Tauri lifecycle handlers:', error);
+    diagnostics.error('Lifecycle', 'Failed to set up Tauri lifecycle handlers', { error: error.toString() });
   }
 };
 
@@ -70,21 +63,19 @@ const initTauriLifecycle = () => {
  * Initialize web-specific lifecycle handlers
  */
 const initWebLifecycle = () => {
-  console.log('Setting up web lifecycle handlers');
-  
+  diagnostics.info('Lifecycle', 'Setting up web lifecycle handlers');
+
   // Listen for page unload events
   window.addEventListener('beforeunload', async (event) => {
-    console.log('Web app beforeunload event triggered');
-    
     // Perform any cleanup operations
     await performCleanup();
-    
+
     // Modern browsers no longer respect this, but included for legacy support
     event.preventDefault();
     event.returnValue = '';
   });
-  
-  console.log('Web lifecycle handlers set up successfully');
+
+  diagnostics.info('Lifecycle', 'Web lifecycle handlers set up successfully');
 };
 
 /**
@@ -92,60 +83,53 @@ const initWebLifecycle = () => {
  * This is called for both Tauri and web versions
  */
 const performCleanup = async () => {
-  console.log('Performing app cleanup before exit');
-  
+  diagnostics.info('Lifecycle', 'Performing app cleanup before exit');
+
   try {
     // Save any unsaved data
     localStorage.setItem('biome_last_shutdown', new Date().toISOString());
-    
+
     // Stop backend server if running in Tauri
     if (Environment.isTauri()) {
       try {
-        console.log('Stopping backend server...');
-        
         // First try to gracefully shutdown via API with shorter timeout
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 1000); // 1 second timeout
-          
+
           await fetch('http://127.0.0.1:3001/api/shutdown', {
             method: 'POST',
             signal: controller.signal
           });
           clearTimeout(timeoutId);
-          console.log('Backend shutdown request sent');
-          
+
           // Wait a moment for graceful shutdown
           await new Promise(resolve => setTimeout(resolve, 500));
         } catch (apiError) {
-          console.log('Backend shutdown API call failed:', apiError.message);
+          // Shutdown API unavailable — proceed to Tauri command
         }
-        
+
         // Force stop via Tauri command with retry logic
         try {
           const { invoke } = window.__TAURI__;
           await invoke('stop_backend_server');
-          console.log('Backend server stopped via Tauri command');
         } catch (tauriError) {
-          console.warn('Tauri stop command failed:', tauriError.message);
-          
           // Try alternative process cleanup
           try {
             const { invoke: invokeBackup } = window.__TAURI__;
             await invokeBackup('force_kill_backend_processes');
-            console.log('Backend processes force killed');
           } catch (forceError) {
-            console.warn('Force kill also failed:', forceError.message);
+            diagnostics.warn('Lifecycle', 'Force kill failed', { error: forceError.toString() });
           }
         }
-        
+
         // Extended delay to ensure all processes are terminated
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
+
       } catch (error) {
-        console.error('Error stopping backend server:', error);
+        diagnostics.error('Lifecycle', 'Error stopping backend server', { error: error.toString() });
       }
-      
+
       // Additional cleanup for Windows file handles
       try {
         // Clear any cached file handles in localStorage
@@ -157,40 +141,38 @@ const performCleanup = async () => {
           }
         }
         keysToRemove.forEach(key => localStorage.removeItem(key));
-        
+
         // Force close any open directories via Tauri
         const { invoke: invokeCleanup } = window.__TAURI__;
-        await invokeCleanup('cleanup_file_handles').catch(error => {
-          console.log('File handle cleanup not available:', error.message);
+        await invokeCleanup('cleanup_file_handles').catch(() => {
+          // cleanup_file_handles command not available — skip
         });
-        
+
       } catch (error) {
-        console.warn('Error during file handle cleanup:', error);
+        diagnostics.warn('Lifecycle', 'Error during file handle cleanup', { error: error.toString() });
       }
     }
-    
-    // Close any open file handles or connections
+
     // Force garbage collection if available
     if (window.gc) {
       window.gc();
     }
-    
+
     // Additional cleanup for any remaining timers or intervals
     const highestTimeoutId = setTimeout(() => {}, 0);
     for (let i = highestTimeoutId; i >= 0; i--) {
       clearTimeout(i);
     }
-    
+
     const highestIntervalId = setInterval(() => {}, 0);
     for (let i = highestIntervalId; i >= 0; i--) {
       clearInterval(i);
     }
-    
-    // Log the shutdown
-    console.log('App cleanup completed successfully');
+
+    diagnostics.info('Lifecycle', 'App cleanup completed successfully');
     return true;
   } catch (error) {
-    console.error('Error during app cleanup:', error);
+    diagnostics.error('Lifecycle', 'Error during app cleanup', { error: error.toString() });
     return false;
   }
 };

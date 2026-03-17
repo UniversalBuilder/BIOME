@@ -73,7 +73,8 @@ function SettingsTab({ isActive, onNavigate }) {
           </div>
         </div>
 
-        {/* Development Tools */}
+        {/* Development Tools — only shown in development mode */}
+        {process.env.NODE_ENV === 'development' && (
         <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm card-glow">
           <h3 className="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-gray-100 text-glow">
             <svg className="w-5 h-5 mr-2 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,7 +83,7 @@ function SettingsTab({ isActive, onNavigate }) {
             </svg>
             Development Tools
           </h3>
-          
+
           <div className="space-y-4">
             <button
               onClick={openDebugConsole}
@@ -99,13 +100,14 @@ function SettingsTab({ isActive, onNavigate }) {
               </span>
               <span className="text-xs opacity-75">Ctrl+Shift+D</span>
             </button>
-            
+
             <div className="text-sm text-gray-600 dark:text-gray-300 p-3 bg-gray-50 dark:bg-night-700 rounded-lg">
-              The debug console provides detailed information about backend connectivity, 
+              The debug console provides detailed information about backend connectivity,
               environment status, and troubleshooting tools.
             </div>
           </div>
         </div>
+        )}
 
         {/* Appearance Settings */}
         <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm card-glow">

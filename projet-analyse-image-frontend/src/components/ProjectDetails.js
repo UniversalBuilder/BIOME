@@ -254,7 +254,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   useEffect(() => {
     const checkTauriEnvironment = () => {
       const result = Environment.isTauri();
-      console.log('Tauri environment detection result:', result);
       setIsTauri(result);
     };
 
@@ -282,17 +281,14 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       const forceMode = urlParams.get('mode');
       
       if (forceMode === 'tauri') {
-        console.log('Force enabling Tauri mode via URL parameter');
         setIsTauri(true);
       } else if (forceMode === 'web') {
-        console.log('Force enabling Web mode via URL parameter');
         setIsTauri(false);
       }
-      
+
       // Add keyboard shortcut to toggle mode (Ctrl+Alt+T)
       const handleKeyDown = (e) => {
         if (e.ctrlKey && e.altKey && e.key === 't') {
-          console.log('Manually toggling Tauri mode via keyboard shortcut');
           setIsTauri(prev => !prev);
         }
       };
@@ -399,11 +395,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   const handleInputChange = useCallback((field, value) => {
     if (!isEditing) return;
     
-    // Special debug logging for project_path
-    if (field === 'project_path') {
-      console.log(`Setting project_path: '${value}'`);
-    }
-    
     setLocalEditingData(prev => ({
       ...prev,
       [field]: value
@@ -418,10 +409,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   // Helper function to check if we have adequate project information for folder creation
   const hasAdequateProjectInfo = useCallback(() => {
     const data = isEditing && localEditingData ? localEditingData : project;
-    if (!data) {
-      console.log('❌ hasAdequateProjectInfo: No project data');
-      return false;
-    }
+    if (!data) return false;
     
     // Require essential information for bioimage analysis projects
     const hasName = data.name && String(data.name).trim() !== '' && data.name !== 'New Project';
@@ -438,19 +426,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                     (data.user_name && String(data.user_name).trim() !== '');
     
     const isValid = hasName && hasDescription && hasSoftware && hasGroup && hasUser;
-    
-    // Only log when validation state changes or when explicitly debugging
-    if (!isValid) {
-      console.log('❌ hasAdequateProjectInfo: INVALID - Missing:', {
-        name: hasName ? '✅' : '❌ ' + (data.name || 'undefined'),
-        'description (optional)': '✅ ' + (data.description || 'not provided'),
-        software: hasSoftware ? '✅' : '❌ ' + (data.software || 'undefined'),
-        group: hasGroup ? '✅' : '❌ group_id: ' + (data.group_id || 'undefined') + ', group_name: ' + (data.group_name || 'undefined'),
-        user: hasUser ? '✅' : '❌ user_id: ' + (data.user_id || 'undefined') + ', user_name: ' + (data.user_name || 'undefined')
-      });
-    } else {
-      console.log('✅ hasAdequateProjectInfo: VALID - All required fields present');
-    }
     
     return isValid;
   }, [isEditing, localEditingData, project]);
@@ -477,23 +452,12 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         analysis_goal: localEditingData.analysis_goal
       };
 
-      console.log('Saving project with data:', JSON.stringify(projectToSave, null, 2));
-      
       let savedProject;
       if (project.isTemp || !project.id || isNewProject) {
-        // This is a new project - create it
         savedProject = await projectService.create(projectToSave);
-        console.log('Created new project:', savedProject);
       } else {
-        // This is an existing project - update it
-        console.log('Updating project with new field values:', {
-          image_types: projectToSave.image_types,
-          sample_type: projectToSave.sample_type,
-          analysis_goal: projectToSave.analysis_goal
-        });
         await projectService.update(project.id, projectToSave);
         savedProject = await projectService.getById(project.id);
-        console.log('Updated existing project:', savedProject);
       }
       
       onProjectSelect(savedProject);
@@ -568,16 +532,12 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     // This effect specifically handles project switching
     // to ensure journal entries are properly reset/updated
     if (project?.id) {
-      console.log(`Loading journal entries for project ${project.id} (${project.name || 'unknown'})`);
-      
       // Always fetch fresh journal entries when project changes
       projectService.getById(project.id)
         .then(freshProject => {
           if (freshProject?.journal_entries) {
-            console.log(`Found ${freshProject.journal_entries.length} journal entries`);
             setLocalJournalEntries(freshProject.journal_entries);
           } else {
-            console.log('No journal entries found for this project');
             setLocalJournalEntries([]);
           }
         })
@@ -810,32 +770,23 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
       try {
         // If we're in Tauri, use the enhanced validation
         if (isTauri) {
-          console.log('📂 Validating folder using enhanced Tauri API...');
           try {
             const folderScanResult = await scanProjectFolder(displayData.project_path);
-            console.log('Enhanced folder scan result:', folderScanResult);
-            
+
             // Check if this is a valid bioimage analysis structure
             const isValidStructure = folderScanResult.structure_valid;
             const missingFolders = folderScanResult.missing_folders || [];
             const folderDetails = folderScanResult.folder_details || {};
-            
+
             // Determine if folder is effectively empty (no significant content)
             const totalFiles = Object.values(folderDetails).reduce((sum, details) => sum + (details.file_count || 0), 0);
             const isEffectivelyEmpty = totalFiles === 0 || (totalFiles < 5 && missingFolders.length > 3);
-            
+
             setFolderStatus({
               isValid: isValidStructure,
               isEmpty: isEffectivelyEmpty,
               missingFolders: missingFolders,
               folderDetails: folderDetails
-            });
-            
-            console.log('✅ Enhanced folder validation:', { 
-              isValid: isValidStructure, 
-              isEmpty: isEffectivelyEmpty,
-              missingCount: missingFolders.length,
-              totalFiles
             });
             
             // If the folder has a valid structure but our local state doesn't reflect it,
@@ -860,8 +811,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         } else {
           // In development mode without Tauri, simulate validation
           if (process.env.NODE_ENV === 'development') {
-            console.log('DEV: Simulating folder validation for:', displayData.project_path);
-            
             // Logic to infer folder status from path
             const pathLower = displayData.project_path.toLowerCase();
             
@@ -885,10 +834,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
               isEmpty: likelyNew
             });
             
-            console.log('DEV: Simulated folder status:', { 
-              isValid: hasStructure, 
-              isEmpty: likelyNew 
-            });
           } else {
             // In browser production mode, just assume it's empty to allow structure creation
             setFolderStatus({
@@ -914,25 +859,17 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
 
   const handleBrowsePath = async () => {
     try {
-      console.log('Browse button clicked, Tauri available:', isTauri);
-      
       if (isTauri) {
-        console.log('✅ Using Tauri native file dialog to select parent folder');
         try {
           const selectedParentPath = await selectDirectory();
           if (selectedParentPath) {
-            console.log('Selected parent directory:', selectedParentPath);
-            
             // Generate the suggested project folder name
             const suggestedProjectName = generateSuggestedPath();
-            console.log('Suggested project folder name:', suggestedProjectName);
             
             // Create the full project path by combining parent + suggested name
             const isWindows = window.navigator.platform.toLowerCase().includes('win') || selectedParentPath.includes('\\');
             const separator = isWindows ? '\\' : '/';
             const fullProjectPath = `${selectedParentPath}${separator}${suggestedProjectName}`;
-            
-            console.log('Full project path will be:', fullProjectPath);
             
             // Set the project path (this will be the full path where the structure will be created)
             handleInputChange('project_path', fullProjectPath);
@@ -946,39 +883,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
           try { window.toast?.(`Error selecting directory: ${tauriError.message || 'Unknown error'}`, { type: 'error' }); } catch {}
         }
       } else {
-        console.warn('❌ Not running in Tauri environment - using browser fallback');
-        
-        // Generate suggested project name for the prompt
-        const suggestedProjectName = generateSuggestedPath();
-        
-        // Browser fallback - prompt for parent folder path
-        const message = `Since you're using the web version, please enter the PARENT folder path where you want to create your project.\n\nYour project folder will be created as: ${suggestedProjectName}\n\nExample parent path: C:\\Users\\YourName\\Documents\n\nEnter parent folder path:`;
-        
-        const parentPath = window.prompt(message, 'C:\\Users\\Documents');
-        if (parentPath !== null && parentPath.trim() !== '') {
-          console.log('Manually entered parent path:', parentPath);
-          // Remove any extra quotes that might be added when pasting paths
-          const cleanParentPath = parentPath.replace(/["']/g, '').trim();
-          
-          // Create full project path
-          const isWindows = cleanParentPath.includes('\\') || cleanParentPath.includes('C:');
-          const separator = isWindows ? '\\' : '/';
-          const fullProjectPath = `${cleanParentPath}${separator}${suggestedProjectName}`;
-          
-          console.log('Full project path will be:', fullProjectPath);
-          handleInputChange('project_path', fullProjectPath);
-          
-          // In development mode, simulate validation after a short delay
-          if (process.env.NODE_ENV === 'development') {
-            setTimeout(() => {
-              console.log('Simulating folder validation...');
-              setFolderStatus({ isValid: false, isEmpty: true });
-            }, 500);
-          }
-          
-          // Show confirmation
-          try { window.toast?.(`Folder set: ${fullProjectPath}`, { type: 'success', duration: 2200 }); } catch {}
-        }
+        // Web mode: user types the path directly in the input field — nothing to do here
       }
     } catch (err) {
       console.error('Failed to set project path:', err);
@@ -1022,35 +927,27 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
     }
     
     try {
-      console.log('Create folder structure requested, Tauri available:', isTauri);
-      
       if (isTauri) {
-        console.log('✅ Creating folder structure at:', displayData.project_path);
-        
         try {
           const result = await createProjectStructure(
             displayData.project_path,
             displayData.name || 'Untitled Project',
             displayData.description || 'No description provided'
           );
-          
-          console.log('Folder structure created successfully');
-          
+
           // Update the project data to reflect that the folder has been created
           const projectToUpdate = {
             ...localEditingData,
             folder_created: true,
             readme_last_updated: result
           };
-          
+
           setLocalEditingData(projectToUpdate);
-          
+
           // If this is a new project that hasn't been saved yet, save it now
           if (!isProjectSaved()) {
-            console.log('Auto-saving project after folder creation...');
             try {
               const savedProject = await projectService.create(projectToUpdate);
-              console.log('Project auto-saved after folder creation');
               onProjectUpdate();
               // Update the selected project to the saved one
               onProjectSelect(savedProject, false);
@@ -1076,8 +973,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
               isEmpty: validation.is_empty
             });
           } catch (validationError) {
-            console.log('Validation failed after folder creation, but continuing...');
-          }
+            }
           
           try { window.toast?.('Project folder structure created successfully!', { type: 'success', duration: 1800 }); } catch {}
         } catch (createError) {
@@ -1085,8 +981,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
           try { window.toast?.('Failed to create folder structure: ' + (createError.message || 'Unknown error'), { type: 'error' }); } catch {}
         }
       } else {
-        console.warn('❌ Not running in Tauri environment - opening web options');
-        
         // Generate structure content for download
         const structureContent = createDownloadableStructure(
           displayData.name || 'Untitled Project', 
@@ -1099,11 +993,7 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
         
         // For development purposes, allow simulation
         if (process.env.NODE_ENV === 'development' && !isTauri) {
-          console.log('[DEV] Web mode structure generation');
-          
-          if (window.confirm('DEV MODE: Simulate successful download and folder creation?')) {
-            handleWebFolderCreation();
-          }
+          handleWebFolderCreation();
         }
       }
     } catch (err) {
@@ -1767,7 +1657,6 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
   // Handle confirmation of manual folder creation for web users
   const handleWebFolderCreation = async () => {
     try {
-      console.log('Web user confirmed manual folder creation');
       const mockTimestamp = new Date().toISOString();
       
       // Update the project data
@@ -2218,8 +2107,8 @@ function ProjectDetails({ project, onProjectUpdate, onProjectSelect, isNewProjec
                   value={localEditingData.project_path || ''}
                   onChange={(e) => handleInputChange('project_path', e.target.value)}
                   className={inputBaseClasses}
-                  placeholder="Select project folder..."
-                  readOnly
+                  placeholder={isTauri ? 'Select project folder...' : 'Enter folder path (e.g. C:\\Users\\Name\\Project)'}
+                  readOnly={isTauri}
                 />
                 <button
                   onClick={handleBrowsePath}

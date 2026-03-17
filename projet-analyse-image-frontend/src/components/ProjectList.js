@@ -12,6 +12,9 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
   const [savedViews, setSavedViews] = useState([]);
   const [density, setDensity] = useState('comfortable');
   const [scrollState, setScrollState] = useState({ canScrollUp: false, canScrollDown: false });
+  const [saveViewModalOpen, setSaveViewModalOpen] = useState(false);
+  const [saveViewName, setSaveViewName] = useState('');
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   // Load saved views on mount
   useEffect(() => {
@@ -26,23 +29,22 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
   }, []);
 
   const saveCurrentView = () => {
-    const name = window.prompt('Enter a name for this view:');
+    setSaveViewName('');
+    setSaveViewModalOpen(true);
+  };
+
+  const confirmSaveView = () => {
+    const name = saveViewName.trim();
     if (!name) return;
-    
     const newView = {
       id: Date.now(),
       name,
-      config: {
-        sortField,
-        sortOrder,
-        searchQuery,
-        statusFilter
-      }
+      config: { sortField, sortOrder, searchQuery, statusFilter }
     };
-    
     const newViews = [...savedViews, newView];
     setSavedViews(newViews);
     localStorage.setItem('biome_saved_views', JSON.stringify(newViews));
+    setSaveViewModalOpen(false);
   };
 
   const applyView = (view) => {
@@ -54,11 +56,14 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
 
   const deleteView = (id, e) => {
     e.stopPropagation();
-    if (window.confirm('Delete this saved view?')) {
-      const newViews = savedViews.filter(v => v.id !== id);
-      setSavedViews(newViews);
-      localStorage.setItem('biome_saved_views', JSON.stringify(newViews));
-    }
+    setPendingDeleteId(id);
+  };
+
+  const confirmDeleteView = () => {
+    const newViews = savedViews.filter(v => v.id !== pendingDeleteId);
+    setSavedViews(newViews);
+    localStorage.setItem('biome_saved_views', JSON.stringify(newViews));
+    setPendingDeleteId(null);
   };
   const scrollContainerRef = useRef(null);
   const resizeRafRef = useRef(null);
@@ -598,6 +603,63 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
           </div>
         </div>
       </div>
+
+      {/* Save View modal */}
+      {saveViewModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-night-800 rounded-xl shadow-xl p-6 w-80 mx-4">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">Save current view</h3>
+            <input
+              type="text"
+              autoFocus
+              placeholder="View name"
+              value={saveViewName}
+              onChange={(e) => setSaveViewName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') confirmSaveView(); if (e.key === 'Escape') setSaveViewModalOpen(false); }}
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-night-600 bg-gray-50 dark:bg-night-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-bioluminescent-400/50 mb-4"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setSaveViewModalOpen(false)}
+                className="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-night-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmSaveView}
+                disabled={!saveViewName.trim()}
+                className="px-4 py-2 text-sm rounded-lg btn-gradient-cyan disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete View confirmation */}
+      {pendingDeleteId !== null && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-night-800 rounded-xl shadow-xl p-6 w-72 mx-4">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Delete saved view?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">This action cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setPendingDeleteId(null)}
+                className="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-night-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteView}
+                className="px-4 py-2 text-sm rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

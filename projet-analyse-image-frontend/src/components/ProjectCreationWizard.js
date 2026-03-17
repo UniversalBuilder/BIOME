@@ -98,6 +98,7 @@ const MultiSelectField = ({ options, value, onChange, placeholder, fieldName }) 
 const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isTauri, setIsTauri] = useState(false);
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
@@ -476,20 +477,21 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
     }
   };
 
-  // Handle cancel
-  const handleCancel = async () => {
+  // Handle cancel — always ask for confirmation
+  const handleCancel = () => {
+    setShowCancelConfirm(true);
+  };
+
+  const confirmCancel = async () => {
+    setShowCancelConfirm(false);
     if (draftProject) {
-      if (window.confirm('Are you sure you want to cancel? Your draft will be deleted.')) {
-        try {
-          await projectService.delete(draftProject.id);
-        } catch (error) {
-          console.error('Failed to delete draft:', error);
-        }
-        onCancel();
+      try {
+        await projectService.delete(draftProject.id);
+      } catch (error) {
+        console.error('Failed to delete draft:', error);
       }
-    } else {
-      onCancel();
     }
+    onCancel();
   };
 
   // Input styles
@@ -992,7 +994,7 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
           <div className="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
             <button
               onClick={handleCancel}
-              className="px-6 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
+              className="px-6 py-2 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-300 dark:border-red-700 transition-all duration-200"
             >
               Cancel
             </button>
@@ -1020,6 +1022,30 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
           </div>
         </div>
       </div>
+
+      {/* Cancel confirmation dialog */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-night-800 rounded-xl shadow-xl p-6 w-80 mx-4">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Cancel project creation?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Your draft will be deleted. This cannot be undone.</p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-night-700 transition-colors"
+              >
+                Keep editing
+              </button>
+              <button
+                onClick={confirmCancel}
+                className="px-4 py-2 text-sm rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
+              >
+                Yes, cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

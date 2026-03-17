@@ -241,7 +241,7 @@ function Settings() {
 
         {/* Data Management - Desktop Only */}
         {isTauri && (
-          <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm">
+          <div className="bg-white dark:bg-night-800 rounded-lg border border-gray-200 dark:border-night-600 p-6 shadow-sm lg:col-span-2 xl:col-span-3">
             <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Data Management</h3>
             
             <div className="space-y-4">

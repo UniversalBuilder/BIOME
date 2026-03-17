@@ -247,6 +247,8 @@ function ProjectTableView({
   });
   const [activeView, setActiveView] = useState(null);
   const [outputTypeFilter, setOutputTypeFilter] = useState(filters.output_type || '');
+  const [saveViewModalOpen, setSaveViewModalOpen] = useState(false);
+  const [saveViewName, setSaveViewName] = useState('');
   const PREDEFINED_OUTPUT_TYPES = [
     'Counseling',
     'Video Tutorial',
@@ -623,92 +625,113 @@ function ProjectTableView({
               onChange={(e) => setSearchTerm(e.target.value)}
               className="px-3 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300"
             />
-            {/* Output filter */}
-            <select
-              value={outputTypeFilter}
-              onChange={(e) => setOutputTypeFilter(e.target.value)}
-              className="px-3 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300"
-              title="Filter by Output/Result Type"
-            >
-              <option value="">Output: All</option>
-              {PREDEFINED_OUTPUT_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-            {/* Saved views */}
-            <select
-              value={activeView || ''}
-              onChange={(e)=> e.target.value ? applySavedView(Number(e.target.value)) : setActiveView(null)}
-              className="px-2 py-1 border text-xs rounded focus:outline-none focus:ring-2 focus:ring-emerald-300"
-              title="Saved views"
-            >
-              <option value="">Saved Views</option>
-              {savedViews.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
-            </select>
-            <button
-              onClick={()=>{
-                const name = prompt('Name for this view?');
-                if (name) saveCurrentView(name);
-              }}
-              className="px-2 py-1 rounded-md text-xs font-medium border border-emerald-500 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              title="Save current filters as view"
-            >Saved: Save View</button>
-            {activeView && (
+
+            {/* ── Views ─────────────────────────────────────────── */}
+            <div className="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-night-600">
+              {/* Saved views dropdown */}
+              <select
+                value={activeView || ''}
+                onChange={(e)=> e.target.value ? applySavedView(Number(e.target.value)) : setActiveView(null)}
+                className="px-2 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300"
+                title="Apply a saved view"
+              >
+                <option value="">Saved Views</option>
+                {savedViews.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+              </select>
+              {/* Save current view */}
               <button
-                onClick={()=> deleteView(activeView)}
-                className="px-2 py-1 rounded-md text-xs font-medium border border-red-500 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-none focus:ring-2 focus:ring-red-400"
-                title="Delete active saved view"
-              >Saved: Delete</button>
-            )}
-            {/* Preset */}
-            <button
-              onClick={showActiveProjects}
-              className="px-3 py-1 rounded-md text-xs font-medium border border-sky-500 text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-900/20 hover:bg-sky-100 dark:hover:bg-sky-900/30 focus:outline-none focus:ring-2 focus:ring-sky-400"
-              title="Preset: Active projects"
-            >Preset: Active</button>
-            {/* Utilities */}
-            <button 
-              onClick={resetFilters} 
-              className={`px-2 py-1 rounded-md text-xs font-medium border ${hasActiveFilters ? 'border-red-500 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30' : 'border-slate-500 text-slate-400 bg-transparent dark:bg-transparent cursor-not-allowed opacity-50'}`}
-              disabled={!hasActiveFilters}
-              title={hasActiveFilters ? 'Clear all filters' : 'No active filters'}
-            >Filters: Clear</button>
-            <button 
-              onClick={handleRefresh} 
-              className={`px-2 py-1 rounded-md text-xs font-medium border ${onRefresh ? 'border-amber-500 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30' : 'border-slate-500 text-slate-400 bg-transparent dark:bg-transparent cursor-not-allowed opacity-50'}`}
-              disabled={!onRefresh}
-              title={onRefresh ? 'Reload data & clear filters' : 'Refresh not available'}
-            >Data: Refresh</button>
-            <ImportProjectButton 
-              onProjectImported={(p) => {
-                handleRefresh();
-                if (onProjectSelect) onProjectSelect(p);
-              }}
-              className="px-2 py-1 rounded-md text-xs font-medium border border-slate-500 text-slate-700 dark:text-slate-300 bg-transparent dark:bg-transparent hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-slate-400 flex items-center gap-1"
-            >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Import
-            </ImportProjectButton>
-            <button
-              onClick={() => {
-                const next = !dense; setDense(next);
-                try { localStorage.setItem('biome_table_dense', next ? '1' : '0'); } catch {}
-                if (window.toast) window.toast(next ? 'Dense mode on' : 'Dense mode off', { type: 'info', duration: 1200 });
-              }}
-              className="px-2 py-1 rounded-md text-xs font-medium border border-slate-500 text-slate-700 dark:text-slate-300 bg-transparent dark:bg-transparent hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              title="Toggle density"
-            >{dense ? 'Density: Dense' : 'Density: Comfortable'}</button>
-            <div className="relative">
+                onClick={() => { setSaveViewName(''); setSaveViewModalOpen(true); }}
+                className="p-1.5 rounded-md text-xs font-medium border border-slate-300 dark:border-night-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-sky-300"
+                title="Save current filters as a named view"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+              </button>
+              {/* Delete active view */}
+              {activeView && (
+                <button
+                  onClick={() => deleteView(activeView)}
+                  className="p-1.5 rounded-md text-xs border border-slate-300 dark:border-night-600 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 transition-colors"
+                  title="Delete active saved view"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )}
+              {/* Preset: Active projects */}
+              <button
+                onClick={showActiveProjects}
+                className="px-2 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-night-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-sky-300 whitespace-nowrap"
+                title="Show only Active projects"
+              >Active projects</button>
+            </div>
+
+            {/* ── Utilities ────────────────────────────────────────── */}
+            <div className="flex items-center gap-1 pl-2 border-l border-slate-200 dark:border-night-600">
+              {/* Clear filters */}
+              <button
+                onClick={resetFilters}
+                disabled={!hasActiveFilters}
+                className={`p-1.5 rounded-md text-xs border transition-colors focus:outline-none focus:ring-2 focus:ring-sky-300 ${hasActiveFilters ? 'border-slate-300 dark:border-night-600 text-slate-600 dark:text-slate-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 hover:text-red-600' : 'border-slate-200 dark:border-night-700 text-slate-300 dark:text-slate-600 cursor-not-allowed'}`}
+                title={hasActiveFilters ? 'Clear all filters' : 'No active filters'}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              {/* Refresh */}
+              <button
+                onClick={handleRefresh}
+                disabled={!onRefresh}
+                className="p-1.5 rounded-md text-xs border border-slate-300 dark:border-night-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-night-700/50 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-sky-300"
+                title="Reload data"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+              {/* Import */}
+              <ImportProjectButton
+                onProjectImported={(p) => {
+                  handleRefresh();
+                  if (onProjectSelect) onProjectSelect(p);
+                }}
+                className="p-1.5 rounded-md text-xs border border-slate-300 dark:border-night-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                title="Import an existing project"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </ImportProjectButton>
+              {/* Density toggle */}
+              <button
+                onClick={() => {
+                  const next = !dense; setDense(next);
+                  try { localStorage.setItem('biome_table_dense', next ? '1' : '0'); } catch {}
+                  if (window.toast) window.toast(next ? 'Dense mode on' : 'Dense mode off', { type: 'info', duration: 1200 });
+                }}
+                className="p-1.5 rounded-md text-xs border border-slate-300 dark:border-night-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                title={dense ? 'Switch to comfortable density' : 'Switch to dense density'}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {dense
+                    ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  }
+                </svg>
+              </button>
+              {/* Columns picker */}
+              <div className="relative">
               <button
                 ref={colBtnRef}
                 onClick={() => setShowColMenu(v => !v)}
-                className="px-2 py-1 rounded-md text-xs font-medium border border-slate-500 text-slate-700 dark:text-slate-300 bg-transparent dark:bg-transparent hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                className="px-2 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-night-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-slate-400 whitespace-nowrap"
                 aria-haspopup="true"
                 aria-expanded={showColMenu}
                 title="Show or hide table columns"
-              >Columns: {visibleCount} shown</button>
+              >Columns ({visibleCount})</button>
               {showColMenu && (
                 <div ref={colMenuRef} className="absolute right-0 mt-2 w-56 z-20 rounded-md border border-slate-300 dark:border-night-600 bg-white dark:bg-night-800 shadow-lg p-2 text-xs" role="menu">
                   {[
@@ -741,37 +764,49 @@ function ProjectTableView({
                   ))}
                 </div>
               )}
-            </div>
-            <button
-              onClick={exportCSV}
-              className="px-2 py-1 rounded-md text-xs font-medium border border-teal-500 text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 focus:outline-none focus:ring-2 focus:ring-teal-400"
-              title="Export current view as CSV"
-            >Export: CSV</button>
+              </div>
+              {/* Export CSV */}
+              <button
+                onClick={exportCSV}
+                className="p-1.5 rounded-md text-xs border border-slate-300 dark:border-night-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-night-700/50 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                title="Export current view as CSV"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12" />
+                </svg>
+              </button>
+            </div>{/* end Utilities */}
           </div>
         </div>
         {/* Facets row */}
         <div className="flex flex-wrap gap-2 items-center">
-          <select value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="px-2 py-1 border text-xs rounded">
+          <select value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value)} className="px-2 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300">
             <option value="">Status: All</option>
             {distinctStatuses.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          <select value={softwareFilter} onChange={(e)=>setSoftwareFilter(e.target.value)} className="px-2 py-1 border text-xs rounded">
+          <select value={softwareFilter} onChange={(e)=>setSoftwareFilter(e.target.value)} className="px-2 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300">
             <option value="">Software: All</option>
             {distinctSoftware.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          <select value={groupFilter} onChange={(e)=>setGroupFilter(e.target.value)} className="px-2 py-1 border text-xs rounded">
+          <select value={groupFilter} onChange={(e)=>setGroupFilter(e.target.value)} className="px-2 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300">
             <option value="">Group: All</option>
             {distinctGroups.map(g => <option key={g} value={g}>{g}</option>)}
           </select>
-          <select value={userFilter} onChange={(e)=>setUserFilter(e.target.value)} className="px-2 py-1 border text-xs rounded">
+          <select value={userFilter} onChange={(e)=>setUserFilter(e.target.value)} className="px-2 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300">
             <option value="">User: All</option>
             {distinctUsers.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
-          <select value={timeWindow} onChange={(e)=>setTimeWindow(e.target.value)} className="px-2 py-1 border text-xs rounded" title="Filter by time window">
+          <select value={outputTypeFilter} onChange={(e) => setOutputTypeFilter(e.target.value)} className="px-2 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300" title="Filter by Output/Result Type">
+            <option value="">Output: All</option>
+            {PREDEFINED_OUTPUT_TYPES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <select value={timeWindow} onChange={(e)=>setTimeWindow(e.target.value)} className="px-2 py-1 border border-slate-300 dark:border-night-600 dark:bg-night-800 dark:text-text-dark text-xs rounded-md focus:outline-none focus:ring-2 focus:ring-sky-300" title="Filter by time window">
             <option value="">Time: All</option>
-            <option value="last7">Time: Last 7 days</option>
-            <option value="thisMonth">Time: This month</option>
-            <option value="last30">Time: Last 30 days</option>
+            <option value="last7">Last 7 days</option>
+            <option value="thisMonth">This month</option>
+            <option value="last30">Last 30 days</option>
           </select>
         </div>
       </div>
@@ -900,6 +935,42 @@ function ProjectTableView({
           </div>
         )}
       </div>
+
+      {/* Save View modal */}
+      {saveViewModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-night-800 rounded-xl shadow-xl p-6 w-80 mx-4">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">Save current view</h3>
+            <input
+              type="text"
+              autoFocus
+              placeholder="View name"
+              value={saveViewName}
+              onChange={(e) => setSaveViewName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && saveViewName.trim()) { saveCurrentView(saveViewName.trim()); setSaveViewModalOpen(false); }
+                if (e.key === 'Escape') setSaveViewModalOpen(false);
+              }}
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-night-600 bg-gray-50 dark:bg-night-700 text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-sky-300 mb-4"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setSaveViewModalOpen(false)}
+                className="px-4 py-2 text-sm rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-night-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { if (saveViewName.trim()) { saveCurrentView(saveViewName.trim()); setSaveViewModalOpen(false); } }}
+                disabled={!saveViewName.trim()}
+                className="px-4 py-2 text-sm rounded-lg bg-sky-600 hover:bg-sky-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

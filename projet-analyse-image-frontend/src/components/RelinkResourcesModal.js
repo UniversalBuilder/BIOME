@@ -48,19 +48,14 @@ const RelinkResourcesModal = ({ isOpen, onClose, projectId, onRelinkComplete }) 
   }, [isOpen, projectId, validateResources]);
 
   const handleBrowse = async () => {
-    if (isTauri) {
-      try {
-        const selected = await selectDirectory();
-        if (selected) {
-          setSearchPath(selected);
-        }
-      } catch (err) {
-        console.error('Failed to select directory:', err);
+    if (!isTauri) return; // In web mode, user can type the path directly in the input
+    try {
+      const selected = await selectDirectory();
+      if (selected) {
+        setSearchPath(selected);
       }
-    } else {
-      // Fallback for web/dev
-      const path = window.prompt('Enter absolute path to search for missing files:');
-      if (path) setSearchPath(path);
+    } catch (err) {
+      console.error('Failed to select directory:', err);
     }
   };
 

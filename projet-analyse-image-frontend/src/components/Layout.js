@@ -30,8 +30,9 @@ function Layout({ children }) {
     return () => window.removeEventListener('openDebugConsole', handleOpenDebugConsole);
   }, []);
 
-  // Add keyboard shortcut for debug console
+  // Add keyboard shortcut for debug console (development only)
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
     const handleKeyPress = (event) => {
       // Ctrl+Shift+D to open debug console
       if (event.ctrlKey && event.shiftKey && event.key === 'D') {

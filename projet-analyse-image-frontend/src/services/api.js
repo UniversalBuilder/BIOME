@@ -48,9 +48,9 @@ const fetchWithRetry = async (url, options = {}, retries = 3, timeout = 5000) =>
     } catch (error) {
         clearTimeout(timeoutId);
         if (error.name === 'AbortError') {
-            console.log(`Request to ${url} timed out, retries left: ${retries - 1}`);
+            console.warn(`Request to ${url} timed out, retries left: ${retries - 1}`);
         } else {
-            console.log(`Fetch error: ${error.message}, retries left: ${retries - 1}`);
+            console.warn(`Fetch error: ${error.message}, retries left: ${retries - 1}`);
         }
         
         if (retries <= 1) throw error;
@@ -282,8 +282,6 @@ export const projectService = {
             sample_type: projectData.sample_type || null
         };
 
-        console.log('Creating project with data:', JSON.stringify(cleanData, null, 2));
-        
         const response = await fetchWithRetry(`${apiUrl}/projects`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -307,8 +305,6 @@ export const projectService = {
         delete cleanData.user_name;
         delete cleanData.user_email;
         
-        console.log(`Sending update request for project ${id} with data:`, JSON.stringify(cleanData, null, 2));
-        
         const response = await fetchWithRetry(`${apiUrl}/projects/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -316,9 +312,7 @@ export const projectService = {
         });
         
         await handleResponse(response, 'Failed to update project');
-        const result = await response.json();
-        console.log('Project update response:', JSON.stringify(result, null, 2));
-        return result;
+        return response.json();
     },
 
     delete: async (id) => {

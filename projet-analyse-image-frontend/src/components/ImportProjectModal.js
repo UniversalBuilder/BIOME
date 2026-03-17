@@ -46,26 +46,24 @@ const ImportProjectModal = ({ isOpen, onClose, onImport }) => {
 
   const handleBrowse = async () => {
     try {
-      if (isTauri) {
-        const selected = await selectDirectory();
-        if (selected) {
-          setPath(selected);
-          // Infer project name from folder name
-          const folderName = selected.split(/[/\\]/).pop();
-          setName(folderName);
-        }
-      } else {
-        const input = window.prompt('Enter absolute path to project folder:');
-        if (input) {
-          setPath(input);
-          const folderName = input.split(/[/\\]/).pop();
-          setName(folderName);
-        }
+      const selected = await selectDirectory();
+      if (selected) {
+        setPath(selected);
+        // Infer project name from folder name
+        const folderName = selected.split(/[/\\]/).pop();
+        setName(folderName);
       }
     } catch (err) {
       console.error('Failed to select directory:', err);
       setError('Failed to select directory');
     }
+  };
+
+  const handlePathChange = (e) => {
+    const value = e.target.value;
+    setPath(value);
+    const folderName = value.split(/[/\\]/).pop();
+    if (folderName) setName(folderName);
   };
 
   const handleSubmit = async (e) => {
@@ -116,17 +114,20 @@ const ImportProjectModal = ({ isOpen, onClose, onImport }) => {
             <input
               type="text"
               value={path}
-              readOnly
+              onChange={isTauri ? undefined : handlePathChange}
+              readOnly={isTauri}
               className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
-              placeholder="Select a folder..."
+              placeholder={isTauri ? 'Select a folder...' : 'Enter folder path (e.g. C:\\Users\\Name\\Project)'}
             />
-            <button
-              type="button"
-              onClick={handleBrowse}
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
-            >
-              Browse
-            </button>
+            {isTauri && (
+              <button
+                type="button"
+                onClick={handleBrowse}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+              >
+                Browse
+              </button>
+            )}
           </div>
           <p className="mt-1 text-xs text-gray-500">
             Select the root folder of the existing project.
