@@ -4,6 +4,15 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ---
 
+## v2.5.4 - March 2026
+
+### Bug Fixes
+- **Project creation wizard scroll fixed** - the Create Project flow now scrolls correctly on smaller desktop windows, so all fields and action buttons are accessible without resizing.
+- **Cancel button made consistent and clearer** - the wizard Cancel button now uses the same destructive visual language as the confirmation dialog (filled red button with white text).
+- **Background rendering fixed while scrolling** - the wizard page background now covers the full scrollable area, including the bottom section around actions.
+
+---
+
 ## v2.5.3 — March 2026
 
 ### Bug Fixes

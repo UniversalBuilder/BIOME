@@ -6,6 +6,12 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [2.5.4] - 2026-03-18
+### Fixed
+- **Project creation wizard scroll restored**: The wizard is now scrollable in constrained desktop window heights, so all form fields and bottom actions are reachable without resizing the app window.
+- **Cancel action prominence improved in wizard**: The wizard Cancel button now uses a filled destructive style (red background, white text), matching the confirmation modal visual language.
+- **Wizard background continuity on scroll**: The page background now correctly covers the full scrollable area, preventing the bottom visual break when navigating to lower sections.
+
 ## [2.5.3] - 2026-03-06
 ### Fixed
 - **Metadata options empty on fresh install**: On a clean installation, `schema.js` creates the `metadata_options` table before `applyMigrationsSafe()` runs. The migration guarded the seed with `if (!metaTable)` — so when the table already existed (but was empty), seeding was skipped entirely. Fixed by moving the seed step outside the table-creation guard: the default options (Fiji, Imaris, CellProfiler, QuPath etc.; widefield/confocal microscopy etc.; sample types; analysis goals) are now inserted whenever `COUNT(*) = 0`, regardless of how the table was created. `INSERT OR IGNORE` ensures the seed is a no-op on existing databases.

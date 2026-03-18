@@ -1,17 +1,17 @@
 {
   "name": "biome-production",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "BIOME - Bio Imaging Organization and Management Environment (Production Build)",
   "main": "production-server.js",
   "author": "Yannick Krempp",
   "license": "CC-BY-NC-4.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/[username]/BIOME.git"
+    "url": "https://github.com/UniversalBuilder/BIOME.git"
   },
-  "homepage": "https://github.com/[username]/BIOME",
+  "homepage": "https://github.com/UniversalBuilder/BIOME",
   "bugs": {
-    "url": "https://github.com/[username]/BIOME/issues"
+    "url": "https://github.com/UniversalBuilder/BIOME/issues"
   },
   "scripts": {
     "start": "node production-server.js",
