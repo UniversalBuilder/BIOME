@@ -35,6 +35,41 @@ const chartColors = {
 };
 
 /**
+ * Build a month-keyed bucket object spanning from start to end date (inclusive).
+ * Keys are formatted as "YYYY-MM".
+ */
+const buildMonthRange = (start, end) => {
+  const buckets = {};
+  const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+  const last = new Date(end.getFullYear(), end.getMonth(), 1);
+  while (cursor <= last) {
+    const key = `${cursor.getFullYear()}-${(cursor.getMonth() + 1).toString().padStart(2, '0')}`;
+    buckets[key] = 0;
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return buckets;
+};
+
+/**
+ * Determine the time-series date range from explicit filter dates or data bounds.
+ */
+const getTsRange = (filteredProjects, startDate, endDate) => {
+  if (startDate && endDate) {
+    return { rangeStart: new Date(startDate), rangeEnd: new Date(endDate) };
+  }
+  let minDate = null, maxDate = null;
+  filteredProjects.forEach(p => {
+    const d = p.creation_date ? new Date(p.creation_date) : null;
+    if (d) {
+      if (!minDate || d < minDate) minDate = d;
+      if (!maxDate || d > maxDate) maxDate = d;
+    }
+  });
+  const fallbackStart = new Date(); fallbackStart.setMonth(fallbackStart.getMonth() - 11);
+  return { rangeStart: minDate || fallbackStart, rangeEnd: maxDate || new Date() };
+};
+
+/**
  * Parse multi-selection fields that can be comma-separated strings or JSON arrays
  */
 export const parseMultiSelectionField = (fieldValue, predefinedOptions = []) => {
@@ -92,7 +127,7 @@ export const prepareSummaryMetrics = (filteredProjects) => {
   filteredProjects.forEach(project => {
     if (project.creation_date) {
       const creationDate = new Date(project.creation_date);
-      const endDate = project.completion_date ? new Date(project.completion_date) : new Date();
+      const endDate = project.last_updated ? new Date(project.last_updated) : new Date();
       
       if (endDate > creationDate) {
         const durationDays = Math.round((endDate - creationDate) / (1000 * 60 * 60 * 24));
@@ -190,31 +225,20 @@ export const prepareSoftwareDistribution = (filteredProjects, topN = 8) => {
 /**
  * Prepare data for Project Creation Timeline chart
  */
-export const prepareCreationTimeline = (filteredProjects) => {
-  const projectsByMonth = {};
-  const now = new Date();
-  const monthsAgo12 = new Date();
-  monthsAgo12.setMonth(now.getMonth() - 12);
-  
-  // Initialize all months with zeros
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now);
-    date.setMonth(now.getMonth() - i);
-    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-    projectsByMonth[monthKey] = 0;
-  }
-  
-  // Count projects per month
+export const prepareCreationTimeline = (filteredProjects, startDate, endDate) => {
+  const { rangeStart, rangeEnd } = getTsRange(filteredProjects, startDate, endDate);
+  const projectsByMonth = buildMonthRange(rangeStart, rangeEnd);
+
   filteredProjects.forEach(project => {
     const creationDate = project.creation_date ? new Date(project.creation_date) : null;
-    if (creationDate && creationDate > monthsAgo12) {
+    if (creationDate) {
       const monthKey = `${creationDate.getFullYear()}-${(creationDate.getMonth() + 1).toString().padStart(2, '0')}`;
       if (projectsByMonth[monthKey] !== undefined) {
         projectsByMonth[monthKey]++;
       }
     }
   });
-  
+
   const sortedMonths = Object.keys(projectsByMonth).sort();
   return {
     byMonth: projectsByMonth,
@@ -266,7 +290,7 @@ export const prepareDurationDistribution = (filteredProjects) => {
   filteredProjects.forEach(project => {
     if (project.creation_date) {
       const creationDate = new Date(project.creation_date);
-      const endDate = project.completion_date ? new Date(project.completion_date) : new Date();
+      const endDate = project.last_updated ? new Date(project.last_updated) : new Date();
       
       if (endDate > creationDate) {
         const durationDays = Math.round((endDate - creationDate) / (1000 * 60 * 60 * 24));
@@ -310,9 +334,9 @@ export const prepareGroupPerformance = (filteredProjects) => {
       groupMetrics[groupName].completedProjects++;
     }
     
-    if (project.creation_date && project.completion_date) {
+    if (project.creation_date && project.last_updated) {
       const creationDate = new Date(project.creation_date);
-      const completionDate = new Date(project.completion_date);
+      const completionDate = new Date(project.last_updated);
       const durationDays = (completionDate - creationDate) / (1000 * 60 * 60 * 24);
       groupMetrics[groupName].totalDuration += durationDays;
       groupMetrics[groupName].projectCount++;
@@ -381,29 +405,17 @@ export const prepareSoftwareAnalysis = (filteredProjects) => {
 /**
  * Prepare data for Monthly Time Tracking chart
  */
-export const prepareMonthlyTimeTracking = (filteredProjects) => {
-  const monthlyHours = {};
-  const now = new Date();
-  const monthsAgo12 = new Date();
-  monthsAgo12.setMonth(now.getMonth() - 12);
-  
-  // Initialize all months
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now);
-    date.setMonth(now.getMonth() - i);
-    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-    monthlyHours[monthKey] = 0;
-  }
-  
+export const prepareMonthlyTimeTracking = (filteredProjects, startDate, endDate) => {
+  const { rangeStart, rangeEnd } = getTsRange(filteredProjects, startDate, endDate);
+  const monthlyHours = buildMonthRange(rangeStart, rangeEnd);
+
   // Sum up hours per month (using creation date as proxy)
   filteredProjects.forEach(project => {
     if (project.creation_date) {
       const creationDate = new Date(project.creation_date);
-      if (creationDate > monthsAgo12) {
-        const monthKey = `${creationDate.getFullYear()}-${(creationDate.getMonth() + 1).toString().padStart(2, '0')}`;
-        if (monthlyHours[monthKey] !== undefined) {
-          monthlyHours[monthKey] += (project.time_spent_minutes || 0) / 60;
-        }
+      const monthKey = `${creationDate.getFullYear()}-${(creationDate.getMonth() + 1).toString().padStart(2, '0')}`;
+      if (monthlyHours[monthKey] !== undefined) {
+        monthlyHours[monthKey] += (project.time_spent_minutes || 0) / 60;
       }
     }
   });
@@ -447,25 +459,16 @@ export const prepareAnalysisGoalsDistribution = (filteredProjects, metadataOptio
 /**
  * Prepare data for Project Velocity chart
  */
-export const prepareProjectVelocity = (filteredProjects) => {
-  const completedByMonth = {};
-  const now = new Date();
-  const monthsAgo12 = new Date();
-  monthsAgo12.setMonth(now.getMonth() - 12);
-  
-  // Initialize all months
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now);
-    date.setMonth(now.getMonth() - i);
-    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-    completedByMonth[monthKey] = 0;
-  }
-  
+export const prepareProjectVelocity = (filteredProjects, startDate, endDate) => {
+  const { rangeStart, rangeEnd } = getTsRange(filteredProjects, startDate, endDate);
+  const completedByMonth = buildMonthRange(rangeStart, rangeEnd);
+
   // Count completed projects per month
   filteredProjects.forEach(project => {
-    if (project.status === 'Finished' && project.completion_date) {
-      const completionDate = new Date(project.completion_date);
-      if (completionDate > monthsAgo12) {
+    if (project.status === 'Completed' || project.status === 'Finished') {
+      const dateStr = project.last_updated;
+      if (dateStr) {
+        const completionDate = new Date(dateStr);
         const monthKey = `${completionDate.getFullYear()}-${(completionDate.getMonth() + 1).toString().padStart(2, '0')}`;
         if (completedByMonth[monthKey] !== undefined) {
           completedByMonth[monthKey]++;
@@ -488,11 +491,11 @@ export const prepareProjectVelocity = (filteredProjects) => {
 export const prepareProjectDetails = (filteredProjects, timezone = 'UTC', formatDateOnly = (date) => new Date(date).toLocaleDateString()) => {
   return filteredProjects.map(project => {
     const creationDate = project.creation_date ? new Date(project.creation_date) : null;
-    const lastUpdateDate = project.last_update_date ? new Date(project.last_update_date) : null;
-    const completionDate = project.completion_date ? new Date(project.completion_date) : null;
-    
-    const duration = (creationDate && completionDate) ? 
-      Math.round((completionDate - creationDate) / (1000 * 60 * 60 * 24)) : 
+    const lastUpdateDate = project.last_updated ? new Date(project.last_updated) : null;
+    const completionDate = project.last_updated ? new Date(project.last_updated) : null;
+
+    const duration = (creationDate && completionDate) ?
+      Math.round((completionDate - creationDate) / (1000 * 60 * 60 * 24)) :
       '';
     
     const software = (() => {
@@ -529,17 +532,17 @@ export const prepareAllAnalyticsData = (filteredProjects, metadataOptions = {}, 
     statusDistribution: prepareStatusDistribution(filteredProjects),
     outputTypeDistribution: prepareOutputTypeDistribution(filteredProjects),
     softwareDistribution: prepareSoftwareDistribution(filteredProjects),
-    creationTimeline: prepareCreationTimeline(filteredProjects),
+    creationTimeline: prepareCreationTimeline(filteredProjects, dateRange.startDate, dateRange.endDate),
     timeSpentDistribution: prepareTimeSpentDistribution(filteredProjects),
     durationDistribution: prepareDurationDistribution(filteredProjects),
     groupPerformance: prepareGroupPerformance(filteredProjects),
     softwareAnalysis: prepareSoftwareAnalysis(filteredProjects),
-    monthlyTimeTracking: prepareMonthlyTimeTracking(filteredProjects),
+    monthlyTimeTracking: prepareMonthlyTimeTracking(filteredProjects, dateRange.startDate, dateRange.endDate),
     analysisGoalsDistribution: prepareAnalysisGoalsDistribution(
       filteredProjects,
       metadataOptions.analysisGoals || []
     ),
-    projectVelocity: prepareProjectVelocity(filteredProjects),
+    projectVelocity: prepareProjectVelocity(filteredProjects, dateRange.startDate, dateRange.endDate),
     projectDetails: prepareProjectDetails(filteredProjects, dateRange.timezone, formatDateOnly),
     dateRange: dateRange,
     generatedAt: new Date().toISOString()

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"Analytics\" /d/DEV/BIOME/projet-analyse-image-frontend/src/components/*.js)",
+      "Bash(grep -r \"<Analytics\\\\|Analytics import\" /d/DEV/BIOME/projet-analyse-image-frontend/src/components/*.js)"
+    ]
+  }
+}

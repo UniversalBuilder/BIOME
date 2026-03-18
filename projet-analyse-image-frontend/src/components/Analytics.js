@@ -46,8 +46,8 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     
     projects.forEach(project => {
       const creationDate = project.creation_date ? new Date(project.creation_date) : null;
-      const lastUpdateDate = project.last_update_date ? new Date(project.last_update_date) : null;
-      
+      const lastUpdateDate = project.last_updated ? new Date(project.last_updated) : null;
+
       if (creationDate && (!minCreationDate || creationDate < minCreationDate)) {
         minCreationDate = creationDate;
       }
@@ -106,12 +106,9 @@ const Analytics = ({ projects = [], analytics = {} }) => {
       if (creationDate < start) return false;
       
       // Check if the project's last update was on or before the end date
-      // If no last_update_date, fall back to completion_date or creation_date
-      const lastUpdateDate = project.last_update_date 
-        ? new Date(project.last_update_date) 
-        : (project.completion_date 
-            ? new Date(project.completion_date) 
-            : creationDate);
+      const lastUpdateDate = project.last_updated
+        ? new Date(project.last_updated)
+        : creationDate;
       
       return lastUpdateDate <= end;
     });
@@ -242,10 +239,10 @@ const Analytics = ({ projects = [], analytics = {} }) => {
       
       filteredProjects.forEach(project => {
         const creationDate = project.creation_date ? new Date(project.creation_date) : null;
-        const lastUpdateDate = project.last_update_date ? new Date(project.last_update_date) : null;
-        const completionDate = project.completion_date ? new Date(project.completion_date) : null;
-        const duration = (creationDate && completionDate) ? 
-          Math.round((completionDate - creationDate) / (1000 * 60 * 60 * 24)) : 
+        const lastUpdateDate = project.last_updated ? new Date(project.last_updated) : null;
+        const completionDate = project.last_updated ? new Date(project.last_updated) : null;
+        const duration = (creationDate && completionDate) ?
+          Math.round((completionDate - creationDate) / (1000 * 60 * 60 * 24)) :
           '';
           
         projectsData.push([
@@ -593,24 +590,44 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     ],
   };
 
+  // Build month buckets spanning the active filter range (or full data range if no filter)
+  const buildMonthRange = (start, end) => {
+    const buckets = {};
+    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+    const last = new Date(end.getFullYear(), end.getMonth(), 1);
+    while (cursor <= last) {
+      const key = `${cursor.getFullYear()}-${(cursor.getMonth() + 1).toString().padStart(2, '0')}`;
+      buckets[key] = 0;
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+    return buckets;
+  };
+
+  // Determine time-series range: use filter dates if active, else span all project data
+  const getTsRange = () => {
+    if (startDate && endDate) {
+      return { rangeStart: new Date(startDate), rangeEnd: new Date(endDate) };
+    }
+    let minDate = null, maxDate = null;
+    filteredProjects.forEach(p => {
+      const d = p.creation_date ? new Date(p.creation_date) : null;
+      if (d) {
+        if (!minDate || d < minDate) minDate = d;
+        if (!maxDate || d > maxDate) maxDate = d;
+      }
+    });
+    const fallbackStart = new Date(); fallbackStart.setMonth(fallbackStart.getMonth() - 11);
+    return { rangeStart: minDate || fallbackStart, rangeEnd: maxDate || new Date() };
+  };
+  const { rangeStart: tsRangeStart, rangeEnd: tsRangeEnd } = getTsRange();
+
   // Calculate project creation over time
-  const projectsByMonth = {};
-  const now = new Date();
-  const monthsAgo12 = new Date();
-  monthsAgo12.setMonth(now.getMonth() - 12);
-  
-  // Initialize all months with zeros
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now);
-    date.setMonth(now.getMonth() - i);
-    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-    projectsByMonth[monthKey] = 0;
-  }
-  
+  const projectsByMonth = buildMonthRange(tsRangeStart, tsRangeEnd);
+
   // Count projects per month - use filtered projects
   filteredProjects.forEach(project => {
     const creationDate = project.creation_date ? new Date(project.creation_date) : null;
-    if (creationDate && creationDate > monthsAgo12) {
+    if (creationDate) {
       const monthKey = `${creationDate.getFullYear()}-${(creationDate.getMonth() + 1).toString().padStart(2, '0')}`;
       if (projectsByMonth[monthKey] !== undefined) {
         projectsByMonth[monthKey]++;
@@ -641,25 +658,15 @@ const Analytics = ({ projects = [], analytics = {} }) => {
   };
 
   // Calculate time spent per month
-  const timeSpentByMonth = {};
-  
-  // Initialize months for time tracking
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now);
-    date.setMonth(now.getMonth() - i);
-    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-    timeSpentByMonth[monthKey] = 0;
-  }
-  
+  const timeSpentByMonth = buildMonthRange(tsRangeStart, tsRangeEnd);
+
   // Aggregate time spent in each month - use filtered projects
   filteredProjects.forEach(project => {
     if (project.time_spent_minutes && project.creation_date) {
       const creationDate = new Date(project.creation_date);
-      if (creationDate > monthsAgo12) {
-        const monthKey = `${creationDate.getFullYear()}-${(creationDate.getMonth() + 1).toString().padStart(2, '0')}`;
-        if (timeSpentByMonth[monthKey] !== undefined) {
-          timeSpentByMonth[monthKey] += project.time_spent_minutes / 60; // Convert to hours
-        }
+      const monthKey = `${creationDate.getFullYear()}-${(creationDate.getMonth() + 1).toString().padStart(2, '0')}`;
+      if (timeSpentByMonth[monthKey] !== undefined) {
+        timeSpentByMonth[monthKey] += project.time_spent_minutes / 60; // Convert to hours
       }
     }
   });
@@ -862,7 +869,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     if (project.creation_date) {
       const creationDate = new Date(project.creation_date);
       // Use completion date if available, otherwise use current date for ongoing projects
-      const endDate = project.completion_date ? new Date(project.completion_date) : new Date();
+      const endDate = project.last_updated ? new Date(project.last_updated) : new Date();
       
       // Only count positive durations
       if (endDate > creationDate) {
@@ -1203,7 +1210,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
     // Calculate average project duration for this group
     if (project.creation_date) {
       const creationDate = new Date(project.creation_date);
-      const endDate = project.completion_date ? new Date(project.completion_date) : new Date();
+      const endDate = project.last_updated ? new Date(project.last_updated) : new Date();
       const duration = Math.round((endDate - creationDate) / (1000 * 60 * 60 * 24));
       if (duration > 0) {
         groupPerformance[groupName].totalDuration += duration;
@@ -1310,40 +1317,31 @@ const Analytics = ({ projects = [], analytics = {} }) => {
   };
 
   // Calculate projects completed per month (Velocity)
-  const completedByMonth = {};
-  
-  // Initialize all months with zeros
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now);
-    date.setMonth(now.getMonth() - i);
-    const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-    completedByMonth[monthKey] = 0;
-  }
-  
+  const completedByMonth = buildMonthRange(tsRangeStart, tsRangeEnd);
+
   // Count completed projects per month
   filteredProjects.forEach(project => {
     if (project.status === 'Completed' || project.status === 'Finished') {
-      // Use completion_date if available, otherwise fallback to last_update_date
-      const dateStr = project.completion_date || project.last_update_date;
-      
+      const dateStr = project.last_updated;
+
       if (dateStr) {
         const completionDate = new Date(dateStr);
-        if (completionDate > monthsAgo12) {
-          const monthKey = `${completionDate.getFullYear()}-${(completionDate.getMonth() + 1).toString().padStart(2, '0')}`;
-          if (completedByMonth[monthKey] !== undefined) {
-            completedByMonth[monthKey]++;
-          }
+        const monthKey = `${completionDate.getFullYear()}-${(completionDate.getMonth() + 1).toString().padStart(2, '0')}`;
+        if (completedByMonth[monthKey] !== undefined) {
+          completedByMonth[monthKey]++;
         }
       }
     }
   });
 
+  const sortedCompletedMonths = Object.keys(completedByMonth).sort();
+
   const velocityData = {
-    labels: sortedMonths.map(formatMonthLabel),
+    labels: sortedCompletedMonths.map(formatMonthLabel),
     datasets: [
       {
         label: 'Projects Completed',
-        data: sortedMonths.map(month => completedByMonth[month]),
+        data: sortedCompletedMonths.map(month => completedByMonth[month]),
         borderColor: chartColors.pandoraBorders[3], // Turquoise
         backgroundColor: chartColors.pandoraColors[3],
         fill: true,
@@ -1361,7 +1359,7 @@ const Analytics = ({ projects = [], analytics = {} }) => {
           .filter(p => p.time_spent_minutes && p.creation_date)
           .map(p => {
             const creationDate = new Date(p.creation_date);
-            const endDate = p.completion_date ? new Date(p.completion_date) : new Date();
+            const endDate = p.last_updated ? new Date(p.last_updated) : new Date();
             const durationDays = Math.max(1, Math.round((endDate - creationDate) / (1000 * 60 * 60 * 24)));
             const hours = p.time_spent_minutes / 60;
             return {
