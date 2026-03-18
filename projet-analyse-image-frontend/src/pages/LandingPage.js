@@ -323,10 +323,12 @@ function LandingPage({ activeTab, onNavigateToTab }) {
         // Show wizard if in wizard mode
         if (showWizard) {
           return (
-            <ProjectCreationWizard
-              onProjectCreated={handleWizardComplete}
-              onCancel={handleWizardCancel}
-            />
+            <div className="w-full h-full overflow-auto flex flex-col bg-gray-50 dark:bg-night-900">
+              <ProjectCreationWizard
+                onProjectCreated={handleWizardComplete}
+                onCancel={handleWizardCancel}
+              />
+            </div>
           );
         }
         
