@@ -5,7 +5,7 @@
 **A comprehensive bioimage analysis project management tool for research facilities and laboratories**
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![Version](https://img.shields.io/badge/version-2.5.3-blue.svg)](#download)
+[![Version](https://img.shields.io/badge/version-2.5.5-blue.svg)](#download)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightblue.svg)](#installation)
 
 [🚀 Quick Start](#quick-start) • [📦 Download](#download) • [�️ Development](#development-setup) • [📚 Documentation](#documentation) • [🤝 Contributing](#contributing)
@@ -43,7 +43,7 @@ BIOME is a specialized project management application designed for **bioimage an
 
 ### Desktop Application (Recommended)
 
-1. **Download** the latest MSI installer: [BIOME_2.5.3_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.5.3/BIOME_2.5.3_x64_en-US.msi)
+1. **Download** the latest MSI installer: [BIOME_2.5.5_x64_en-US.msi](https://github.com/UniversalBuilder/BIOME/releases/download/v2.5.5/BIOME_2.5.5_x64_en-US.msi)
 2. **Install** by double-clicking the MSI file (administrator rights required)
 3. **Launch** BIOME from your Start Menu
 4. **Explore**: BIOME starts with an empty database — click **Load Demo Data** on the Database page to populate it with realistic sample projects
@@ -71,7 +71,7 @@ npm run start-both
 
 **Verify integrity (optional):**
 ```powershell
-Get-FileHash .\BIOME_2.5.3_x64_en-US.msi -Algorithm SHA256
+Get-FileHash .\BIOME_2.5.5_x64_en-US.msi -Algorithm SHA256
 ```
 Compare against the `.sha256` file published alongside the MSI on the Releases page.
 
@@ -124,6 +124,18 @@ Move the MSI out of your Downloads folder to any other local folder (e.g. `C:\Te
 ---
 
 ## ✨ What's New
+
+### v2.5.5 (2026-03-19)
+
+**Bug Fixes + Reliability Improvements**
+- **Backup management hardened** — rename/lock/unlock backup flows now include stronger validation and safer backend handling.
+- **Locked backups are preserved** — auto-prune now skips backups that are explicitly locked.
+- **Project import/create robustness improved** — better handling of project folder validation and mixed import states.
+- **Tooltip/modal interaction fixed** — tooltip implementation was refactored to avoid modal focus/click interference.
+
+**New Capabilities**
+- Backup rename + lock/unlock controls are available in Database Management.
+- BIOME now writes `biome.json` during project setup and uses it to pre-fill metadata/resource information during import.
 
 ### v2.5.3 (2026-03-06)
 

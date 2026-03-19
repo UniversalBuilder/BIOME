@@ -4,6 +4,20 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ---
 
+## v2.5.5 - March 2026
+
+### Bug Fixes
+- **Backup management made safer** - backup rename, lock, and unlock actions now include stronger validation and safer backend handling to avoid invalid names and accidental collisions.
+- **Locked backups are now protected from auto-cleanup** - backups that you lock are excluded from automatic pruning.
+- **Project import/create flow made more robust** - desktop folder validation now handles "folder not yet created" states safely, and import now behaves better when project metadata is partially available.
+- **Tooltip/modal click issue fixed** - tooltip behavior was refactored to avoid interference with modal input focus and click handling.
+
+### New Features
+- **Backup rename + lock/unlock controls** added in Database Management.
+- **Portable `biome.json` metadata flow** - project creation now writes `biome.json`; project import can detect it, pre-fill metadata, and seed resources.
+
+---
+
 ## v2.5.4 - March 2026
 
 ### Bug Fixes

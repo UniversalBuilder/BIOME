@@ -1,15 +1,18 @@
 {
-  "version": "2.5.4",
+  "version": "2.5.5",
   "description": "BIOME Frontend - Bio Imaging Organization and Management Environment",
-  "releaseDate": "2026-03-18",
+  "releaseDate": "2026-03-19",
   "source": "frontend",
   "changelog": {
-    "version": "2.5.4",
-    "date": "2026-03-18",
+    "version": "2.5.5",
+    "date": "2026-03-19",
     "summary": [
-      "**Project creation wizard scroll restored**: The wizard is now scrollable in constrained desktop window heights, so all form fields and bottom actions are reachable without resizing the app window.",
-      "**Cancel action prominence improved in wizard**: The wizard Cancel button now uses a filled destructive style (red background, white text), matching the confirmation modal visual language.",
-      "**Wizard background continuity on scroll**: The page background now correctly covers the full scrollable area, preventing the bottom visual break when navigating to lower sections."
+      "**Backup lifecycle reliability improved**: Added server-side validation and safer handling for backup rename/lock/unlock operations, reducing invalid filename and collision issues.",
+      "**Protected backups no longer pruned**: Auto-prune now skips backups marked as locked, preventing accidental cleanup of preserved snapshots.",
+      "**Desktop import/create resilience improved**: Project folder validation now handles non-existing target folders gracefully during creation flow, and import paths now better tolerate mixed project states.",
+      "**Tooltip/modal interaction regression resolved**: Replaced the Headless UI Popover-based tooltip behavior that could interfere with modal controls and focus handling.",
+      "**Backup management actions**: New rename, lock, and unlock backup endpoints plus frontend integration in Database Management.",
+      "**Tauri JSON/text file commands**: Added native commands to write JSON text and read text files from the desktop app."
     ]
   }
 }

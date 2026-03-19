@@ -6,6 +6,22 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 
 ## [Unreleased]
 
+## [2.5.5] - 2026-03-19
+### Fixed
+- **Backup lifecycle reliability improved**: Added server-side validation and safer handling for backup rename/lock/unlock operations, reducing invalid filename and collision issues.
+- **Protected backups no longer pruned**: Auto-prune now skips backups marked as locked, preventing accidental cleanup of preserved snapshots.
+- **Desktop import/create resilience improved**: Project folder validation now handles non-existing target folders gracefully during creation flow, and import paths now better tolerate mixed project states.
+- **Tooltip/modal interaction regression resolved**: Replaced the Headless UI Popover-based tooltip behavior that could interfere with modal controls and focus handling.
+
+### Added
+- **Backup management actions**: New rename, lock, and unlock backup endpoints plus frontend integration in Database Management.
+- **Tauri JSON/text file commands**: Added native commands to write JSON text and read text files from the desktop app.
+- **Project metadata portability**: Project setup now writes `biome.json`, and import flow can prefill metadata and seed resources from `biome.json`.
+
+### Changed
+- **Import UX updated**: Import modal now detects `biome.json` and pre-fills available project metadata.
+- **Project resources import path**: Added idempotent resource seeding endpoint for project import workflows.
+
 ## [2.5.4] - 2026-03-18
 ### Fixed
 - **Project creation wizard scroll restored**: The wizard is now scrollable in constrained desktop window heights, so all form fields and bottom actions are reachable without resizing the app window.
