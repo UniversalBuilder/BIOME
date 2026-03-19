@@ -4,7 +4,7 @@ import './ProjectList.css';
 import { Tooltip } from './Tooltip';
 import ImportProjectButton from './ImportProjectButton';
 
-function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewProject, showScroll = true, loading = false }) {
+function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewProject, onProjectListChange, showScroll = true, loading = false }) {
   const [sortField, setSortField] = useState('last_updated');
   const [sortOrder, setSortOrder] = useState('desc');
   const [searchQuery, setSearchQuery] = useState('');
@@ -304,8 +304,9 @@ function ProjectList({ projects, selectedProject, onProjectSelect, onCreateNewPr
           <div className="flex gap-2">
             <Tooltip>
               <Tooltip.Trigger asChild>
-                <ImportProjectButton 
+                <ImportProjectButton
                   onProjectImported={(p) => {
+                    if (onProjectListChange) onProjectListChange();
                     if (onProjectSelect) onProjectSelect(p);
                   }}
                   className="btn btn-secondary hover-soft flex items-center justify-center w-9 h-9 p-0 rounded-xl"

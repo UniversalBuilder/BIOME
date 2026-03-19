@@ -1,7 +1,7 @@
 // Filesystem API Service
 // This service provides filesystem operations that work in both Tauri and web environments
 
-import { createFolderStructure, validateProjectFolder, updateReadme, scanProjectFolder, openInExplorer } from './tauriApi';
+import { createFolderStructure, validateProjectFolder, updateReadme, scanProjectFolder, openInExplorer, writeJsonFile, readTextFile } from './tauriApi';
 import Environment from '../utils/environmentDetection';
 import { formatDateTime, getSavedTimezone } from '../utils/timeUtils';
 
@@ -167,8 +167,69 @@ export const openFolderInExplorer = async (projectPath) => {
   }
 };
 
+/**
+ * Write a biome.json project metadata file to the given project folder (Tauri only).
+ * Failure is intentionally non-fatal — caller should log but not block.
+ *
+ * @param {string} projectPath  - Absolute path to the project root folder
+ * @param {object} projectData  - Fields from the creation wizard
+ * @param {object} [userInfo]   - Optional { name, group } from the current session
+ * @param {Array}  [resources]  - Optional array of resource objects to include
+ */
+export const writeProjectJson = async (projectPath, projectData, userInfo = {}, resources = []) => {
+  if (!Environment.isTauri()) return; // web users: no-op
+
+  try {
+    const metadata = {
+      biome_version: '1.0',
+      created_at: new Date().toISOString(),
+      project: {
+        name: projectData.name || '',
+        description: projectData.description || '',
+        status: projectData.status || 'Active',
+        software: projectData.software || '',
+        start_date: projectData.start_date || null,
+        output_type: projectData.output_type || null,
+      },
+      metadata: {
+        image_types: projectData.image_types || [],
+        sample_type: projectData.sample_type || null,
+        analysis_goal: projectData.analysis_goal || null,
+      },
+      user: {
+        name: userInfo.name || null,
+        group: userInfo.group || null,
+      },
+      resources,
+    };
+
+    const jsonPath = projectPath.replace(/[/\\]+$/, '') + '/biome.json';
+    await writeJsonFile(jsonPath, JSON.stringify(metadata, null, 2));
+    console.log('[filesystemApi] biome.json written to', jsonPath);
+  } catch (err) {
+    console.error('[filesystemApi] Failed to write biome.json (non-fatal):', err);
+  }
+};
+
+/**
+ * Read and parse biome.json from a project folder (Tauri only).
+ * Returns parsed object or null if missing/invalid.
+ */
+export const readProjectJson = async (projectPath) => {
+  if (!Environment.isTauri()) return null;
+
+  try {
+    const jsonPath = projectPath.replace(/[/\\]+$/, '') + '/biome.json';
+    const raw = await readTextFile(jsonPath);
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+};
+
 // Export all filesystem-related functions including direct Tauri functions
 export {
   updateReadme,
-  scanProjectFolder
+  scanProjectFolder,
+  readTextFile,
 };

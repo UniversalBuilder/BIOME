@@ -41,7 +41,7 @@ export const selectDirectory = async () => {
  */
 export const validateProjectFolder = async (projectPath) => {
   console.log('Validating project folder structure...');
-  
+
   try {
     // Use direct Environment check for more reliable detection
     if (!Environment.isTauri()) {
@@ -53,6 +53,14 @@ export const validateProjectFolder = async (projectPath) => {
       folderPath: cleanPath
     });
   } catch (error) {
+    // When the path doesn't exist yet (new project folder), Rust returns a "Directory does not exist"
+    // error. This is expected during Step 2 of the wizard before the folder is actually created.
+    // Return a safe default instead of propagating the error.
+    const msg = (error?.message || String(error)).toLowerCase();
+    if (msg.includes('directory does not exist') || msg.includes('does not exist')) {
+      console.log('Folder does not exist yet (new project) — returning empty validation result.');
+      return { has_valid_structure: false, is_empty: true };
+    }
     console.error('Error validating project folder:', error);
     throw error;
   }
@@ -138,6 +146,40 @@ export const scanProjectFolder = async (projectPath) => {
     });
   } catch (error) {
     console.error('Error scanning project folder:', error);
+    throw error;
+  }
+};
+
+/**
+ * Write text content (e.g. JSON) to a file on the native filesystem.
+ * Creates parent directories as needed.
+ */
+export const writeJsonFile = async (filePath, content) => {
+  try {
+    if (!Environment.isTauri()) {
+      throw new Error('Not running in Tauri environment');
+    }
+    const cleanPath = filePath.replace(/["']/g, '');
+    await invoke('write_json_file', { path: cleanPath, content });
+  } catch (error) {
+    console.error('Error writing JSON file:', error);
+    throw error;
+  }
+};
+
+/**
+ * Read text content from a file on the native filesystem.
+ * Returns the file contents as a string.
+ */
+export const readTextFile = async (filePath) => {
+  try {
+    if (!Environment.isTauri()) {
+      throw new Error('Not running in Tauri environment');
+    }
+    const cleanPath = filePath.replace(/["']/g, '');
+    return await invoke('read_text_file', { path: cleanPath });
+  } catch (error) {
+    console.error('Error reading text file:', error);
     throw error;
   }
 };

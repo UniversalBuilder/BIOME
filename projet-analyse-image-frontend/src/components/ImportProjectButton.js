@@ -7,11 +7,22 @@ const ImportProjectButton = ({ onProjectImported, className, children }) => {
 
   const handleImport = async (projectData) => {
     try {
-      const newProject = await projectService.create(projectData);
+      const { _biomeResources, ...cleanData } = projectData;
+      const newProject = await projectService.create(cleanData);
+
+      // Seed project_resources from biome.json if provided
+      if (_biomeResources && _biomeResources.length > 0) {
+        try {
+          await projectService.importResources(newProject.id, _biomeResources);
+        } catch (resourceErr) {
+          console.warn('Failed to seed resources from biome.json (non-fatal):', resourceErr);
+        }
+      }
+
       if (onProjectImported) {
         onProjectImported(newProject);
       }
-      
+
       // Show success toast
       if (window.toast) {
         window.toast(`Project imported: ${newProject.name}`, { type: 'success' });

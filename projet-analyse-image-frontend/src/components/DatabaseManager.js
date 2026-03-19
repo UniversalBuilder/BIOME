@@ -25,6 +25,11 @@ function DatabaseManager({ onDatabaseChange }) {
     // Demo data loader
     const [showDemoConfirm, setShowDemoConfirm] = useState(false);
     const [demoLoading, setDemoLoading] = useState(false);
+    // Active database path
+    const [dbInfo, setDbInfo] = useState(null);
+    // Backup rename
+    const [renamingFilename, setRenamingFilename] = useState(null); // filename currently being renamed
+    const [renameValue, setRenameValue] = useState('');
 
     const loadBackups = useCallback(async () => {
         setBackupsLoading(true);
@@ -41,6 +46,7 @@ function DatabaseManager({ onDatabaseChange }) {
     useEffect(() => {
         loadBackups();
         setLastBackupDate(getLastBackupDate());
+        databaseService.getDatabaseInfo().then(setDbInfo).catch(() => {});
     }, [loadBackups]);
 
     const handleFileUpload = (event) => {
@@ -152,6 +158,41 @@ function DatabaseManager({ onDatabaseChange }) {
         } finally {
             setLoading(false);
             setRestoringFilename(null);
+        }
+    };
+
+    const handleToggleLock = async (b) => {
+        try {
+            if (b.locked) {
+                await databaseService.unlockBackup(b.filename);
+            } else {
+                await databaseService.lockBackup(b.filename);
+            }
+            await loadBackups();
+        } catch (err) {
+            setBackupMessage({ type: 'error', text: 'Failed to toggle lock: ' + err.message });
+        }
+    };
+
+    const handleRenameStart = (filename) => {
+        setRenamingFilename(filename);
+        setRenameValue(filename.replace(/\.sqlite$/, ''));
+    };
+
+    const handleRenameSubmit = async (oldFilename) => {
+        const newFilename = renameValue.trim().replace(/\.sqlite$/, '') + '.sqlite';
+        if (!newFilename || newFilename === oldFilename) {
+            setRenamingFilename(null);
+            return;
+        }
+        try {
+            await databaseService.renameBackup(oldFilename, newFilename);
+            setBackupMessage({ type: 'success', text: `Renamed to ${newFilename}` });
+            await loadBackups();
+        } catch (err) {
+            setBackupMessage({ type: 'error', text: 'Rename failed: ' + err.message });
+        } finally {
+            setRenamingFilename(null);
         }
     };
 
@@ -365,6 +406,27 @@ function DatabaseManager({ onDatabaseChange }) {
                     
                     {showInfo && (
                         <div className="px-6 pb-6 pt-4">
+                            {dbInfo && (
+                                <div className="mb-5 p-3 bg-gray-50 dark:bg-night-700 rounded-md flex items-start gap-3">
+                                    <span className="mt-0.5 text-bioluminescent-500 shrink-0">💾</span>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-0.5">Active database file</p>
+                                        <p className="font-mono text-xs text-gray-800 dark:text-gray-200 break-all">{dbInfo.path}</p>
+                                        {!dbInfo.exists && (
+                                            <p className="text-xs text-amber-500 mt-0.5">File not found on disk — will be created on next write.</p>
+                                        )}
+                                    </div>
+                                    <button
+                                        title="Copy path"
+                                        onClick={() => navigator.clipboard?.writeText(dbInfo.path)}
+                                        className="shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                                    >
+                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-4 12h6a2 2 0 002-2v-8a2 2 0 00-2-2h-6a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            )}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Hybrid Storage Model</h4>
@@ -449,23 +511,63 @@ function DatabaseManager({ onDatabaseChange }) {
                                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Filename</th>
                                             <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
                                             <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Size</th>
-                                            <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                                            <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200/60 dark:divide-night-700/50">
                                         {backups.map((b) => (
                                             <tr key={b.filename} className="hover:bg-gray-50 dark:hover:bg-night-700 transition-colors">
-                                                <td className="px-4 py-2 font-mono text-xs text-gray-700 dark:text-gray-300">{b.filename}</td>
-                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400">{formatDateTime(b.created_at, timezone)}</td>
-                                                <td className="px-4 py-2 text-right text-gray-500">{Math.round(b.size / 1024)} KB</td>
-                                                <td className="px-4 py-2 text-right">
-                                                    <button
-                                                        onClick={() => handleRestoreClick(b.filename)}
-                                                        disabled={loading}
-                                                        className="px-3 py-1 text-xs font-medium rounded-lg text-white transition-all duration-200 disabled:opacity-50 btn-cancel"
-                                                    >
-                                                        Restore
-                                                    </button>
+                                                <td className="px-4 py-2 font-mono text-xs text-gray-700 dark:text-gray-300">
+                                                    {renamingFilename === b.filename ? (
+                                                        <form
+                                                            onSubmit={(e) => { e.preventDefault(); handleRenameSubmit(b.filename); }}
+                                                            className="flex items-center gap-1"
+                                                        >
+                                                            <input
+                                                                autoFocus
+                                                                value={renameValue}
+                                                                onChange={(e) => setRenameValue(e.target.value)}
+                                                                className="flex-1 px-2 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-night-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                                                            />
+                                                            <span className="text-gray-400 text-xs">.sqlite</span>
+                                                            <button type="submit" className="px-2 py-0.5 text-xs bg-cyan-500 hover:bg-cyan-600 text-white rounded">✓</button>
+                                                            <button type="button" onClick={() => setRenamingFilename(null)} className="px-2 py-0.5 text-xs bg-gray-200 dark:bg-night-600 rounded">✕</button>
+                                                        </form>
+                                                    ) : (
+                                                        <span className="flex items-center gap-1.5">
+                                                            {b.locked && <span title="Locked — protected from auto-prune">🔒</span>}
+                                                            {b.filename}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-2 text-gray-600 dark:text-gray-400 whitespace-nowrap">{formatDateTime(b.created_at, timezone)}</td>
+                                                <td className="px-4 py-2 text-right text-gray-500 whitespace-nowrap">{Math.round(b.size / 1024)} KB</td>
+                                                <td className="px-4 py-2 text-right whitespace-nowrap">
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        <button
+                                                            title={b.locked ? 'Unlock backup' : 'Lock backup (protect from auto-prune)'}
+                                                            onClick={() => handleToggleLock(b)}
+                                                            disabled={loading}
+                                                            className="px-2 py-1 text-xs rounded-lg border border-gray-200 dark:border-night-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-night-600 disabled:opacity-50 transition-colors"
+                                                        >
+                                                            {b.locked ? '🔓' : '🔒'}
+                                                        </button>
+                                                        <button
+                                                            title="Rename backup"
+                                                            onClick={() => handleRenameStart(b.filename)}
+                                                            disabled={loading || renamingFilename !== null}
+                                                            className="px-2 py-1 text-xs rounded-lg border border-gray-200 dark:border-night-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-night-600 disabled:opacity-50 transition-colors"
+                                                        >
+                                                            ✏️
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRestoreClick(b.filename)}
+                                                            disabled={loading}
+                                                            className="px-3 py-1 text-xs font-medium rounded-lg text-white transition-all duration-200 disabled:opacity-50 btn-cancel"
+                                                        >
+                                                            Restore
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -475,7 +577,7 @@ function DatabaseManager({ onDatabaseChange }) {
                         )}
 
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
-                            Up to 5 backups are kept. Older backups are pruned automatically.
+                            Up to 5 unlocked backups are kept. Locked backups (🔒) are never pruned automatically.
                         </p>
                     </div>
                 </div>

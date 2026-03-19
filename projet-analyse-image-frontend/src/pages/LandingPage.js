@@ -342,6 +342,7 @@ function LandingPage({ activeTab, onNavigateToTab }) {
                     selectedProject={selectedProject}
                     onProjectSelect={handleProjectSelect}
                     onCreateNewProject={handleCreateNewProject}
+                    onProjectListChange={handleProjectUpdate}
                     showScroll={true}
                     loading={loading}
                   />

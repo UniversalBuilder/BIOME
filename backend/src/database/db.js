@@ -15,26 +15,30 @@ class DatabaseManager {
     }
     
     determineDatabasePath() {
-        // If explicitly set via environment variable, use that
+        // 1. Explicit override — highest priority (CI, Docker, manual configs)
         if (process.env.DATABASE_PATH) {
+            console.log('[DB] Using DATABASE_PATH env override');
             return process.env.DATABASE_PATH;
         }
 
-        // For production Tauri app, use the app data directory
+        // 2. Production Tauri — TAURI_APP_DATA is set only by the packaged Tauri app
         if (process.env.TAURI_APP_DATA) {
+            console.log('[DB] Using production Tauri app data directory');
             return path.join(process.env.TAURI_APP_DATA, 'biamanger', 'database.sqlite');
         }
-        
-        // For development, use app-specific folder in user's home directory for consistency
+
+        // 3. Non-Tauri production (web hosting). TAURI_APP_DATA is absent here, so we
+        //    require DATABASE_PATH to be set explicitly to avoid accidental path collisions
+        //    with an installed Tauri build on the same machine.
         if (process.env.NODE_ENV === 'production') {
-            const appDataDir = process.platform === 'win32' 
-                ? path.join(os.homedir(), 'AppData', 'Local', 'com.biome.desktop', 'biamanger')
-                : path.join(os.homedir(), '.com.biome.desktop', 'biamanger');
-            
-            return path.join(appDataDir, 'database.sqlite');
+            console.warn(
+                '[DB] NODE_ENV=production but TAURI_APP_DATA is not set. ' +
+                'Falling back to local dev path. Set DATABASE_PATH explicitly for web deployments.'
+            );
         }
-        
-        // Default fallback for development
+
+        // 4. Development default — always relative to this file so D:/DEV/BIOME is isolated
+        console.log('[DB] Using development-local database path');
         return path.join(__dirname, '../../data/database.sqlite');
     }
 

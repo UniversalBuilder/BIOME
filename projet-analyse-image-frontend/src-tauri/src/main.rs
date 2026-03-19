@@ -719,6 +719,27 @@ fn check_dir_exists(path: String) -> bool {
     path_buf.exists() && path_buf.is_dir()
 }
 
+// Command to write arbitrary text (typically JSON) to a file path
+#[tauri::command]
+fn write_json_file(path: String, content: String) -> Result<(), String> {
+    let file_path = PathBuf::from(&path);
+    if let Some(parent) = file_path.parent() {
+        if !parent.exists() {
+            fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create parent directory: {}", e))?;
+        }
+    }
+    fs::write(&file_path, content.as_bytes())
+        .map_err(|e| format!("Failed to write file {}: {}", path, e))
+}
+
+// Command to read text content from a file path
+#[tauri::command]
+fn read_text_file(path: String) -> Result<String, String> {
+    fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read file {}: {}", path, e))
+}
+
 // Command to start the backend server
 #[tauri::command]
 async fn start_backend_server(
@@ -1149,6 +1170,8 @@ fn main() {
             stop_backend_server,
             check_backend_status,
             get_debug_info,
+            write_json_file,
+            read_text_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

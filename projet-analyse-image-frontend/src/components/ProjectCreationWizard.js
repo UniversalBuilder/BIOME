@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './StatusColors.css';
 import { projectService, groupService, userService } from '../services/api';
 import { selectDirectory } from '../services/tauriApi';
-import { createProjectStructure, validateProjectStructure } from '../services/filesystemApi';
+import { createProjectStructure, validateProjectStructure, writeProjectJson } from '../services/filesystemApi';
 import metadataOptionsApi from '../services/metadataOptionsApi';
 import Environment from '../utils/environmentDetection';
 import WizardFormModal from './WizardFormModal';
@@ -457,7 +457,17 @@ const ProjectCreationWizard = ({ onProjectCreated, onCancel }) => {
         projectData.name,
         projectData.description
       );
-      
+
+      // Write biome.json to the project folder (Tauri only; non-fatal on failure)
+      const selectedUser = users.find(u => String(u.id) === String(projectData.user_id));
+      const selectedGroup = groups.find(g => String(g.id) === String(selectedUser?.group_id));
+      await writeProjectJson(
+        projectData.project_path,
+        projectData,
+        { name: selectedUser?.name || null, group: selectedGroup?.name || null },
+        [] // resources start empty; synced later as files are added
+      );
+
       // Update project to mark as completed
       const completedProject = await projectService.update(draftProject.id, buildPayload({
         ...projectData,

@@ -188,9 +188,9 @@ dbManager.connect().then(() => {
             fs.copyFileSync(dbPath, destPath);
             logger.info(`Backup created: ${destName}`);
 
-            // Purge old backups — keep only the MAX_BACKUPS most recent
+            // Purge old backups — keep only the MAX_BACKUPS most recent (locked backups are never pruned)
             const backupFiles = fs.readdirSync(BACKUPS_DIR)
-                .filter(f => f.endsWith('.sqlite'))
+                .filter(f => f.endsWith('.sqlite') && !fs.existsSync(path.join(BACKUPS_DIR, f + '.lock')))
                 .map(f => ({ name: f, mtime: fs.statSync(path.join(BACKUPS_DIR, f)).mtime }))
                 .sort((a, b) => b.mtime - a.mtime);
 
@@ -206,19 +206,21 @@ dbManager.connect().then(() => {
         }
     });
 
-    // List available backups
+    // List available backups (includes locked flag)
     app.get('/api/database/backups', (req, res) => {
         try {
             ensureBackupsDir();
             const files = fs.readdirSync(BACKUPS_DIR)
-                .filter(f => f.endsWith('.sqlite'))
+                .filter(f => f.endsWith('.sqlite') && !f.endsWith('.lock.sqlite'))
                 .map(f => {
-                    const stat = fs.statSync(path.join(BACKUPS_DIR, f));
+                    const fullPath = path.join(BACKUPS_DIR, f);
+                    const stat = fs.statSync(fullPath);
                     const tsMatch = f.match(/^database-(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})\.sqlite$/);
                     const created_at = tsMatch
                         ? new Date(`${tsMatch[1]}T${tsMatch[2]}:${tsMatch[3]}:${tsMatch[4]}`).toISOString()
                         : stat.mtime.toISOString();
-                    return { filename: f, size: stat.size, created_at };
+                    const locked = fs.existsSync(fullPath + '.lock');
+                    return { filename: f, size: stat.size, created_at, locked };
                 })
                 .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             res.json(files);
@@ -258,6 +260,73 @@ dbManager.connect().then(() => {
         }
     });
 
+    // --- Backup rename ---
+    // Renames a backup file. Both names must be safe (alphanumeric, dashes, underscores, .sqlite).
+    app.post('/api/database/backups/rename', (req, res) => {
+        try {
+            const { from: fromName, to: toName } = req.body || {};
+            const safeName = /^[a-zA-Z0-9_\-\.]+\.sqlite$/;
+            if (!fromName || !toName || !safeName.test(fromName) || !safeName.test(toName)) {
+                return res.status(400).json({ error: 'Invalid backup filename(s). Only alphanumeric, dashes, underscores and .sqlite suffix allowed.' });
+            }
+            ensureBackupsDir();
+            const fromPath = path.join(BACKUPS_DIR, fromName);
+            const toPath   = path.join(BACKUPS_DIR, toName);
+            if (!fs.existsSync(fromPath)) return res.status(404).json({ error: 'Source backup not found' });
+            if (fs.existsSync(toPath))   return res.status(409).json({ error: 'A backup with that name already exists' });
+
+            fs.renameSync(fromPath, toPath);
+
+            // Move accompanying .lock file if it exists
+            const fromLock = fromPath + '.lock';
+            const toLock   = toPath   + '.lock';
+            if (fs.existsSync(fromLock)) fs.renameSync(fromLock, toLock);
+
+            logger.info(`Backup renamed: ${fromName} → ${toName}`);
+            res.json({ success: true, filename: toName });
+        } catch (error) {
+            logger.error('Error renaming backup:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    // --- Backup lock / unlock ---
+    // Lock: create a companion <filename>.lock file. Locked backups are excluded from auto-prune.
+    app.post('/api/database/backups/lock', (req, res) => {
+        try {
+            const { filename } = req.body || {};
+            if (!filename || !/^[a-zA-Z0-9_\-\.]+\.sqlite$/.test(filename)) {
+                return res.status(400).json({ error: 'Invalid backup filename' });
+            }
+            ensureBackupsDir();
+            const backupPath = path.join(BACKUPS_DIR, filename);
+            if (!fs.existsSync(backupPath)) return res.status(404).json({ error: 'Backup not found' });
+            fs.writeFileSync(backupPath + '.lock', '');
+            logger.info(`Backup locked: ${filename}`);
+            res.json({ success: true, locked: true });
+        } catch (error) {
+            logger.error('Error locking backup:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
+    app.post('/api/database/backups/unlock', (req, res) => {
+        try {
+            const { filename } = req.body || {};
+            if (!filename || !/^[a-zA-Z0-9_\-\.]+\.sqlite$/.test(filename)) {
+                return res.status(400).json({ error: 'Invalid backup filename' });
+            }
+            ensureBackupsDir();
+            const lockPath = path.join(BACKUPS_DIR, filename + '.lock');
+            if (fs.existsSync(lockPath)) fs.unlinkSync(lockPath);
+            logger.info(`Backup unlocked: ${filename}`);
+            res.json({ success: true, locked: false });
+        } catch (error) {
+            logger.error('Error unlocking backup:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+
     // Load demo data — auto-backup if data exists, then seed fresh demo data
     app.post('/api/database/load-demo', async (req, res) => {
         try {
@@ -278,9 +347,9 @@ dbManager.connect().then(() => {
                     fs.copyFileSync(dbPath, path.join(BACKUPS_DIR, backupFilename));
                     logger.info(`Pre-demo safety backup created: ${backupFilename}`);
 
-                    // Prune old backups, keep MAX_BACKUPS most recent
+                    // Prune old backups, keep MAX_BACKUPS most recent (locked backups are skipped)
                     const backupFiles = fs.readdirSync(BACKUPS_DIR)
-                        .filter(f => f.endsWith('.sqlite'))
+                        .filter(f => f.endsWith('.sqlite') && !fs.existsSync(path.join(BACKUPS_DIR, f + '.lock')))
                         .map(f => ({ name: f, mtime: fs.statSync(path.join(BACKUPS_DIR, f)).mtime }))
                         .sort((a, b) => b.mtime - a.mtime);
                     backupFiles.slice(MAX_BACKUPS).forEach(f => {

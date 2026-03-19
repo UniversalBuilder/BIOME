@@ -1,14 +1,21 @@
-import React, { useState, useEffect, Children } from 'react';
-import { Popover } from '@headlessui/react';
+import React, { useState, useEffect, useRef, Children } from 'react';
 
-const HOVER_DELAY = 500; // 500ms delay before showing tooltip
+// Tooltip built with plain state — no Headless UI Popover.
+//
+// Using Headless UI's Popover here caused a critical regression: Popover.Button
+// installs a document-level mousedown listener when "open" to detect outside
+// clicks. Because the Modal renders via a React portal at document.body, every
+// click inside the modal looked like an "outside click" to Headless UI, which
+// intercepted the mousedown and returned focus to the trigger button — making
+// all modal inputs, selects and buttons unclickable.
+
+const HOVER_DELAY = 500;
 
 export function Tooltip({ children }) {
   const [isVisible, setIsVisible] = useState(false);
-  const [timeoutId, setTimeoutId] = useState(null);
+  const timeoutRef = useRef(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
-  // Find the trigger and panel content from children
   const [triggerElement, panelContent] = Children.toArray(children).reduce(
     ([trigger, panel], child) => {
       if (child.type === TooltipTrigger) return [child, panel];
@@ -19,63 +26,41 @@ export function Tooltip({ children }) {
   );
 
   const handleMouseEnter = (e) => {
-    const targetRect = e.currentTarget.getBoundingClientRect();
-    setPosition({
-      top: targetRect.height + 5,
-      left: targetRect.width / 2
-    });
-    
-    const id = setTimeout(() => {
-      setIsVisible(true);
-    }, HOVER_DELAY);
-    setTimeoutId(id);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPosition({ top: rect.height + 5, left: rect.width / 2 });
+    timeoutRef.current = setTimeout(() => setIsVisible(true), HOVER_DELAY);
   };
 
   const handleMouseLeave = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      setTimeoutId(null);
-    }
+    clearTimeout(timeoutRef.current);
     setIsVisible(false);
   };
 
-  useEffect(() => {
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [timeoutId]);
+  useEffect(() => () => clearTimeout(timeoutRef.current), []);
 
   return (
-    <Popover className="relative">
-      {() => (
-        <div 
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-        >
-          <Popover.Button as="div" className="outline-none">
-            {triggerElement?.props.children}
-          </Popover.Button>
+    <div
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {triggerElement?.props.children}
 
-          {isVisible && panelContent && (
-            <Popover.Panel 
-              static 
-              className="absolute z-50"
-              style={{
-                top: `${position.top}px`,
-                left: `${position.left}px`,
-                transform: 'translateX(-50%)'
-              }}
-            >
-              <div className="bg-slate-800 text-white text-sm px-2 py-1 rounded shadow-lg whitespace-nowrap animate-fade-in">
-                {panelContent.props.children}
-              </div>
-            </Popover.Panel>
-          )}
+      {isVisible && panelContent && (
+        <div
+          className="absolute z-50 pointer-events-none"
+          style={{
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <div className="bg-slate-800 text-white text-sm px-2 py-1 rounded shadow-lg whitespace-nowrap animate-fade-in">
+            {panelContent.props.children}
+          </div>
         </div>
       )}
-    </Popover>
+    </div>
   );
 }
 

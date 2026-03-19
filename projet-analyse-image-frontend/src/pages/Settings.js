@@ -5,6 +5,7 @@ import { useTimezone } from '../contexts/TimezoneContext';
 import { formatDateTime } from '../utils/timeUtils';
 import Environment from '../utils/environmentDetection';
 import MetadataOptionsManager from '../components/MetadataOptionsManager';
+import { databaseService } from '../services/api';
 
 function Settings() {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -14,6 +15,7 @@ function Settings() {
   const [autoBackup, setAutoBackup] = useState(false);
   const [backupFrequency, setBackupFrequency] = useState('weekly');
   const [nowPreview, setNowPreview] = useState('');
+  const [dbInfo, setDbInfo] = useState(null);
 
   // Update the live clock preview every second
   useEffect(() => {
@@ -45,6 +47,9 @@ function Settings() {
     if (savedBackupFrequency) {
       setBackupFrequency(savedBackupFrequency);
     }
+
+    // Load active DB path from backend
+    databaseService.getDatabaseInfo().then(setDbInfo).catch(() => {});
   }, []);
 
   const handleDarkModeChange = () => {
@@ -83,13 +88,22 @@ function Settings() {
 
   const openDataFolder = async () => {
     if (!isTauri) return;
-    
+
     try {
-      const { appDataDir } = await import('@tauri-apps/api/path');
       const { invoke } = await import('@tauri-apps/api/core');
-      const dataDir = await appDataDir();
-      // Use existing Tauri command to open folder in explorer
-      await invoke('open_in_explorer', { path: dataDir });
+      // Use the active database path from the backend so we always open the
+      // correct folder (dev-local or production), not the Tauri appDataDir
+      // which may point to an old/different installation.
+      let folderPath = dbInfo?.path;
+      if (folderPath) {
+        // Strip the filename to get the parent directory
+        folderPath = folderPath.replace(/[\\/][^\\/]+$/, '');
+      } else {
+        // Fallback: open appDataDir if db info not yet loaded
+        const { appDataDir } = await import('@tauri-apps/api/path');
+        folderPath = await appDataDir();
+      }
+      await invoke('open_in_explorer', { path: folderPath });
     } catch (error) {
       console.error('Failed to open data folder:', error);
     }
@@ -316,7 +330,14 @@ function Settings() {
               </button>
               
               <div className="text-sm text-gray-600 dark:text-gray-300 p-3 bg-gray-50 dark:bg-night-700 rounded-lg">
-                <p className="mb-2">📁 <strong>Backup Location:</strong> Backups are saved to the <code className="px-1 py-0.5 bg-gray-200 dark:bg-night-600 rounded text-xs">backups/</code> folder inside your app data directory.</p>
+                <p className="mb-1">📁 <strong>Backup Location:</strong></p>
+                {dbInfo?.path ? (
+                  <code className="block px-2 py-1 mb-2 bg-gray-200 dark:bg-night-600 rounded text-xs break-all">
+                    {dbInfo.path.replace(/[\\/][^\\/]+$/, '')}{dbInfo.path.includes('\\') ? '\\' : '/'}backups
+                  </code>
+                ) : (
+                  <code className="px-1 py-0.5 mb-2 inline-block bg-gray-200 dark:bg-night-600 rounded text-xs">backups/</code>
+                )}
                 <p className="text-xs text-gray-500 dark:text-gray-400">To restore from backup, go to Database Management and import the backup file. Make sure to also restore any project folders if doing a full recovery.</p>
               </div>
             </div>

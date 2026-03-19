@@ -132,6 +132,39 @@ export const databaseService = {
         return response.json();
     },
 
+    renameBackup: async (from, to) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/database/backups/rename`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from, to })
+        });
+        await handleResponse(response, 'Failed to rename backup');
+        return response.json();
+    },
+
+    lockBackup: async (filename) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/database/backups/lock`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename })
+        });
+        await handleResponse(response, 'Failed to lock backup');
+        return response.json();
+    },
+
+    unlockBackup: async (filename) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/database/backups/unlock`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename })
+        });
+        await handleResponse(response, 'Failed to unlock backup');
+        return response.json();
+    },
+
     restoreBackup: async (filename) => {
         const apiUrl = getApiUrl();
         const response = await fetchWithRetry(`${apiUrl}/database/restore/${encodeURIComponent(filename)}`, {
@@ -422,6 +455,18 @@ export const projectService = {
             method: 'POST'
         });
         await handleResponse(response, 'Failed to update README resources');
+        return response.json();
+    },
+
+    // Seed project_resources from a biome.json resources array (import flow)
+    importResources: async (projectId, resources) => {
+        const apiUrl = getApiUrl();
+        const response = await fetchWithRetry(`${apiUrl}/projects/${projectId}/import-resources`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ resources })
+        });
+        await handleResponse(response, 'Failed to import resources');
         return response.json();
     },
 

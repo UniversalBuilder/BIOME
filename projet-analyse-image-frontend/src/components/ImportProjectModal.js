@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { selectDirectory } from '../services/tauriApi';
 import { groupService } from '../services/api';
+import { readProjectJson } from '../services/filesystemApi';
 import Environment from '../utils/environmentDetection';
 
 const ImportProjectModal = ({ isOpen, onClose, onImport }) => {
@@ -12,8 +13,11 @@ const ImportProjectModal = ({ isOpen, onClose, onImport }) => {
   const [userId, setUserId] = useState('');
   const [groups, setGroups] = useState([]);
   const [users, setUsers] = useState([]);
+  const [software, setSoftware] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [biomeJsonFound, setBiomeJsonFound] = useState(false);
+  const [biomeResources, setBiomeResources] = useState([]);
 
   const isTauri = Environment.isTauri();
 
@@ -23,9 +27,12 @@ const ImportProjectModal = ({ isOpen, onClose, onImport }) => {
       setPath('');
       setName('');
       setDescription('');
+      setSoftware('');
       setGroupId('');
       setUserId('');
       setError(null);
+      setBiomeJsonFound(false);
+      setBiomeResources([]);
       
       // Load groups
       groupService.getAll()
@@ -44,14 +51,27 @@ const ImportProjectModal = ({ isOpen, onClose, onImport }) => {
     }
   }, [groupId]);
 
+  const applyBiomeJson = (selected, meta) => {
+    setBiomeJsonFound(true);
+    setBiomeResources(meta.resources || []);
+    if (meta.project?.name) setName(meta.project.name);
+    if (meta.project?.description) setDescription(meta.project.description);
+    if (meta.project?.software) setSoftware(meta.project.software);
+  };
+
   const handleBrowse = async () => {
     try {
       const selected = await selectDirectory();
       if (selected) {
         setPath(selected);
-        // Infer project name from folder name
+        // Infer project name from folder name as default
         const folderName = selected.split(/[/\\]/).pop();
         setName(folderName);
+        setBiomeJsonFound(false);
+        setBiomeResources([]);
+        // Try to read biome.json and pre-fill metadata
+        const meta = await readProjectJson(selected);
+        if (meta) applyBiomeJson(selected, meta);
       }
     } catch (err) {
       console.error('Failed to select directory:', err);
@@ -64,6 +84,8 @@ const ImportProjectModal = ({ isOpen, onClose, onImport }) => {
     setPath(value);
     const folderName = value.split(/[/\\]/).pop();
     if (folderName) setName(folderName);
+    setBiomeJsonFound(false);
+    setBiomeResources([]);
   };
 
   const handleSubmit = async (e) => {
@@ -78,11 +100,13 @@ const ImportProjectModal = ({ isOpen, onClose, onImport }) => {
       await onImport({
         name,
         description,
+        software: software || null,
         project_path: path,
         group_id: groupId,
         user_id: userId,
-        folder_created: true, // Assume folder exists since we imported it
-        status: 'Active' // Default status
+        folder_created: true,
+        status: 'Active',
+        _biomeResources: biomeResources, // passed through for resource seeding
       });
       onClose();
     } catch (err) {
@@ -129,9 +153,15 @@ const ImportProjectModal = ({ isOpen, onClose, onImport }) => {
               </button>
             )}
           </div>
-          <p className="mt-1 text-xs text-gray-500">
-            Select the root folder of the existing project.
-          </p>
+          {biomeJsonFound ? (
+            <p className="mt-1 text-xs text-green-600 dark:text-green-400">
+              biome.json detected — metadata pre-filled from project file.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs text-gray-500">
+              Select the root folder of the existing project.
+            </p>
+          )}
         </div>
 
         <div>
