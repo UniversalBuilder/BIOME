@@ -1,45 +1,150 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
 const { initializeDemoDatabase } = require('./demo-data');
 
 class DatabaseManager {
     constructor() {
-        // Use Tauri's app data directory if available, otherwise fall back to relative path
-        this.dbPath = this.determineDatabasePath();
+        this.runtimeMode = this.determineRuntimeMode();
+        const pathInfo = this.determineDatabasePath();
+        this.dbPath = pathInfo.targetPath;
         this.dbDir = path.dirname(this.dbPath);
+        this.legacyMigration = this.migrateLegacyDatabaseIfNeeded(pathInfo.legacyCandidates, this.dbPath);
         this.db = null;
         
-        console.log(`Database path set to: ${this.dbPath}`);
+        console.log(`[DB] Runtime mode: ${this.runtimeMode}`);
+        console.log(`[DB] Database path set to: ${this.dbPath}`);
+        if (this.legacyMigration.migrated) {
+            console.log(`[DB] Legacy database migrated: ${this.legacyMigration.from} -> ${this.legacyMigration.to}`);
+        }
+    }
+
+    determineRuntimeMode() {
+        const envMode = (process.env.BIOME_BUILD_TYPE || '').toLowerCase();
+        if (['portable', 'installed', 'dev', 'web'].includes(envMode)) {
+            return envMode;
+        }
+
+        if (process.env.DATABASE_PATH) {
+            return 'web';
+        }
+
+        if (process.env.NODE_ENV !== 'production') {
+            return 'dev';
+        }
+
+        if (process.env.TAURI_APP_DATA) {
+            return 'installed';
+        }
+
+        return 'web';
+    }
+
+    determinePortableBaseDir() {
+        if (process.env.BIOME_PORTABLE_DIR) {
+            return process.env.BIOME_PORTABLE_DIR;
+        }
+        return path.resolve(process.cwd(), '..');
+    }
+
+    migrateLegacyDatabaseIfNeeded(legacyCandidates, targetPath) {
+        const result = {
+            attempted: false,
+            migrated: false,
+            from: null,
+            to: targetPath,
+            error: null,
+        };
+
+        if (!Array.isArray(legacyCandidates) || legacyCandidates.length === 0) {
+            return result;
+        }
+
+        if (fs.existsSync(targetPath)) {
+            return result;
+        }
+
+        const uniqueCandidates = [...new Set(legacyCandidates.filter(Boolean))]
+            .filter(candidate => path.resolve(candidate) !== path.resolve(targetPath));
+
+        for (const legacyPath of uniqueCandidates) {
+            if (!fs.existsSync(legacyPath)) {
+                continue;
+            }
+
+            result.attempted = true;
+            result.from = legacyPath;
+
+            try {
+                fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+
+                try {
+                    fs.renameSync(legacyPath, targetPath);
+                } catch (renameErr) {
+                    fs.copyFileSync(legacyPath, targetPath);
+                    fs.unlinkSync(legacyPath);
+                }
+
+                result.migrated = true;
+                return result;
+            } catch (err) {
+                result.error = err.message || String(err);
+                console.warn(`[DB] Legacy migration failed from ${legacyPath} to ${targetPath}: ${result.error}`);
+            }
+        }
+
+        return result;
     }
     
     determineDatabasePath() {
         // 1. Explicit override — highest priority (CI, Docker, manual configs)
         if (process.env.DATABASE_PATH) {
             console.log('[DB] Using DATABASE_PATH env override');
-            return process.env.DATABASE_PATH;
+            return {
+                targetPath: process.env.DATABASE_PATH,
+                legacyCandidates: [],
+            };
         }
 
-        // 2. Production Tauri — TAURI_APP_DATA is set only by the packaged Tauri app
-        if (process.env.TAURI_APP_DATA) {
-            console.log('[DB] Using production Tauri app data directory');
-            return path.join(process.env.TAURI_APP_DATA, 'biamanger', 'database.sqlite');
+        if (this.runtimeMode === 'portable') {
+            const portableBaseDir = this.determinePortableBaseDir();
+            const targetPath = path.join(portableBaseDir, 'data', 'database.sqlite');
+            console.log('[DB] Using portable database path');
+            return {
+                targetPath,
+                legacyCandidates: [
+                    path.join(portableBaseDir, 'biamanger', 'database.sqlite'),
+                    process.env.TAURI_APP_DATA
+                        ? path.join(process.env.TAURI_APP_DATA, 'biamanger', 'database.sqlite')
+                        : null,
+                ],
+            };
         }
 
-        // 3. Non-Tauri production (web hosting). TAURI_APP_DATA is absent here, so we
-        //    require DATABASE_PATH to be set explicitly to avoid accidental path collisions
-        //    with an installed Tauri build on the same machine.
-        if (process.env.NODE_ENV === 'production') {
-            console.warn(
-                '[DB] NODE_ENV=production but TAURI_APP_DATA is not set. ' +
-                'Falling back to local dev path. Set DATABASE_PATH explicitly for web deployments.'
-            );
+        if (this.runtimeMode === 'installed' && process.env.TAURI_APP_DATA) {
+            console.log('[DB] Using installed desktop app data directory');
+            return {
+                targetPath: path.join(process.env.TAURI_APP_DATA, 'biome', 'database.sqlite'),
+                legacyCandidates: [
+                    path.join(process.env.TAURI_APP_DATA, 'biamanger', 'database.sqlite'),
+                ],
+            };
         }
 
-        // 4. Development default — always relative to this file so D:/DEV/BIOME is isolated
+        if (this.runtimeMode === 'web') {
+            console.log('[DB] Using web/server-local database path');
+            return {
+                targetPath: path.join(__dirname, '../../data/database.sqlite'),
+                legacyCandidates: [],
+            };
+        }
+
+        // Development default — always relative to this file so D:/DEV/BIOME is isolated
         console.log('[DB] Using development-local database path');
-        return path.join(__dirname, '../../data/database.sqlite');
+        return {
+            targetPath: path.join(__dirname, '../../data/database.sqlite'),
+            legacyCandidates: [],
+        };
     }
 
     connect() {
@@ -276,6 +381,14 @@ class DatabaseManager {
 
     getDatabasePath() {
         return this.dbPath;
+    }
+
+    getRuntimeMode() {
+        return this.runtimeMode;
+    }
+
+    getLegacyMigrationInfo() {
+        return this.legacyMigration;
     }
 
     async initializeSampleData() {

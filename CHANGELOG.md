@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) (adapted) and uses semantic, human-readable sections.
 
 ## [Unreleased]
+### Fixed
+- **Database path isolation by runtime mode**: Desktop installed builds now use an installed-data path, portable builds use an executable-local data folder, and development keeps a workspace-local database to prevent cross-mode data collisions.
+- **Legacy path typo migration (`biamanger` -> `biome`)**: Added one-time startup migration logic for legacy typo-based database paths into the corrected `biome` folder path.
+- **Database diagnostics improved**: `/api/database/info` now returns runtime mode and migration details, and startup logs include the resolved mode/path to make active-database verification easier.
 
 ## [2.5.5] - 2026-03-19
 ### Fixed

@@ -66,8 +66,22 @@ npm run start-both
 
 | Type | Location |
 |------|----------|
+| Portable ZIP (Recommended) | [Latest Release](https://github.com/UniversalBuilder/BIOME/releases/latest) |
 | MSI Installer | [Latest Release](https://github.com/UniversalBuilder/BIOME/releases/latest) |
+| OneDrive Shared Folder (Fallback) | [BIOME OneDrive Folder](https://unils-my.sharepoint.com/:f:/g/personal/yannick_krempp_unil_ch/IgDUCXRYHf1NRYRaDI-5me8LAS0OfdsWuMbsqA0oHSC2KR8?e=5DMhmJ) |
 | Source Code | `git clone https://github.com/UniversalBuilder/BIOME.git` |
+
+**Recommended for Windows 11:** Use the portable ZIP first until BIOME is code-signed. Keep MSI as a secondary option for older or less restrictive Windows configurations.
+
+### ⚠️ Windows 11 Installation — Known Issue (Smart App Control)
+
+BIOME is currently unsigned. Recent versions of Windows 11 may block the MSI installer with no option to bypass. If this happens, use one of the alternatives below.
+
+- **Preferred:** Download and use the portable ZIP artifact from the GitHub release, extract it to a local folder, then run `BIOME.exe`.
+- **Fallback:** Use the OneDrive shared folder above.
+- **Most reliable workaround:** Use OneDrive or Dropbox desktop sync client, then install/run from the synced local folder. This method is currently the most reliable way to avoid internet-zone tagging issues.
+
+Note: Files downloaded directly in a browser may still receive Zone Identifier (`ZoneId=3`) metadata and can remain blocked by Smart App Control.
 
 **Verify integrity (optional):**
 ```powershell
@@ -87,7 +101,7 @@ Compare against the `.sha256` file published alongside the MSI on the Releases p
 - **Memory**: 4 GB RAM minimum, 8 GB recommended
 - **Storage**: 500 MB free disk space
 
-### Desktop Installation Steps
+### Desktop Installation Steps (MSI)
 
 1. Right-click the MSI file → "Run as administrator"
 2. Follow the installation wizard (accept license, choose directory, etc.)

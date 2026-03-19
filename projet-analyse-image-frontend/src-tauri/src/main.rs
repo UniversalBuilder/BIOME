@@ -747,6 +747,10 @@ async fn start_backend_server(
     backend_path: String,
     node_process: State<'_, NodeProcess>,
 ) -> Result<u16, String> {
+    let tauri_app_data = std::env::var("TAURI_APP_DATA").unwrap_or_else(|_| backend_path.clone());
+    let runtime_mode = std::env::var("BIOME_BUILD_TYPE").unwrap_or_else(|_| "dev".to_string());
+    let portable_dir = std::env::var("BIOME_PORTABLE_DIR").unwrap_or_default();
+
     #[cfg(debug_assertions)]
     let node_path = if cfg!(target_os = "windows") {
         "node.exe"
@@ -780,7 +784,9 @@ async fn start_backend_server(
         .current_dir(&backend_path) // Set working directory to backend path
         .arg(server_js_path)
         .env("PORT", port.to_string())
-        .env("TAURI_APP_DATA", &backend_path)
+        .env("TAURI_APP_DATA", &tauri_app_data)
+        .env("BIOME_BUILD_TYPE", &runtime_mode)
+        .env("BIOME_PORTABLE_DIR", &portable_dir)
         .creation_flags(0x08000000) // CREATE_NO_WINDOW on Windows
         .spawn();
 
@@ -789,7 +795,9 @@ async fn start_backend_server(
         .current_dir(&backend_path) // Set working directory to backend path
         .arg(server_js_path)
         .env("PORT", port.to_string())
-        .env("TAURI_APP_DATA", &backend_path)
+        .env("TAURI_APP_DATA", &tauri_app_data)
+        .env("BIOME_BUILD_TYPE", &runtime_mode)
+        .env("BIOME_PORTABLE_DIR", &portable_dir)
         .spawn();
 
     match child {
@@ -929,11 +937,30 @@ fn main() {
             #[cfg(not(debug_assertions))]
             debug_println!("App data directory: {}", app_dir.display());
 
+            #[cfg(not(debug_assertions))]
+            let app_exe_dir = std::env::current_exe()
+                .unwrap_or_else(|_| app_dir.join("BIOME.exe"))
+                .parent()
+                .unwrap_or(&app_dir)
+                .to_path_buf();
+
+            #[cfg(not(debug_assertions))]
+            let runtime_mode = if app_exe_dir.join("BIOME_PORTABLE").exists() {
+                "portable"
+            } else {
+                "installed"
+            };
+
+            #[cfg(not(debug_assertions))]
+            debug_println!("Runtime mode detected: {}", runtime_mode);
+
             // Set environment variables for the backend (production only)
             #[cfg(not(debug_assertions))]
             {
                 std::env::set_var("TAURI_APP_DATA", app_dir.to_string_lossy().to_string());
                 std::env::set_var("NODE_ENV", "production");
+                std::env::set_var("BIOME_BUILD_TYPE", runtime_mode);
+                std::env::set_var("BIOME_PORTABLE_DIR", app_exe_dir.to_string_lossy().to_string());
             }
 
             // Get the NodeProcess state (production only)
@@ -1042,6 +1069,8 @@ fn main() {
                 .env("PORT", "3001")
                 .env("NODE_ENV", "production")
                 .env("TAURI_APP_DATA", app_dir.to_string_lossy().to_string())
+                .env("BIOME_BUILD_TYPE", runtime_mode)
+                .env("BIOME_PORTABLE_DIR", app_exe_dir.to_string_lossy().to_string())
                 .env("DEBUG", "biome:*")
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
@@ -1055,6 +1084,8 @@ fn main() {
                 .env("PORT", "3001")
                 .env("NODE_ENV", "production")
                 .env("TAURI_APP_DATA", app_dir.to_string_lossy().to_string())
+                .env("BIOME_BUILD_TYPE", runtime_mode)
+                .env("BIOME_PORTABLE_DIR", app_exe_dir.to_string_lossy().to_string())
                 .env("DEBUG", "biome:*")
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())

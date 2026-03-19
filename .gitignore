@@ -185,6 +185,10 @@ screenshots/
 bundle/
 # BIOME-Distribution/ - Keep this for ready-to-install MSI files
 
+# Distribution archives (large artifacts published via releases, not git)
+BIOME-Distribution/*.zip
+BIOME-Distribution/*.sha256
+
 # Cache directories
 .cache/
 .temp/

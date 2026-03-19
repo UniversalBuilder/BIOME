@@ -88,6 +88,7 @@ console.log('Initializing database...');
 dbManager.connect().then(() => {
     console.log('Database connected successfully');
     logger.info(`Database path: ${dbManager.getDatabasePath()}`);
+    logger.info(`Database runtime mode: ${dbManager.getRuntimeMode()}`);
 
     // Only set up routes after successful database connection
     app.use('/api/projects', projectRoutes);
@@ -102,9 +103,12 @@ dbManager.connect().then(() => {
     app.get('/api/database/info', (req, res) => {
         try {
             const dbPath = dbManager.getDatabasePath();
+            const legacyMigration = dbManager.getLegacyMigrationInfo();
             res.json({ 
                 path: dbPath,
-                exists: fs.existsSync(dbPath)
+                exists: fs.existsSync(dbPath),
+                runtimeMode: dbManager.getRuntimeMode(),
+                legacyMigration,
             });
         } catch (error) {
             logger.error('Error getting database info:', error);

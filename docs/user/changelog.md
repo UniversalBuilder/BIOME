@@ -4,6 +4,15 @@ This page summarises what changed in each release of BIOME. For the complete tec
 
 ---
 
+## Upcoming
+
+### Reliability Improvements
+- **Database separation by app mode** - Development, installed desktop, and portable desktop builds now use separate database locations so they no longer overwrite each other.
+- **Legacy database path typo handled automatically** - older desktop databases stored under the legacy `biamanger` folder are now detected and migrated to the corrected `biome` location at startup.
+- **Clearer active-database diagnostics** - database info now reports the active runtime mode and migration status to make troubleshooting easier.
+
+---
+
 ## v2.5.5 - March 2026
 
 ### Bug Fixes
