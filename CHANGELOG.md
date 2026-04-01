@@ -10,6 +10,11 @@ The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.
 - **Legacy path typo migration (`biamanger` -> `biome`)**: Added one-time startup migration logic for legacy typo-based database paths into the corrected `biome` folder path.
 - **Database diagnostics improved**: `/api/database/info` now returns runtime mode and migration details, and startup logs include the resolved mode/path to make active-database verification easier.
 
+## [2.5.6] - 2026-04-01
+### Fixed
+- **Desktop Backup Reliability:** Packaged desktop versions (MSI and Portable) now correctly bundle the new lock, unlock, and ename backup endpoints that were missing in v2.5.5 desktop distribution.
+- **Backup Timestamp & Restores:** Fixed an issue where renamed backup files displayed the wrong creation timestamp (and showed localized time instead of UTC-relative preservation), and allowed restoring backups with customized .sqlite names safely in the /api/database/restore flow.
+
 ## [2.5.5] - 2026-03-19
 ### Fixed
 - **Backup lifecycle reliability improved**: Added server-side validation and safer handling for backup rename/lock/unlock operations, reducing invalid filename and collision issues.

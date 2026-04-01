@@ -47,7 +47,6 @@ router.post('/metadata-options', async (req, res) => {
   if (!VALID_CATEGORIES.includes(category)) return res.status(400).json({ error: 'Invalid category' });
 
   try {
-    // Auto-compute display_order if not provided
     let order = display_order;
     if (order === null || order === undefined) {
       const row = await db.get(
@@ -82,9 +81,9 @@ router.put('/metadata-options/:id', async (req, res) => {
     const existing = await db.get('SELECT * FROM metadata_options WHERE id = ?', [id]);
     if (!existing) return res.status(404).json({ error: 'Option not found' });
 
-    const newValue       = value         !== undefined ? value.trim()    : existing.value;
-    const newOrder       = display_order !== undefined ? display_order   : existing.display_order;
-    const newActive      = is_active     !== undefined ? is_active       : existing.is_active;
+    const newValue  = value         !== undefined ? value.trim()  : existing.value;
+    const newOrder  = display_order !== undefined ? display_order : existing.display_order;
+    const newActive = is_active     !== undefined ? is_active     : existing.is_active;
 
     await db.run(
       'UPDATE metadata_options SET value = ?, display_order = ?, is_active = ? WHERE id = ?',
@@ -109,7 +108,6 @@ router.delete('/metadata-options/:id', async (req, res) => {
     const option = await db.get('SELECT * FROM metadata_options WHERE id = ?', [id]);
     if (!option) return res.status(404).json({ error: 'Option not found' });
 
-    // Map category key to JSON field name in projects table
     const fieldMap = {
       software:           'software',
       imaging_techniques: 'image_types',
@@ -120,9 +118,7 @@ router.delete('/metadata-options/:id', async (req, res) => {
     const escapedValue = option.value.replace(/'/g, "''");
 
     const usageRow = field
-      ? await db.get(
-          `SELECT COUNT(*) as count FROM projects WHERE ${field} LIKE '%"${escapedValue}"%'`
-        )
+      ? await db.get(`SELECT COUNT(*) as count FROM projects WHERE ${field} LIKE '%"${escapedValue}"%'`)
       : { count: 0 };
 
     const usageCount = usageRow ? usageRow.count : 0;

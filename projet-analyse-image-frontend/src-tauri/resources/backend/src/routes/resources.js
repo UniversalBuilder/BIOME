@@ -36,8 +36,34 @@ router.post('/validate', async (req, res) => {
         }
 
         // Get all resources for the project
-        const resources = await db.all('SELECT * FROM project_resources WHERE project_id = ?', [projectId]);
-        
+        let resources = await db.all('SELECT * FROM project_resources WHERE project_id = ?', [projectId]);
+
+        // If no resources in DB, try to re-hydrate from biome.json (portable project source of truth)
+        if (resources.length === 0 && project.project_path) {
+            const biomeJsonPath = path.join(project.project_path, 'biome.json');
+            if (checkFileExists(biomeJsonPath)) {
+                try {
+                    const biomeData = JSON.parse(fs.readFileSync(biomeJsonPath, 'utf8'));
+                    const biomeResources = biomeData.resources || [];
+                    for (const r of biomeResources) {
+                        if (!r.filename) continue;
+                        await db.run(
+                            `INSERT OR IGNORE INTO project_resources
+                             (project_id, filename, original_name, mime_type, kind, caption, size)
+                             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                            [projectId, r.filename, r.original_name || null, r.mime_type || null,
+                             r.kind || null, r.caption || null, r.size || 0]
+                        );
+                    }
+                    // Re-query after seeding
+                    resources = await db.all('SELECT * FROM project_resources WHERE project_id = ?', [projectId]);
+                    console.log(`[resources/validate] Seeded ${resources.length} resource(s) from biome.json for project ${projectId}`);
+                } catch (biomeErr) {
+                    console.warn('[resources/validate] Could not read/parse biome.json:', biomeErr.message);
+                }
+            }
+        }
+
         const missingResources = [];
         const validResources = [];
 

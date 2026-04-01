@@ -1096,6 +1096,40 @@ router.get('/:id/activities', async (req, res) => {
     }
 });
 
+// Seed project_resources from a biome.json resources array (import flow)
+// Idempotent: uses INSERT OR IGNORE so re-running is safe.
+router.post('/:id/import-resources', async (req, res) => {
+    const projectId = req.params.id;
+    const { resources } = req.body;
+
+    if (!Array.isArray(resources)) {
+        return res.status(400).json({ error: 'resources must be an array' });
+    }
+
+    try {
+        const project = await db.get('SELECT id FROM projects WHERE id = ?', [projectId]);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+
+        let seeded = 0;
+        for (const r of resources) {
+            if (!r.filename) continue;
+            await db.run(
+                `INSERT OR IGNORE INTO project_resources
+                 (project_id, filename, original_name, mime_type, kind, caption, size)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [projectId, r.filename, r.original_name || null, r.mime_type || null,
+                 r.kind || null, r.caption || null, r.size || 0]
+            );
+            seeded++;
+        }
+
+        res.json({ success: true, seeded });
+    } catch (err) {
+        console.error('Error importing resources:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
 
 

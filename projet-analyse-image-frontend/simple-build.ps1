@@ -108,6 +108,24 @@ if ($Target -ne "portable-only") {
         Write-Host "Tauri build failed" -ForegroundColor Red
         exit 1
     }
+
+    if ($Target -in @("msi", "both", "msi-portable", "both-portable")) {
+        $msiSource = "src-tauri\target\release\bundle\msi\BIOME_${version}_x64_en-US.msi"
+        $msiDestDir = "..\BIOME-Distribution"
+        $msiDestPath = Join-Path $msiDestDir "BIOME_${version}_x64_en-US.msi"
+        
+        if (Test-Path $msiSource) {
+            if (-not (Test-Path $msiDestDir)) { New-Item -ItemType Directory -Path $msiDestDir -Force | Out-Null }
+            Copy-Item -Path $msiSource -Destination $msiDestPath -Force
+            $sha256 = (Get-FileHash -Path $msiDestPath -Algorithm SHA256).Hash
+            Set-Content -Path "$msiDestPath.sha256" -Value $sha256
+            
+            Write-Host "Copied MSI to: $msiDestPath" -ForegroundColor Green
+            Write-Host "MSI SHA-256: $sha256" -ForegroundColor Green
+        } else {
+            Write-Host "Warning: Expected MSI source not found at $msiSource" -ForegroundColor Yellow
+        }
+    }
 } else {
     Write-Host "Skipping Tauri build for portable-only target (using existing release binaries)." -ForegroundColor Yellow
 }

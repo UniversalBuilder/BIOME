@@ -219,10 +219,10 @@ dbManager.connect().then(() => {
                 .map(f => {
                     const fullPath = path.join(BACKUPS_DIR, f);
                     const stat = fs.statSync(fullPath);
-                    const tsMatch = f.match(/^database-(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})\.sqlite$/);
+                    const tsMatch = f.match(/(\d{4}-\d{2}-\d{2})_(\d{2})-(\d{2})-(\d{2})/);
                     const created_at = tsMatch
-                        ? new Date(`${tsMatch[1]}T${tsMatch[2]}:${tsMatch[3]}:${tsMatch[4]}`).toISOString()
-                        : stat.mtime.toISOString();
+                        ? new Date(`${tsMatch[1]}T${tsMatch[2]}:${tsMatch[3]}:${tsMatch[4]}Z`).toISOString()
+                        : (stat.birthtime || stat.mtime).toISOString();
                     const locked = fs.existsSync(fullPath + '.lock');
                     return { filename: f, size: stat.size, created_at, locked };
                 })
@@ -239,7 +239,7 @@ dbManager.connect().then(() => {
         try {
             const { filename } = req.params;
             // Safety: only allow simple filenames, no path traversal
-            if (!/^database-[\d\-_]+\.sqlite$/.test(filename)) {
+            if (!/^[a-zA-Z0-9_\-\.]+\.sqlite$/.test(filename)) {
                 return res.status(400).json({ error: 'Invalid backup filename' });
             }
             const srcPath = path.join(BACKUPS_DIR, filename);
