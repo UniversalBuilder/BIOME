@@ -1,4 +1,13 @@
-﻿# BIOME - Bio Imaging Organization and Management Environment
+> [!WARNING]
+> **DEPRECATED — legacy BIOME 2.x.** Active development continues in **[BIOME-next](https://github.com/UniversalBuilder/BIOME-next)**.
+>
+> This repository preserves the original application and its history. For the folder-based redesign, Windows downloads and illustrated guides, visit **[BIOME-next releases](https://github.com/UniversalBuilder/BIOME-next/releases)**.
+>
+> **Obsolète — ancien BIOME 2.x.** Le développement se poursuit dans BIOME-next. Son architecture et son format de données sont différents : conservez vos données et sauvegardes de l’ancienne version. La préversion actuelle ne propose pas de migration automatique universelle.
+
+---
+
+# BIOME - Bio Imaging Organization and Management Environment
 
 <div align="center">
 
